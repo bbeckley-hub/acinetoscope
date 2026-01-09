@@ -1,0 +1,10 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+GCA_001444265.1.fna	LNCY01000015.1	86820	87971	-	blaADC-25_1	1-1152/1152	===============	0/0	100.00	97.05	resfinder	EF016355	blaADC-25	
+GCA_001444265.1.fna	LNCY01000043.1	3932	4756	-	blaOXA-69_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY859527	blaOXA-69	Amoxicillin;Ampicillin
+GCA_001444265.1.fna	LNCY01000056.1	23	838	+	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+GCA_001444265.1.fna	LNCY01000075.1	457	1932	+	msr(E)_1	1-1476/1476	===============	0/0	100.00	100.00	resfinder	FR751518	msr(E)	Azithromycin;Erythromycin;Pristinamycin_IA;Quinupristin;Virginiamycin_S
+GCA_001444265.1.fna	LNCY01000075.1	1988	2872	+	mph(E)_1	1-885/885	===============	0/0	100.00	100.00	resfinder	DQ839391	mph(E)	Erythromycin
+GCA_001444265.1.fna	LNCY01000077.1	4762	5295	+	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin
+GCA_001444265.1.fna	LNCY01000078.1	2581	3360	-	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin
+GCA_001444265.1.fna	LNCY01000084.1	1591	2412	-	blaOXA-23_1	1-822/822	===============	0/0	100.00	100.00	resfinder	AY795964	blaOXA-23	Imipenem;Meropenem
+GCA_001444265.1.fna	LNCY01000098.1	104	919	-	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin

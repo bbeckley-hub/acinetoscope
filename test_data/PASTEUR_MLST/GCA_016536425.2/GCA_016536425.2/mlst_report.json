@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "sample": "GCA_016536425.2.fna",
+    "original_filename": "GCA_016536425.2.fna",
+    "analysis_date": "2026-01-09T14:30:47.249319",
+    "scheme": "abaumannii_2",
+    "scheme_display": "PASTEUR",
+    "version": "1.0",
+    "tool": "AcinetoScope"
+  },
+  "mlst_results": {
+    "sequence_type": "136",
+    "confidence": "HIGH",
+    "mlst_assigned": true,
+    "allele_profile": "Pas_cpn60(3)-Pas_fusA(2)-Pas_gltA(19)-Pas_pyrG(25)-Pas_recA(5)-Pas_rplB(2)-Pas_rpoB(5)",
+    "alleles": {
+      "Pas_cpn60": "3",
+      "Pas_fusA": "2",
+      "Pas_gltA": "19",
+      "Pas_pyrG": "25",
+      "Pas_recA": "5",
+      "Pas_rplB": "2",
+      "Pas_rpoB": "5"
+    },
+    "detected_scheme": "abaumannii_2"
+  },
+  "lineage_information": {
+    "international_clone": "Regional Clone",
+    "clonal_complex": "CC136",
+    "classification": "Epidemic Clone",
+    "geographic_distribution": "Europe, Mediterranean",
+    "clinical_significance": "Clone associated with OXA-58 production",
+    "outbreak_potential": "MODERATE",
+    "common_resistance": [
+      "Carbapenem-resistant",
+      "MDR"
+    ],
+    "typical_resistance_genes": [
+      "OXA-58",
+      "OXA-51-like"
+    ],
+    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=136"
+  }
+}

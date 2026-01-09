@@ -1,0 +1,5 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+GCA_001443265.1.fna	LNBZ01000007.1	62309	64552	+	gi|259020297|gb|FJ866497.1|	1-2244/2244	===============	0/0	100.00	98.44	victors	gi|164450834:35836-38658	Acinetobacter baumannii strain S1 PgaA (pgaA) gene complete cds	
+GCA_001443265.1.fna	LNBZ01000007.1	64849	66381	+	gi|259020299|gb|FJ866498.1|	1-1533/1533	===============	0/0	100.00	97.85	victors	gi|164450834:35836-38658	Acinetobacter baumannii strain S1 PgaB (pgaB) gene complete cds	
+GCA_001443265.1.fna	LNBZ01000007.1	66450	67628	+	gi|259020301|gb|FJ866499.1|	1-1179/1179	===============	0/0	100.00	98.47	victors	gi|164450834:35836-38658	Acinetobacter baumannii strain S1 PgaC (pgaC) gene complete cds	
+GCA_001443265.1.fna	LNBZ01000080.1	178	1710	-	gi|56707187:1378062-1379584	1-1523/1523	========/======	13/28	99.41	83.92	victors	gi|56707187:1378062-1379584	Francisella tularensis subsp. tularensis Schu 4 complete genome	

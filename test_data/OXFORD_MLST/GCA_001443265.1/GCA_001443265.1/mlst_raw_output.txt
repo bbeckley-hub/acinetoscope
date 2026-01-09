@@ -1,0 +1,20 @@
+STDOUT:
+GCA_001443265.1.fna,abaumannii,-,Oxf_gltA(1),Oxf_gyrB(15),Oxf_gdhB(4,182),Oxf_recA(11),Oxf_cpn60(4),Oxf_gpi(200),Oxf_rpoD(4)
+
+STDERR:
+[14:30:51] This is mlst 2.25.0 running on linux with Perl 5.032001
+[14:30:51] Checking mlst dependencies:
+[14:30:51] Found 'blastn' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/blastn
+[14:30:51] Found 'any2fasta' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/any2fasta
+[14:30:51] Found blastn: 2.16.0+ (002016)
+[14:30:51] Setting --minscore=0 because user chose --scheme
+[14:30:54] Found exact allele match abaumannii.Oxf_gpi-200
+[14:30:54] Found exact allele match abaumannii.Oxf_rpoD-4
+[14:30:54] Found exact allele match abaumannii.Oxf_gltA-1
+[14:30:54] Found exact allele match abaumannii.Oxf_gdhB-4
+[14:30:54] Found exact allele match abaumannii.Oxf_gyrB-15
+[14:30:54] Found exact allele match abaumannii.Oxf_cpn60-4
+[14:30:54] WARNING: found additional exact allele match abaumannii.Oxf_gdhB-182
+[14:30:54] Found exact allele match abaumannii.Oxf_recA-11
+[14:30:54] mlst also supports --json output for the modern bioinformatician.
+[14:30:54] Done.

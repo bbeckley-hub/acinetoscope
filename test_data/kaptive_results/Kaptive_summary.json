@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "tool": "AcinetoScope Kaptive K/O Analysis",
+    "version": "1.0.0",
+    "kaptive_version": "3.1.0",
+    "database_version": "2025-12-26 (ab_k/ab_o)",
+    "analysis_date": "2026-01-09 14:31:18",
+    "total_genomes": 9
+  },
+  "genome_summaries": {
+    "GCA_014705785.1": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "K2"
+      ],
+      "o_types": [
+        "OC1"
+      ],
+      "error": ""
+    },
+    "GCA_001444225.1": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "K15"
+      ],
+      "o_types": [
+        "unknown (OCL5)"
+      ],
+      "error": ""
+    },
+    "GCA_014705825.1": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "K2"
+      ],
+      "o_types": [
+        "OC1"
+      ],
+      "error": ""
+    },
+    "GCA_001443265.1": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "K15"
+      ],
+      "o_types": [
+        "unknown (OCL5)"
+      ],
+      "error": ""
+    },
+    "GCA_016536425.2": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "unknown (KL18)"
+      ],
+      "o_types": [
+        "unknown (OCL7)"
+      ],
+      "error": ""
+    },
+    "GCA_016539245.2": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "unknown (KL18)"
+      ],
+      "o_types": [
+        "unknown (OCL7)"
+      ],
+      "error": ""
+    },
+    "GCA_001444265.1": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "K15"
+      ],
+      "o_types": [
+        "unknown (OCL5)"
+      ],
+      "error": ""
+    },
+    "GCA_014705885.1": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "K2"
+      ],
+      "o_types": [
+        "OC1"
+      ],
+      "error": ""
+    },
+    "GCA_016535705.2": {
+      "status": "success",
+      "hit_count": 2,
+      "k_loci": 1,
+      "o_loci": 1,
+      "k_types": [
+        "K4"
+      ],
+      "o_types": [
+        "unknown (OCL3)"
+      ],
+      "error": ""
+    }
+  },
+  "statistics": {
+    "total_genomes": 9,
+    "successful_genomes": 9,
+    "failed_genomes": 0,
+    "total_k_loci": 9,
+    "total_o_loci": 9,
+    "k_type_distribution": {
+      "K2": 3,
+      "K15": 3,
+      "unknown (KL18)": 2,
+      "K4": 1
+    },
+    "o_type_distribution": {
+      "OC1": 3,
+      "unknown (OCL5)": 3,
+      "unknown (OCL7)": 2,
+      "unknown (OCL3)": 1
+    },
+    "genomes_with_k": 9,
+    "genomes_with_o": 9,
+    "genomes_with_both": 9,
+    "common_k_types": [
+      {
+        "type": "K2",
+        "count": 3
+      },
+      {
+        "type": "K15",
+        "count": 3
+      },
+      {
+        "type": "unknown (KL18)",
+        "count": 2
+      },
+      {
+        "type": "K4",
+        "count": 1
+      }
+    ],
+    "common_o_types": [
+      {
+        "type": "OC1",
+        "count": 3
+      },
+      {
+        "type": "unknown (OCL5)",
+        "count": 3
+      },
+      {
+        "type": "unknown (OCL7)",
+        "count": 2
+      },
+      {
+        "type": "unknown (OCL3)",
+        "count": 1
+      }
+    ]
+  }
+}

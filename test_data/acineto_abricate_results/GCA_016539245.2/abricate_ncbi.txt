@@ -1,0 +1,22 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+GCA_016539245.2.fna	AAYNTL020000002.1	266996	267820	+	blaOXA-317	1-825/825	===============	0/0	100.00	100.00	ncbi	NG_049611.1	OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-317	CARBAPENEM
+GCA_016539245.2.fna	AAYNTL020000005.1	9	1178	+	blaADC-96	1-1167/1167	========/======	1/3	100.00	98.72	ncbi	NG_051460.1	extended-spectrum class C beta-lactamase ADC-96	CEPHALOSPORIN
+GCA_016539245.2.fna	AAYNTL020000008.1	127830	128618	+	ant(3'')-IIa	1-789/789	===============	0/0	100.00	98.86	ncbi	NG_054646.1	aminoglycoside nucleotidyltransferase ANT(3'')-IIa	SPECTINOMYCIN;STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000010.1	116198	117000	+	aph(3'')-Ib	2-804/804	===============	0/0	99.88	100.00	ncbi	NG_047413.1	aminoglycoside O-phosphotransferase APH(3'')-Ib	STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000010.1	117000	117836	+	aph(6)-Id	1-837/837	===============	0/0	100.00	100.00	ncbi	NG_047464.1	aminoglycoside O-phosphotransferase APH(6)-Id	STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000010.1	120449	121264	-	sul2	1-816/816	===============	0/0	100.00	100.00	ncbi	NG_051852.1	sulfonamide-resistant dihydropteroate synthase Sul2	SULFONAMIDE
+GCA_016539245.2.fna	AAYNTL020000022.1	155	1342	-	tet(39)	1-1188/1188	===============	0/0	100.00	100.00	ncbi	NG_048137.1	tetracycline efflux MFS transporter Tet(39)	TETRACYCLINE
+GCA_016539245.2.fna	AAYNTL020000023.1	4721	5254	-	ant(2'')-Ia	1-534/534	===============	0/0	100.00	99.06	ncbi	NG_052432.1	aminoglycoside nucleotidyltransferase ANT(2'')-Ia	GENTAMICIN;KANAMYCIN;TOBRAMYCIN
+GCA_016539245.2.fna	AAYNTL020000024.1	4735	5514	-	aph(3')-VI	1-780/780	===============	0/0	100.00	99.23	ncbi	NG_051730.1	APH(3')-VI family aminoglycoside O-phosphotransferase	AMIKACIN;KANAMYCIN
+GCA_016539245.2.fna	AAYNTL020000040.1	42690	43514	+	blaOXA-317	1-825/825	===============	0/0	100.00	100.00	ncbi	NG_049611.1	OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-317	CARBAPENEM
+GCA_016539245.2.fna	AAYNTL020000041.1	7682	8470	+	ant(3'')-IIa	1-789/789	===============	0/0	100.00	98.86	ncbi	NG_054646.1	aminoglycoside nucleotidyltransferase ANT(3'')-IIa	SPECTINOMYCIN;STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000042.1	50	1219	+	blaADC-96	1-1167/1167	========/======	1/3	100.00	98.72	ncbi	NG_051460.1	extended-spectrum class C beta-lactamase ADC-96	CEPHALOSPORIN
+GCA_016539245.2.fna	AAYNTL020000043.1	4798	5985	+	tet(39)	1-1188/1188	===============	0/0	100.00	100.00	ncbi	NG_048137.1	tetracycline efflux MFS transporter Tet(39)	TETRACYCLINE
+GCA_016539245.2.fna	AAYNTL020000044.1	1	534	+	ant(2'')-Ia	1-534/534	===============	0/0	100.00	99.06	ncbi	NG_052432.1	aminoglycoside nucleotidyltransferase ANT(2'')-Ia	GENTAMICIN;KANAMYCIN;TOBRAMYCIN
+GCA_016539245.2.fna	AAYNTL020000045.1	101	903	+	aph(3'')-Ib	2-804/804	===============	0/0	99.88	100.00	ncbi	NG_047413.1	aminoglycoside O-phosphotransferase APH(3'')-Ib	STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000045.1	903	1739	+	aph(6)-Id	1-837/837	===============	0/0	100.00	100.00	ncbi	NG_047464.1	aminoglycoside O-phosphotransferase APH(6)-Id	STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000045.1	4352	5167	-	sul2	1-816/816	===============	0/0	100.00	100.00	ncbi	NG_051852.1	sulfonamide-resistant dihydropteroate synthase Sul2	SULFONAMIDE
+GCA_016539245.2.fna	AAYNTL020000046.1	101	903	+	aph(3'')-Ib	2-804/804	===============	0/0	99.88	99.88	ncbi	NG_047413.1	aminoglycoside O-phosphotransferase APH(3'')-Ib	STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000046.1	903	1739	+	aph(6)-Id	1-837/837	===============	0/0	100.00	100.00	ncbi	NG_047464.1	aminoglycoside O-phosphotransferase APH(6)-Id	STREPTOMYCIN
+GCA_016539245.2.fna	AAYNTL020000046.1	4352	5167	-	sul2	1-816/816	===============	0/0	100.00	100.00	ncbi	NG_051852.1	sulfonamide-resistant dihydropteroate synthase Sul2	SULFONAMIDE
+GCA_016539245.2.fna	AAYNTL020000047.1	238	1017	+	aph(3')-VI	1-780/780	===============	0/0	100.00	99.23	ncbi	NG_051730.1	APH(3')-VI family aminoglycoside O-phosphotransferase	AMIKACIN;KANAMYCIN

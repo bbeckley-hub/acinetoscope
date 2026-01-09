@@ -1,0 +1,14 @@
+## 📚 Citation & Acknowledgements
+
+If you use AcinetoScope in your research, please cite:
+
+```bibtex
+@software{acinetoscope2026,
+  title = {AcinetoScope: A Unified Parallelized Pipeline for Comprehensive Genomic Surveillance of Acinetobacter baumannii and Tracking of Critical Resistance Determinants},
+  author = {Beckley, Brown},
+  year = {2026},
+  publisher = {GitHub},
+  url = {https://github.com/bbeckley-hub/acinetoscope},
+  note = {Complete A. baumannii genomic analysis pipeline with parallel execution}
+}
+```

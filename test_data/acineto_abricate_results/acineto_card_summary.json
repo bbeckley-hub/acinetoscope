@@ -1,0 +1,859 @@
+{
+    "metadata": {
+        "database_name": "card",
+        "analysis_type": "ABRicate Antimicrobial Resistance & Virulence",
+        "total_genomes": 9,
+        "total_hits": 331,
+        "analysis_date": "2026-01-09 15:00:42",
+        "tool_version": "1.0.0"
+    },
+    "summary_statistics": {
+        "unique_genes": 50,
+        "unique_genomes": 9,
+        "hits_per_genome": 36.78,
+        "risk_analysis": {
+            "critical_carbapenemase_genes": 2,
+            "critical_esbl_genes": 1,
+            "critical_colistin_genes": 0,
+            "critical_aminoglycoside_genes": 6,
+            "high_risk_resistance_genes": 18,
+            "virulence_factors": 0
+        }
+    },
+    "gene_analysis": {
+        "most_frequent_genes": {
+            "adeK": 9,
+            "adeJ": 9,
+            "adeI": 9,
+            "adeF": 9,
+            "adeG": 9,
+            "adeL": 9,
+            "abeS": 9,
+            "Acinetobacter_baumannii_AmvA": 9,
+            "adeN": 9,
+            "Acinetobacter_baumannii_AbaQ": 9,
+            "adeS": 9,
+            "adeR": 9,
+            "adeA": 9,
+            "adeB": 9,
+            "Acinetobacter_baumannii_AbaF": 9,
+            "LpsB": 9,
+            "abeM": 9,
+            "ANT(3'')-IIa": 9,
+            "sul2": 8,
+            "adeC": 7,
+            "adeH": 6,
+            "APH(3')-Ia": 6,
+            "ANT(2'')-Ia": 6,
+            "APH(3'')-Ib": 5,
+            "APH(6)-Id": 5,
+            "APH(3')-VIa": 5,
+            "sul1": 4,
+            "qacEdelta1": 4,
+            "TEM-12": 4,
+            "OXA-69": 4,
+            "OXA-23": 4,
+            "mphE": 4,
+            "msrE": 4,
+            "ADC-30": 3,
+            "OXA-66": 3,
+            "aadA": 3,
+            "AAC(3)-Ia": 3,
+            "AAC(6')-Iaf": 3,
+            "tet(B)": 3,
+            "ADC-186": 3,
+            "OXA-317": 2,
+            "tet(39)": 2,
+            "ADC-11": 1,
+            "catA1": 1,
+            "tet(A)": 1,
+            "ADC-176": 1,
+            "ADC-88": 1,
+            "ADC-96": 1,
+            "catB3": 1,
+            "dfrA19": 1
+        },
+        "gene_details": {
+            "adeK": {
+                "product": "AdeK is the outer membrane factor protein in the adeIJK multidrug efflux complex.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.2
+            },
+            "adeJ": {
+                "product": "AdeJ is a RND efflux protein that acts as the inner membrane transporter of the AdeIJK efflux complex. It has 57% identity with E. coli AcrB.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.71
+            },
+            "adeI": {
+                "product": "AdeI is the membrane fusion protein of the AdeIJK multidrug efflux complex.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.78
+            },
+            "ADC-30": {
+                "product": "An ADC beta-lactamase and cephalosporinase from Acinetobacter baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "adeH": {
+                "product": "AdeH is the outer membrane channel protein of the AdeFGH multidrug efflux complex.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.38
+            },
+            "adeF": {
+                "product": "AdeF is the membrane fusion protein of the multidrug efflux complex AdeFGH.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.2
+            },
+            "adeG": {
+                "product": "AdeG is the inner membrane transporter of the AdeFGH multidrug efflux complex.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.56
+            },
+            "adeL": {
+                "product": "AdeL is a regulator of AdeFGH in Acinetobacter baumannii. AdeL mutations are associated with AdeFGH overexpression and multidrug resistance.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.15
+            },
+            "abeS": {
+                "product": "AbeS in an efflux pump of the SMR family of transporters found in Acinetobacter baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.27
+            },
+            "Acinetobacter_baumannii_AmvA": {
+                "product": "AmvA has 14 alpha-helical transmembrane segments qualifying it as a member of the DHA2 transporter family of the major facilitator superfamily (MFS). When AmvA was expressed in E. coli  the cells had at least four-fold decreased susceptibility to erythromycin acridine orange acriflavine deoxycholate and methyl viologen. AmvA from the AC0037 strain of A. baumannii was tested.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.45
+            },
+            "adeN": {
+                "product": "AdeN is a repressor of AdeIJK a RND-type efflux pump in Acinetobacter baumannii. Its inactivation increases expression of AdeJ.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 99.95,
+                "avg_identity": 98.16
+            },
+            "Acinetobacter_baumannii_AbaQ": {
+                "product": "AbaQ is an MFS transporter mainly involved in the extrusion of quinolone-type drugs in A. baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.13
+            },
+            "adeS": {
+                "product": "AdeS is a sensor kinase in the AdeRS regulatory system of AdeABC. It is essential for AdeABC expression.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 98.9,
+                "avg_identity": 98.05
+            },
+            "adeR": {
+                "product": "AdeR is a positive regulator of AdeABC efflux system. AdeR inactivation leads to susceptibility to aminoglycoside antibiotics.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.92
+            },
+            "adeA": {
+                "product": "AdeA is the membrane fusion protein of the multidrug efflux complex AdeABC.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.15
+            },
+            "adeB": {
+                "product": "AdeB is the multidrug transporter of the adeABC efflux system.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.66
+            },
+            "adeC": {
+                "product": "AdeC is the outer membrane factor of the AdeABC multidrug efflux complex. It can be replaced by other outer membrane channels and is not essential for antibiotic resistance.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 97.38
+            },
+            "OXA-66": {
+                "product": "OXA-66 is a beta-lactamase found in A. baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "Acinetobacter_baumannii_AbaF": {
+                "product": "Expression of abaF in E. coli resulted in increased resistance to fosfomycin.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 97.65
+            },
+            "sul1": {
+                "product": "Sul1 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria. It is linked to other resistance genes of class 1 integrons.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.99
+            },
+            "qacEdelta1": {
+                "product": "QacEdelta1 is a resistance gene conferring resistance to antiseptics. It is different from QacE only at the 3'-terminus.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 97.86,
+                "avg_identity": 100.0
+            },
+            "aadA": {
+                "product": "ANT(3'')-Ia is an aminoglycoside nucleotidyltransferase gene encoded by plasmids transposons integrons in Enterobacteriaceae A. baumannii P. aeruginosa and Vibrio cholerae.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "AAC(3)-Ia": {
+                "product": "AAC(3)-Ia is an aminoglycoside acetyltransferase encoded by plasmids transposons integrons in S. marcescens E. coli Acinetobacter baumannii Klebsiella pneumoniae Klebsiella oxytoca P. aeruginosa Salmonella typhimurium and Proteus mirabilis.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.92
+            },
+            "APH(3')-Ia": {
+                "product": "APH(3')-Ia is a transposon-encoded aminoglycoside phosphotransferase in E. coli and S. enterica. It is identical at the protein sequence to APH(3')-Ic an aminoglycoside phosphotransferase encoded by plasmids transposons and genomic islands in K. pneumoniae A. baumannii S. marcescens Corynebacterium spp. Photobacterium spp. and Citrobacter spp.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "TEM-12": {
+                "product": "TEM-12 is an extended-spectrum beta-lactamase found in Klebsiella oxytoca.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.88
+            },
+            "AAC(6')-Iaf": {
+                "product": "AAC(6')-Iaf is an aminoglycoside acetyltransferase encoded by plasmids and integrons in P. aeruginosa.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.01
+            },
+            "LpsB": {
+                "product": "LpsB is involved in lipopolysaccharide synthesis. It confers intrinsic resistance to colistin and other peptide antibiotics.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 95.61
+            },
+            "abeM": {
+                "product": "AbeM is an multidrug efflux pump found in Acinetobacter baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.72
+            },
+            "APH(3'')-Ib": {
+                "product": "APH(3'')-Ib is an aminoglycoside phosphotransferase encoded by plasmids transposons integrative conjugative elements and chromosomes in Enterobacteriaceae and Pseudomonas spp.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.86
+            },
+            "APH(6)-Id": {
+                "product": "APH(6)-Id is an aminoglycoside phosphotransferase encoded by plasmids integrative conjugative elements and chromosomal genomic islands in K. pneumoniae Salmonella spp. E. coli Shigella flexneri Providencia alcalifaciens Pseudomonas spp. V. cholerae Edwardsiella tarda Pasteurella multocida and Aeromonas bestiarum.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.88
+            },
+            "tet(B)": {
+                "product": "Tet(B) is a tetracycline efflux protein expressed in many Gram-negative bacteria. It confers resistance to tetracycline doxycycline and minocycline but not tigecycline.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 99.5,
+                "avg_identity": 99.83
+            },
+            "sul2": {
+                "product": "Sul2 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria usually found on small plasmids.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "ANT(3'')-IIa": {
+                "product": "ANT(3'')-IIa is a aminoglycoside nucleotidyltransferase identified in Acinetobacter spp. via horizontal gene transfer mechanisms.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.59
+            },
+            "OXA-69": {
+                "product": "OXA-69 is a beta-lactamase found in A. baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "ADC-11": {
+                "product": "ADC-11 is a class C beta-lactamase found in Acinetobacter baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "catA1": {
+                "product": "catA1 (formerly in CARD as catI) is a chromosome and transposon-encoded variant of the cat gene found in Escherichia coli and Acinetobacter baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.85
+            },
+            "tet(A)": {
+                "product": "TetA is a tetracycline efflux pump found in many species of Gram-negative bacteria.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 97.8,
+                "avg_identity": 100.0
+            },
+            "ADC-176": {
+                "product": "ADC-176 is a ADC beta-lactamase.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "OXA-23": {
+                "product": "OXA-23 is a beta-lactamase found in A. baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "ADC-186": {
+                "product": "ADC-186 is a ADC beta-lactamase.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.83
+            },
+            "APH(3')-VIa": {
+                "product": "APH(3')-VIa is a plasmid-encoded aminoglycoside phosphotransferase in A. baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.08
+            },
+            "ANT(2'')-Ia": {
+                "product": "Plasmid or integron-encoded nucleotidylylation of 2-deoxystreptamine aminoglycosides at the hydroxyl group at position 2'' in P. aeruginosa K. pneumoniae Morganella morganii E. coli S. typhimurium C. freundii and A. baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.13
+            },
+            "mphE": {
+                "product": "mphE is a macrolide phosphotransferase and resistance gene identified on a plasmid pRSB105.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "msrE": {
+                "product": "MsrE is an ABC-F subfamily protein expressed to Klebsiella pneumoniae that confers resistance to erythromycin and streptogramin B antibiotics. It is associated with plasmid DNA. It is also 100% identical to ABC-F type ribosomal protection protein Msr(E) which is in multiple species.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "ADC-88": {
+                "product": "ADC-88 is a ADC beta-lactamase.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "OXA-317": {
+                "product": "OXA-317 is a beta-lactamase found in A. baumannii.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "tet(39)": {
+                "product": "Tet39 is a tetracycline efflux pump found in Gram-negative bacteria including Brevundimonas Stenotrophomonas Enterobacter Alcaligenes Acinetobacter and Providencia.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "ADC-96": {
+                "product": "ADC-96 is a ADC beta-lactamase.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.72
+            },
+            "catB3": {
+                "product": "catB3 is a plasmid or chromosome-encoded variant of the cat gene found in Salmonella typhimurium Acinetobacter baumannii and Escherichia coli.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "dfrA19": {
+                "product": "dfrA19 is an integron-encoded dihydrofolate reductase found in Klebsiella pneumoniae.",
+                "databases": [
+                    "card"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.83
+            }
+        }
+    },
+    "genome_analysis": {
+        "GCA_014705785.1": {
+            "total_hits": 35,
+            "unique_genes": 33,
+            "genes": [
+                "adeR",
+                "adeC",
+                "adeH",
+                "Acinetobacter_baumannii_AbaF",
+                "APH(3')-Ia",
+                "aadA",
+                "OXA-66",
+                "sul2",
+                "abeS",
+                "adeL",
+                "tet(B)",
+                "adeB",
+                "adeN",
+                "adeI",
+                "TEM-12",
+                "LpsB",
+                "AAC(3)-Ia",
+                "qacEdelta1",
+                "APH(3'')-Ib",
+                "AAC(6')-Iaf",
+                "abeM",
+                "adeF",
+                "adeJ",
+                "adeG",
+                "sul1",
+                "adeA",
+                "adeS",
+                "APH(6)-Id",
+                "ANT(3'')-IIa",
+                "Acinetobacter_baumannii_AmvA",
+                "adeK",
+                "Acinetobacter_baumannii_AbaQ",
+                "ADC-30"
+            ]
+        },
+        "GCA_016535705.2": {
+            "total_hits": 50,
+            "unique_genes": 32,
+            "genes": [
+                "adeR",
+                "adeC",
+                "adeH",
+                "Acinetobacter_baumannii_AbaF",
+                "APH(3')-Ia",
+                "aadA",
+                "abeS",
+                "ADC-11",
+                "adeL",
+                "adeB",
+                "adeN",
+                "catA1",
+                "adeI",
+                "LpsB",
+                "TEM-12",
+                "OXA-69",
+                "OXA-23",
+                "AAC(3)-Ia",
+                "qacEdelta1",
+                "abeM",
+                "adeF",
+                "adeJ",
+                "adeG",
+                "tet(A)",
+                "sul1",
+                "adeA",
+                "adeS",
+                "ANT(3'')-IIa",
+                "ADC-176",
+                "Acinetobacter_baumannii_AmvA",
+                "adeK",
+                "Acinetobacter_baumannii_AbaQ"
+            ]
+        },
+        "GCA_001444265.1": {
+            "total_hits": 28,
+            "unique_genes": 28,
+            "genes": [
+                "adeR",
+                "adeC",
+                "Acinetobacter_baumannii_AbaF",
+                "APH(3')-Ia",
+                "sul2",
+                "abeS",
+                "ADC-186",
+                "adeL",
+                "adeB",
+                "adeN",
+                "adeI",
+                "LpsB",
+                "OXA-69",
+                "OXA-23",
+                "abeM",
+                "APH(3')-VIa",
+                "adeF",
+                "adeJ",
+                "adeG",
+                "mphE",
+                "adeA",
+                "ANT(3'')-IIa",
+                "adeS",
+                "Acinetobacter_baumannii_AmvA",
+                "msrE",
+                "adeK",
+                "ANT(2'')-Ia",
+                "Acinetobacter_baumannii_AbaQ"
+            ]
+        },
+        "GCA_001443265.1": {
+            "total_hits": 28,
+            "unique_genes": 28,
+            "genes": [
+                "adeR",
+                "adeC",
+                "Acinetobacter_baumannii_AbaF",
+                "APH(3')-Ia",
+                "sul2",
+                "abeS",
+                "ADC-186",
+                "adeL",
+                "adeB",
+                "adeN",
+                "adeI",
+                "LpsB",
+                "OXA-69",
+                "OXA-23",
+                "abeM",
+                "APH(3')-VIa",
+                "adeF",
+                "adeJ",
+                "adeG",
+                "mphE",
+                "adeA",
+                "ANT(3'')-IIa",
+                "adeS",
+                "Acinetobacter_baumannii_AmvA",
+                "msrE",
+                "adeK",
+                "ANT(2'')-Ia",
+                "Acinetobacter_baumannii_AbaQ"
+            ]
+        },
+        "GCA_001444225.1": {
+            "total_hits": 29,
+            "unique_genes": 28,
+            "genes": [
+                "adeR",
+                "adeC",
+                "Acinetobacter_baumannii_AbaF",
+                "APH(3')-Ia",
+                "sul2",
+                "abeS",
+                "ADC-186",
+                "adeL",
+                "adeB",
+                "adeN",
+                "adeI",
+                "LpsB",
+                "OXA-69",
+                "OXA-23",
+                "abeM",
+                "APH(3')-VIa",
+                "adeF",
+                "adeJ",
+                "adeG",
+                "mphE",
+                "adeA",
+                "ANT(3'')-IIa",
+                "adeS",
+                "Acinetobacter_baumannii_AmvA",
+                "msrE",
+                "adeK",
+                "ANT(2'')-Ia",
+                "Acinetobacter_baumannii_AbaQ"
+            ]
+        },
+        "GCA_016539245.2": {
+            "total_hits": 45,
+            "unique_genes": 27,
+            "genes": [
+                "adeR",
+                "adeH",
+                "Acinetobacter_baumannii_AbaF",
+                "sul2",
+                "abeS",
+                "adeL",
+                "adeB",
+                "adeN",
+                "adeI",
+                "LpsB",
+                "OXA-317",
+                "APH(3'')-Ib",
+                "abeM",
+                "APH(3')-VIa",
+                "adeF",
+                "tet(39)",
+                "adeJ",
+                "adeG",
+                "adeA",
+                "ANT(3'')-IIa",
+                "APH(6)-Id",
+                "adeS",
+                "Acinetobacter_baumannii_AmvA",
+                "adeK",
+                "ANT(2'')-Ia",
+                "Acinetobacter_baumannii_AbaQ",
+                "ADC-96"
+            ]
+        },
+        "GCA_014705885.1": {
+            "total_hits": 35,
+            "unique_genes": 33,
+            "genes": [
+                "adeR",
+                "adeC",
+                "adeH",
+                "Acinetobacter_baumannii_AbaF",
+                "APH(3')-Ia",
+                "aadA",
+                "OXA-66",
+                "sul2",
+                "abeS",
+                "adeL",
+                "tet(B)",
+                "adeB",
+                "adeN",
+                "adeI",
+                "TEM-12",
+                "LpsB",
+                "AAC(3)-Ia",
+                "qacEdelta1",
+                "APH(3'')-Ib",
+                "AAC(6')-Iaf",
+                "abeM",
+                "adeF",
+                "adeJ",
+                "adeG",
+                "sul1",
+                "adeA",
+                "adeS",
+                "APH(6)-Id",
+                "ANT(3'')-IIa",
+                "Acinetobacter_baumannii_AmvA",
+                "adeK",
+                "Acinetobacter_baumannii_AbaQ",
+                "ADC-30"
+            ]
+        },
+        "GCA_014705825.1": {
+            "total_hits": 40,
+            "unique_genes": 35,
+            "genes": [
+                "adeR",
+                "adeC",
+                "adeH",
+                "Acinetobacter_baumannii_AbaF",
+                "OXA-66",
+                "sul2",
+                "abeS",
+                "adeL",
+                "tet(B)",
+                "adeB",
+                "dfrA19",
+                "adeN",
+                "adeI",
+                "TEM-12",
+                "LpsB",
+                "qacEdelta1",
+                "APH(3'')-Ib",
+                "AAC(6')-Iaf",
+                "abeM",
+                "adeF",
+                "adeJ",
+                "catB3",
+                "adeG",
+                "mphE",
+                "sul1",
+                "adeA",
+                "adeS",
+                "APH(6)-Id",
+                "ANT(3'')-IIa",
+                "Acinetobacter_baumannii_AmvA",
+                "msrE",
+                "adeK",
+                "ANT(2'')-Ia",
+                "Acinetobacter_baumannii_AbaQ",
+                "ADC-30"
+            ]
+        },
+        "GCA_016536425.2": {
+            "total_hits": 41,
+            "unique_genes": 27,
+            "genes": [
+                "adeR",
+                "adeH",
+                "Acinetobacter_baumannii_AbaF",
+                "sul2",
+                "abeS",
+                "adeL",
+                "adeB",
+                "adeN",
+                "adeI",
+                "LpsB",
+                "OXA-317",
+                "APH(3'')-Ib",
+                "abeM",
+                "APH(3')-VIa",
+                "adeF",
+                "tet(39)",
+                "adeJ",
+                "adeG",
+                "ADC-88",
+                "adeA",
+                "ANT(3'')-IIa",
+                "APH(6)-Id",
+                "adeS",
+                "Acinetobacter_baumannii_AmvA",
+                "adeK",
+                "ANT(2'')-Ia",
+                "Acinetobacter_baumannii_AbaQ"
+            ]
+        }
+    },
+    "risk_genes": {
+        "critical_carbapenemase": [
+            "OXA-66",
+            "OXA-23"
+        ],
+        "critical_esbl": [
+            "TEM-12"
+        ],
+        "critical_colistin": [],
+        "critical_aminoglycoside": [
+            "APH(3')-Ia",
+            "aadA",
+            "AAC(3)-Ia",
+            "AAC(6')-Iaf",
+            "APH(3')-VIa",
+            "APH(6)-Id"
+        ],
+        "high_risk_resistance": [
+            "adeC",
+            "adeH",
+            "sul2",
+            "abeS",
+            "adeL",
+            "adeB",
+            "dfrA19",
+            "adeN",
+            "catA1",
+            "adeI",
+            "abeM",
+            "adeJ",
+            "catB3",
+            "adeG",
+            "mphE",
+            "sul1",
+            "adeA",
+            "adeK"
+        ],
+        "virulence_factors": []
+    },
+    "raw_hits_summary": {
+        "total_hits": 331,
+        "hits_by_genome": {
+            "GCA_014705785.1": 35,
+            "GCA_016535705.2": 50,
+            "GCA_001444265.1": 28,
+            "GCA_001443265.1": 28,
+            "GCA_001444225.1": 29,
+            "GCA_016539245.2": 45,
+            "GCA_014705885.1": 35,
+            "GCA_014705825.1": 40,
+            "GCA_016536425.2": 41
+        }
+    }
+}

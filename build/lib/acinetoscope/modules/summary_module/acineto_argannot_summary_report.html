@@ -1,0 +1,494 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope ABRicate - ARGANNOT Database Summary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gene-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gene-table th, .gene-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .gene-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .present { background-color: #d4edda; }
+    </style>
+    
+        <script>
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Rotate every 10 seconds
+            setInterval(rotateQuote, 10000);
+            
+            // Initial display
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+            });
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope ABRicate - ARGANNOT Database Summary</h1>
+                <p style="color: #666; font-size: 1.2em;">Cross-genome analysis of ARGANNOT database results</p>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Database Overview</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total Hits</h3>
+                    <p style="font-size: 2em; margin: 0;">178</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Genomes</h3>
+                    <p style="font-size: 2em; margin: 0;">9</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Unique Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">33</p>
+                </div>
+            </div>
+            <p><strong>Database:</strong> ARGANNOT</p>
+            <p><strong>Date:</strong> 2026-01-07 18:06:43</p>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔍 Genes by Genome</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Genome</th>
+                        <th>Gene Count</th>
+                        <th>Genes Detected</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="present">
+                        <td><strong>GCA_001443265.1</strong></td>
+                        <td>14</td>
+                        <td>(AGly)aadB, (AGly)ant(3'')-IIa, (AGly)aph(3'')-Ia, (AGly)aphA6, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)beta-lactamase_class-C, (Bla)blaOXA-23, (Bla)blaOXA-69, (MLS)mph(E), (MLS)msr(E), (Sul)sul2</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_001444225.1</strong></td>
+                        <td>14</td>
+                        <td>(AGly)aadB, (AGly)ant(3'')-IIa, (AGly)aph(3'')-Ia, (AGly)aphA6, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)beta-lactamase_class-C, (Bla)blaOXA-23, (Bla)blaOXA-69, (MLS)mph(E), (MLS)msr(E), (Sul)sul2</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_001444265.1</strong></td>
+                        <td>14</td>
+                        <td>(AGly)aadB, (AGly)ant(3'')-IIa, (AGly)aph(3'')-Ia, (AGly)aphA6, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)beta-lactamase_class-C, (Bla)blaOXA-23, (Bla)blaOXA-69, (MLS)mph(E), (MLS)msr(E), (Sul)sul2</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_014705785.1</strong></td>
+                        <td>17</td>
+                        <td>(AGly)aac3-I, (AGly)aac6-Iaf, (AGly)aadA1-pm, (AGly)ant(3'')-IIa, (AGly)aph(3'')-Ia, (AGly)strA, (AGly)strB, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)blaADC-30, (Bla)blaOXA-66, (Bla)blaTEM-1D, (Sul)sul1, (Sul)sul2, (Tet)tetB</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_014705825.1</strong></td>
+                        <td>19</td>
+                        <td>(AGly)aac6-Iaf, (AGly)aadB, (AGly)ant(3'')-IIa, (AGly)strA, (AGly)strB, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)blaADC-30, (Bla)blaOXA-66, (Bla)blaTEM-1D, (MLS)mph(E), (MLS)msr(E), (Phe)catB3, (Sul)sul1, (Sul)sul2, (Tet)tetB, (Tmt)dfrA19</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_014705885.1</strong></td>
+                        <td>17</td>
+                        <td>(AGly)aac3-I, (AGly)aac6-Iaf, (AGly)aadA1-pm, (AGly)ant(3'')-IIa, (AGly)aph(3'')-Ia, (AGly)strA, (AGly)strB, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)blaADC-30, (Bla)blaOXA-66, (Bla)blaTEM-1D, (Sul)sul1, (Sul)sul2, (Tet)tetB</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_016535705.2</strong></td>
+                        <td>17</td>
+                        <td>(AGly)aac3-I, (AGly)aadA1-pm, (AGly)ant(3'')-IIa, (AGly)aph(3'')-Ia, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)beta-lactamase_class-C, (Bla)blaADC-10, (Bla)blaOXA-23, (Bla)blaOXA-69, (Bla)blaTEM-1D, (Phe)catA1, (Sul)sul1, (Tet)tetA, (Tet)tetR</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_016536425.2</strong></td>
+                        <td>13</td>
+                        <td>(AGly)aadB, (AGly)ant(3'')-IIa, (AGly)aphA6, (AGly)strA, (AGly)strB, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)blaADC-75, (Bla)blaOXA-91, (Sul)sul2, (Tet)tet(39)</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_016539245.2</strong></td>
+                        <td>13</td>
+                        <td>(AGly)aadB, (AGly)ant(3'')-IIa, (AGly)aphA6, (AGly)strA, (AGly)strB, (Bla)BlaA1, (Bla)BlaA2, (Bla)Mbl, (Bla)Zn-dependent_hydrolase, (Bla)blaADC-10, (Bla)blaOXA-91, (Sul)sul2, (Tet)tet(39)</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Gene Frequency</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Frequency</th>
+                        <th>Genomes</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td><strong>(Bla)Mbl</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)BlaA2</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)BlaA1</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)Zn-dependent_hydrolase</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)ant(3'')-IIa</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Sul)sul2</strong></td>
+                        <td>8</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)aph(3'')-Ia</strong></td>
+                        <td>6</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705885.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)aadB</strong></td>
+                        <td>6</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705825.1, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)strA</strong></td>
+                        <td>5</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)strB</strong></td>
+                        <td>5</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)aphA6</strong></td>
+                        <td>5</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaOXA-69</strong></td>
+                        <td>4</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)beta-lactamase_class-C</strong></td>
+                        <td>4</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaTEM-1D</strong></td>
+                        <td>4</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaOXA-23</strong></td>
+                        <td>4</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Sul)sul1</strong></td>
+                        <td>4</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(MLS)mph(E)</strong></td>
+                        <td>4</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705825.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(MLS)msr(E)</strong></td>
+                        <td>4</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705825.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)aadA1-pm</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705885.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)aac3-I</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705885.1, GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaADC-30</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaOXA-66</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(AGly)aac6-Iaf</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Tet)tetB</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaADC-10</strong></td>
+                        <td>2</td>
+                        <td>GCA_016535705.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaOXA-91</strong></td>
+                        <td>2</td>
+                        <td>GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Tet)tet(39)</strong></td>
+                        <td>2</td>
+                        <td>GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Phe)catA1</strong></td>
+                        <td>1</td>
+                        <td>GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Tet)tetA</strong></td>
+                        <td>1</td>
+                        <td>GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Tet)tetR</strong></td>
+                        <td>1</td>
+                        <td>GCA_016535705.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Bla)blaADC-75</strong></td>
+                        <td>1</td>
+                        <td>GCA_016536425.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Phe)catB3</strong></td>
+                        <td>1</td>
+                        <td>GCA_014705825.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>(Tmt)dfrA19</strong></td>
+                        <td>1</td>
+                        <td>GCA_014705825.1</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+                Analysis performed using AcinetoScope (ABRicate v1.2.0)
+            </p>
+        </div>
+    </div>
+</body>
+</html>

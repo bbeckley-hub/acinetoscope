@@ -1,0 +1,7 @@
+file	sequence	start	end	strand	gene	coverage	coverage_map	gaps	coverage_percent	identity_percent	database	accession	product	resistance	genome
+GCA_014705885.1.fna	CP061519.1	2805828	2806841	+	int	1-1014/1014	===============	0/0	100.00	99.90	ecoli_vf	SPG000069	integrase / recombinase		GCA_014705885.1
+GCA_016535705.2.fna	AAYNNC020000025.1	2914	3877	+	int	1-964/1014	===============	0/0	95.07	99.90	ecoli_vf	SPG000069	integrase / recombinase		GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000055.1	631	1594	-	int	1-964/1014	===============	0/0	95.07	99.90	ecoli_vf	SPG000069	integrase / recombinase		GCA_016535705.2
+GCA_014705785.1.fna	CP061517.1	2809271	2810284	+	int	1-1014/1014	===============	0/0	100.00	99.90	ecoli_vf	SPG000069	integrase / recombinase		GCA_014705785.1
+GCA_014705825.1.fna	CP061525.1	432258	433271	+	int	1-1014/1014	===============	0/0	100.00	99.80	ecoli_vf	SPG000069	integrase / recombinase		GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	439171	440184	+	int	1-1014/1014	===============	0/0	100.00	99.90	ecoli_vf	SPG000069	integrase / recombinase		GCA_014705825.1

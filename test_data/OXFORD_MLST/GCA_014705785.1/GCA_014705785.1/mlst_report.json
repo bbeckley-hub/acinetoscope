@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "sample": "GCA_014705785.1.fna",
+    "original_filename": "GCA_014705785.1.fna",
+    "analysis_date": "2026-01-09T14:31:03.189179",
+    "scheme": "abaumannii",
+    "scheme_display": "OXFORD",
+    "version": "1.0",
+    "tool": "AcinetoScope"
+  },
+  "mlst_results": {
+    "sequence_type": "UNKNOWN",
+    "confidence": "LOW",
+    "mlst_assigned": false,
+    "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(3)-Oxf_gdhB(3(?)-189)(?)-Oxf_recA(2)-Oxf_cpn60(2)-Oxf_gpi(97)-Oxf_rpoD(3)",
+    "alleles": {
+      "Oxf_gltA": "1",
+      "Oxf_gyrB": "3",
+      "Oxf_gdhB(3": "?",
+      "189)": "?",
+      "Oxf_recA": "2",
+      "Oxf_cpn60": "2",
+      "Oxf_gpi": "97",
+      "Oxf_rpoD": "3"
+    },
+    "detected_scheme": "abaumannii"
+  },
+  "lineage_information": {
+    "international_clone": "Not Assigned",
+    "clonal_complex": "Not Assigned",
+    "classification": "MLST typing failed",
+    "geographic_distribution": "N/A",
+    "clinical_significance": "Could not determine sequence type.",
+    "outbreak_potential": "UNKNOWN",
+    "common_resistance": [
+      "Cannot determine"
+    ],
+    "typical_resistance_genes": [
+      "Cannot determine"
+    ],
+    "pubmlst_link": "https://pubmlst.org/organisms/acinetobacter-baumannii"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "sample": "GCA_016536425.2.fna",
+    "original_filename": "GCA_016536425.2.fna",
+    "analysis_date": "2026-01-09T14:31:14.903658",
+    "scheme": "abaumannii",
+    "scheme_display": "OXFORD",
+    "version": "1.0",
+    "tool": "AcinetoScope"
+  },
+  "mlst_results": {
+    "sequence_type": "460",
+    "confidence": "HIGH",
+    "mlst_assigned": true,
+    "allele_profile": "Oxf_gltA(65)-Oxf_gyrB(17)-Oxf_gdhB(107)-Oxf_recA(11)-Oxf_cpn60(1)-Oxf_gpi(156)-Oxf_rpoD(6)",
+    "alleles": {
+      "Oxf_gltA": "65",
+      "Oxf_gyrB": "17",
+      "Oxf_gdhB": "107",
+      "Oxf_recA": "11",
+      "Oxf_cpn60": "1",
+      "Oxf_gpi": "156",
+      "Oxf_rpoD": "6"
+    },
+    "detected_scheme": "abaumannii"
+  },
+  "lineage_information": {
+    "international_clone": "Unknown",
+    "clonal_complex": "Unknown (ST460)",
+    "classification": "Not in database - novel or uncommon",
+    "geographic_distribution": "Unknown",
+    "clinical_significance": "ST460 is not currently in the AcinetoScope abaumannii MLST database.",
+    "outbreak_potential": "UNKNOWN",
+    "common_resistance": [
+      "Unknown - requires further analysis"
+    ],
+    "typical_resistance_genes": [
+      "Unknown"
+    ],
+    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=460"
+  }
+}

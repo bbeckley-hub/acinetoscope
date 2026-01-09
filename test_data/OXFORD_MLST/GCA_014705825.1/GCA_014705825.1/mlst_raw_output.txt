@@ -1,0 +1,20 @@
+STDOUT:
+GCA_014705825.1.fna,abaumannii,-,Oxf_gltA(1),Oxf_gyrB(3),Oxf_gdhB(3,189),Oxf_recA(2),Oxf_cpn60(2),Oxf_gpi(97),Oxf_rpoD(3)
+
+STDERR:
+[14:31:03] This is mlst 2.25.0 running on linux with Perl 5.032001
+[14:31:03] Checking mlst dependencies:
+[14:31:03] Found 'blastn' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/blastn
+[14:31:03] Found 'any2fasta' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/any2fasta
+[14:31:03] Found blastn: 2.16.0+ (002016)
+[14:31:03] Setting --minscore=0 because user chose --scheme
+[14:31:05] Found exact allele match abaumannii.Oxf_rpoD-3
+[14:31:05] Found exact allele match abaumannii.Oxf_gltA-1
+[14:31:05] Found exact allele match abaumannii.Oxf_gyrB-3
+[14:31:05] Found exact allele match abaumannii.Oxf_cpn60-2
+[14:31:05] Found exact allele match abaumannii.Oxf_recA-2
+[14:31:05] Found exact allele match abaumannii.Oxf_gdhB-189
+[14:31:05] WARNING: found additional exact allele match abaumannii.Oxf_gdhB-3
+[14:31:05] Found exact allele match abaumannii.Oxf_gpi-97
+[14:31:05] If you like MLST, you're absolutely going to love wgMLST!
+[14:31:05] Done.

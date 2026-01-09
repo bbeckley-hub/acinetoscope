@@ -1,0 +1,12 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+GCA_001444265.1.fna	LNCY01000006.1	34586	35374	-	ant(3'')-IIa	1-789/789	===============	0/0	100.00	100.00	ncbi	NG_054646.1	aminoglycoside nucleotidyltransferase ANT(3'')-IIa	SPECTINOMYCIN;STREPTOMYCIN
+GCA_001444265.1.fna	LNCY01000014.1	74268	74780	+	dfrA44	1-513/513	===============	0/0	100.00	100.00	ncbi	NG_073446.2	trimethoprim-resistant dihydrofolate reductase DfrA44	TRIMETHOPRIM
+GCA_001444265.1.fna	LNCY01000015.1	86820	87971	-	blaADC-186	1-1152/1152	===============	0/0	100.00	99.83	ncbi	NG_064709.1	extended-spectrum class C beta-lactamase ADC-186	CEPHALOSPORIN
+GCA_001444265.1.fna	LNCY01000043.1	3932	4756	-	blaOXA-69	1-825/825	===============	0/0	100.00	100.00	ncbi	NG_049809.1	OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-69	CARBAPENEM
+GCA_001444265.1.fna	LNCY01000056.1	23	838	+	sul2	1-816/816	===============	0/0	100.00	100.00	ncbi	NG_051852.1	sulfonamide-resistant dihydropteroate synthase Sul2	SULFONAMIDE
+GCA_001444265.1.fna	LNCY01000075.1	457	1932	+	msr(E)	1-1476/1476	===============	0/0	100.00	100.00	ncbi	NG_048007.1	ABC-F type ribosomal protection protein Msr(E)	AZITHROMYCIN;ERYTHROMYCIN;STREPTOGRAMIN
+GCA_001444265.1.fna	LNCY01000075.1	1988	2872	+	mph(E)	1-885/885	===============	0/0	100.00	100.00	ncbi	NG_064660.1	Mph(E) family macrolide 2'-phosphotransferase	ERYTHROMYCIN
+GCA_001444265.1.fna	LNCY01000077.1	4762	5295	+	ant(2'')-Ia	1-534/534	===============	0/0	100.00	99.06	ncbi	NG_052432.1	aminoglycoside nucleotidyltransferase ANT(2'')-Ia	GENTAMICIN;KANAMYCIN;TOBRAMYCIN
+GCA_001444265.1.fna	LNCY01000078.1	2581	3360	-	aph(3')-VI	1-780/780	===============	0/0	100.00	99.23	ncbi	NG_051730.1	APH(3')-VI family aminoglycoside O-phosphotransferase	AMIKACIN;KANAMYCIN
+GCA_001444265.1.fna	LNCY01000084.1	1591	2412	-	blaOXA-23	1-822/822	===============	0/0	100.00	100.00	ncbi	NG_049525.1	OXA-23 family carbapenem-hydrolyzing class D beta-lactamase OXA-23	CARBAPENEM
+GCA_001444265.1.fna	LNCY01000098.1	104	919	-	aph(3')-Ia	1-816/816	===============	0/0	100.00	100.00	ncbi	NG_047431.1	aminoglycoside O-phosphotransferase APH(3')-Ia	KANAMYCIN

@@ -1,0 +1,480 @@
+----------------------------------------------------------------------
+Changes included in 2025-12-03.1
+----------------------------------------------------------------------
+
+This is a major release of both the AMRFinderPlus software (v.4.2.4) and database (2025-12-03.1).
+
+The AMRFinderPlus 4.2.4 software release includes:
+- New POINT_DISRUPT feature to identify lesions in genes that cause resistance when they are disrupted.
+- Small in the point mutation nomenclature for nonsense mutations, frame shifts, and deletions.
+- Refactored BLAST interpretation code and small changes that will slightly improve some alignments.
+- StxTyper 1.0.45, See https://github.com/ncbi/stxtyper/releases/tag/v1.0.45 for the differences.
+
+See https://github.com/ncbi/amr/wiki/New-in-AMRFinderPlus for more information.
+
+
+The AMRFinderPlus 2025-12-03.1 database release updates include:
+
+- The new "POINT_DISRUPT" functionality has been added for Klebsiella_pneumoniae ompK35, ompK36, and cirA genes. Putatively function disrupting mutations not in the database will be returned in addition to the published mutations in these genes already included in the AMRFinderPlus database. We will be expanding the number of organisms that use this functionality in future database releases.
+- Point mutation nomenclature for deletions and stop codons has changed to more closely mimic HGVS standards. Please see https://github.com/ncbi/amr/wiki/Point-mutation-nomenclature for details.
+- Several records had their reference sequences withdrawn from GenBank. We replaced them with other sequences when available. We also replaced sequences based on a review where we identified incorrect start sites for a few proteins. You will see them in the detailed list below as proteins removed and added.
+- Changed reference for Staphylococcus aureus mprF from WP_111724484.1 to WP_001071135.1 to improve detection of mprF_V351E daptomycin resistance point mutation. The previous reference had a rare SNP in the immediately adjacent position 352
+- Investigated and removed tet(34) based on a rereading of the original paper, AST results available in Pathogen Detection showing no effect on phenotype, and a review of the comparative genomics.
+- Fixed a typo to standardize the blaOXA-MSI protein name (was class D beta-lactamase MSI-OXA, now class D beta-lactamase OXA-MSI).
+- Fixed a typo in Gene family symbol blaCIB was corrected to blaCIM. The only currently named allele, blaCIM-1 was correctly named.
+- New Helicobacter pylori beta-lactam and quinolone resistance point mutations.
+- Further collaboration with Gen-FS Salmonella Virulence Factor Working group members resulted in an additional 58 virulence genes for Salmonella building upon the 8 added earlier (Harhay et al., 2024 - PMID: 39845055).
+
+
+Summary:
+   Total proteins: 9463
+        Core proteins: 8113
+        Plus proteins: 1346
+   AMR proteins: 8172
+   STRESS proteins: 257
+   VIRULENCE proteins: 1034
+   PubMed references: 5599
+   Point mutations: 1516
+   Point mutation reference sequences: 274
+   Point mutation organism groups: 
+       Acinetobacter_baumannii, Bordetella_pertussis, Burkholderia_cepacia,
+       Burkholderia_pseudomallei, Campylobacter, Citrobacter_freundii,
+       Clostridioides_difficile, Corynebacterium_diphtheriae, Enterobacter_asburiae,
+       Enterobacter_cloacae, Enterococcus_faecalis, Enterococcus_faecium,
+       Escherichia, Haemophilus_influenzae, Helicobacter_pylori, Klebsiella_oxytoca,
+       Klebsiella_pneumoniae, Neisseria_gonorrhoeae, Neisseria_meningitidis,
+       Pseudomonas_aeruginosa, Salmonella, Serratia_marcescens, Staphylococcus_aureus,
+       Staphylococcus_pseudintermedius, Streptococcus_agalactiae, Streptococcus_pneumoniae,
+       Streptococcus_pyogenes, Vibrio_cholerae, Vibrio_parahaemolyticus,
+       Vibrio_vulnificus
+   HMMs: 773
+
+Updates since release 2025-07-16.1:
+   Proteins added: 138
+       Core proteins added: 77
+       Plus proteins added: 61
+   AMR proteins added: 78
+   VIRULENCE proteins added: 60
+   Alleles added: 62
+   PubMed references added: 100
+   PubMed references removed: 4
+   Point mutations added: 17
+   Added organism options: Helicobacter_pylori
+   Proteins removed: 25
+       Core proteins removed: 22
+       Plus proteins removed: 3
+   Reference Gene Catalog entries changed: 24
+   Hierarchy nodes added: 64
+   Hierarchy nodes removed: 1
+   Hierarchy nodes changed: 8
+
+Added proteins
+    core AMR AMR
+        aac(3)-C1264     NG_242158.1 WP_034000523.1     aminoglycoside N-acetyltransferase AAC(3)-C1264
+        ant(3'')-IId     NG_245776.1 WP_038350081.1     aminoglycoside nucleotidyltransferase ANT(3')-IId
+        bla              NG_055637.2 WP_003171307.1     class A beta-lactamase Bla1
+        estX             NG_245782.1 WP_446913730.1     macrolide esterase EstX
+        estX             NG_245784.1 WP_096124041.1     macrolide esterase EstX
+        estX             NG_245780.1 WP_016242844.1     macrolide esterase EstX
+        estX             NG_245786.1 WP_446913732.1     macrolide esterase EstX
+        estX             NG_245778.1 WP_446913728.1     macrolide esterase EstX
+        estX             NG_245781.1 WP_446913729.1     macrolide esterase EstX
+        estX             NG_245777.1 WP_446913727.1     macrolide esterase EstX
+        estX             NG_245779.1 WP_047660123.1     macrolide esterase EstX
+        estX             NG_245785.1 WP_080153612.1     macrolide esterase EstX
+        estX             NG_245783.1 WP_446913731.1     macrolide esterase EstX
+        estX/sat2        NG_052372.2 WP_446913733.1     bifunctional putative esterase EstX/streptothricin N-acetyltransferase Sat1
+        fosS             NG_245787.1 WP_053019115.1     fosfomycin resistance bacillithiol transferase FosS
+        blaACT-215       NG_245788.1 WP_167214326.1     cephalosporin-hydrolyzing class C beta-lactamase ACT-215
+        blaBIM-2         NG_245847.1 WP_408906769.1     subclass B1 metallo-beta-lactamase BIM-2
+        blaBKC-3         NG_245789.1 WP_446913734.1     carbapenem-hydrolyzing class A beta-lactamase BKC-3
+        blaCIM2-1        NG_245790.1 WP_062697499.1     CHM subclass B1 metallo-beta-lactamase CIM2-1
+        blaCJO-1         NG_245791.1 WP_076355270.1     CHM subclass B1 metallo-beta-lactamase CJO-1
+        blaCMH-9         NG_156998.1 WP_058650678.1     class C beta-lactamase CMH-9
+        blaCMY-224       NG_245793.1 WP_172750624.1     class C beta-lactamase CMY-224
+        blaEBR-6         NG_245848.1 WP_019976234.1     subclass B1 metallo-beta-lactamase EBR-6
+        blaGES-68        NG_245794.1 WP_446913735.1     class A beta-lactamase GES-68
+        blaGES-69        NG_245795.1 WP_446913736.1     class A beta-lactamase GES-69
+        blaIMI-31        NG_245796.1 WP_320714983.1     carbapenem-hydrolyzing class A beta-lactamase IMI-31
+        blaKPC-20        NG_245797.1 WP_436452774.1     carbapenem-hydrolyzing class A beta-lactamase KPC-20
+        blaKPC-210       NG_245798.1 WP_446913737.1     inhibitor-resistant carbapenem-hydrolyzing class A beta-lactamase KPC-210
+        blaKPC-282       NG_245799.1 WP_446913738.1     inhibitor-resistant carbapenem-hydrolyzing class A beta-lactamase KPC-282
+        blaKPC-283       NG_245800.1 WP_446913739.1     inhibitor-resistant class A beta-lactamase KPC-283
+        blaKPC-284       NG_245801.1 WP_446913740.1     inhibitor-resistant class A beta-lactamase KPC-284
+        blaLEN-121       NG_245133.1 WP_430799580.1     class A beta-lactamase LEN-121
+        blaLEN-131       NG_245134.1 WP_430799589.1     class A beta-lactamase LEN-131
+        blaLEN-162       NG_245135.1 WP_430799598.1     class A beta-lactamase LEN-162
+        blaLEN-183       NG_245136.1 WP_430799607.1     class A beta-lactamase LEN-183
+        blaLEN-203       NG_245137.1 WP_430799619.1     class A beta-lactamase LEN-203
+        blaNDM-50        NG_149664.1 WP_274293087.1     subclass B1 metallo-beta-lactamase NDM-50
+        blaNDM-92        NG_245808.1 WP_446913741.1     subclass B1 metallo-beta-lactamase NDM-92
+        blaNDM-93        NG_245809.1 WP_446913742.1     subclass B1 metallo-beta-lactamase NDM-93
+        blaOKP-B-175     NG_245138.1 WP_430799653.1     broad-spectrum class A beta-lactamase OKP-B-175
+        blaOXA-1179      NG_245849.1 WP_455363723.1     OXA-5 family class D beta-lactamase OXA-1179
+        blaOXA-1180      NG_245850.1 WP_455363724.1     class D beta-lactamase OXA-1180
+        blaOXA-1324      NG_245147.1 WP_410222686.1     OXA-23 family carbapenem-hydrolyzing class D beta-lactamase OXA-1324
+        blaOXA-1386      NG_245812.1 WP_431419749.1     OXA-12 family class D beta-lactamase OXA-1386
+        blaOXA-1387      NG_245813.1 WP_079385642.1     OXA-10 family class D beta-lactamase OXA-1387
+        blaOXA-1388      NG_245814.1 WP_032046023.1     OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-1388
+        blaOXA-1389      NG_245815.1 WP_446913743.1     OXA-1 family class D beta-lactamase OXA-1389
+        blaOXA-1390      NG_245816.1 WP_202732514.1     OXA-213 family carbapenem-hydrolyzing class D beta-lactamase OXA-1390
+        blaOXA-1391      NG_245817.1 WP_100117392.1     OXA-1 family class D beta-lactamase OXA-1391
+        blaOXA-1392      NG_245818.1 WP_273467884.1     OXA-10 family class D beta-lactamase OXA-1392
+        blaOXA-1393      NG_245819.1 WP_446913744.1     OXA-10 family class D beta-lactamase OXA-1393
+        blaOXA-1394      NG_245820.1 WP_279452048.1     OXA-12 family class D beta-lactamase OXA-1394
+        blaOXA-1395      NG_245821.1 WP_126518570.1     OXA-50 family oxacillin-hydrolyzing class D beta-lactamase OXA-1395
+        blaOXA-1396      NG_245822.1 WP_446913745.1     OXA-48 family class D beta-lactamase OXA-1396
+        blaOXA-1397      NG_245823.1 WP_118972044.1     OXA-1 family class D beta-lactamase OXA-1397
+        blaOXA-1398      NG_245824.1 WP_446913746.1     OXA-48 family class D beta-lactamase OXA-1398
+        blaOXA-1399      NG_245825.1 WP_446913747.1     OXA-48 family class D beta-lactamase OXA-1399
+        blaOXA-1400      NG_245826.1 WP_446913748.1     OXA-48 family class D beta-lactamase OXA-1400
+        blaOXA-1419      NG_245827.1 WP_279665785.1     OXA-211 family carbapenem-hydrolyzing class D beta-lactamase OXA-1419
+        blaOXA-955       NG_074734.1 WP_213994600.1     OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-955
+        blaOXY-2-53      NG_245142.1 WP_430799685.1     extended-spectrum class A beta-lactamase OXY-2-53
+        blaOXY-2-55      NG_245143.1 WP_430799692.1     extended-spectrum class A beta-lactamase OXY-2-55
+        blaOXY-2-56      NG_245144.1 WP_430799703.1     extended-spectrum class A beta-lactamase OXY-2-56
+        blaPDC-686       NG_245832.1 WP_446913749.1     class C beta-lactamase PDC-686
+        blaPFM-5         NG_245833.1 WP_446913750.1     subclass B2 metallo-beta-lactamase PFM-5
+        blaTEM-265       NG_245834.1 WP_446913751.1     class A beta-lactamase TEM-265
+        blaTEM-266       NG_245835.1 WP_446913752.1     class A beta-lactamase TEM-266
+        blaTEM-267       NG_245836.1 WP_446913753.1     class A beta-lactamase TEM-267
+        blaTEM-268       NG_245837.1 WP_446913754.1     class A beta-lactamase TEM-268
+        blaTEM-269       NG_245838.1 WP_446913755.1     class A beta-lactamase TEM-269
+        blaTEM-270       NG_245839.1 WP_201165842.1     class A beta-lactamase TEM-270
+        blaTEM-271       NG_245840.1 WP_446913756.1     class A beta-lactamase TEM-271
+        blaTEM-272       NG_245841.1 WP_032227889.1     class A beta-lactamase TEM-272
+        blaVEB-42        NG_245842.1 WP_446913757.1     extended-spectrum class A beta-lactamase VEB-42
+        blaVIM-96        NG_245843.1 WP_446913758.1     subclass B1 metallo-beta-lactamase VIM-96
+        cphA-18          NG_245844.1 WP_431419235.1     subclass B2 metallo-beta-lactamase CphA-18
+        estX-3           NG_245845.1 WP_001456218.1     macrolide esterase EstX-3
+    plus AMR AMR
+        aadT              WP_032073148.1                multidrug efflux MFS transporter AadT
+    plus VIRULENCE VIRULENCE
+        allD              WP_000703934.1                ureidoglycolate dehydrogenase AllD
+        bfpA              WP_000243508.1                type IV pilus major subunit protein BfpA
+        envF              WP_001033408.1                putative envelope lipoprotein EnvF
+        fljA              WP_000388997.1                phase 1 flagellin gene repressor FljA
+        gip               WP_000943591.1                hydroxypyruvate isomerase Gip
+        gogB              WP_010989047.1                type III secretion effector GogB
+        gtrC1             WP_010988978.1                putative glucosyltransferase GtrC1
+        hlyE              WP_001681583.1                hemolysin HlyE
+        hscC              WP_000368034.1                molecular chaperone HscC
+        hyi               WP_000943597.1                hydroxypyruvate isomerase Hyi
+        icmF              WP_001168956.1                type VI secretion protein IcmF
+        inlA              WP_010989462.1                class 1 internalin InlA
+        int               WP_001262313.1                FimB-specific integrase
+        lsrF              WP_000774147.1                3-hydroxy-5-phosphonooxypentane-2,4-dione thiolase LsrF
+        mltE              WP_001526856.1                transglycosylase SLT domain-containing protein MltE
+        oafA              WP_000639473.1                O-antigen acetyltransferase OafA
+        pagK              WP_010989029.1                vesicle-borne virulence factor PagK
+        pagO              WP_001233446.1                PhoPQ-activated DMT family transporter PagO
+        pefA              WP_000748205.1                major pilin PefA
+        pilL              WP_001095932.1                type IV pilin component protein pilL
+        pipA              WP_000938191.1                type III secretion system effector protease PipA
+        pltA              WP_001766395.1                typhoid-like toxin S-CDT ADP-ribosylating subunit PltA
+        rcK               WP_000725062.1                complement resistance protein Rck
+        rfc               WP_000905563.1                O-antigen polymerase Rfc
+        rhuM              WP_000774139.1                cytoplasmic virulence protein RhuM
+        ripR              WP_000423170.1                itaconate degradation transcriptional regulator RipR
+        s025              WP_058654886.1                S8 family peptidase
+        safA              WP_000835839.1                Saf fimbria major subunit SafA
+        safB              WP_011264198.1                pili assembly chaperone SafB
+        sarA              WP_010989048.1                anti-inflammatory response activator SarA
+        sciR              WP_000227044.1                Shiga-like toxin A subunit SciR
+        sefA              WP_011233254.1                SEF14 fimbria major subunit SefA
+        sopE              WP_000161708.1                SPI-1 type III secretion system guanine nucleotide exchange factor SopE
+        spvB              WP_001676648.1                SPI-2 type III secretion system effector NAD(+)--protein-arginine ADP-ribosyltransferase SpvB
+        sseI              WP_001533476.1                SPI-2 type III secretion system effector SseI
+        staC              WP_001125010.1                Sta fimbria outer membrane usher protein StaC
+        stcA              WP_000830686.1                Stc fimbria major subunit StcA
+        stcD              WP_000765279.1                Stc fimbria adhesin StcD
+        steB              WP_071818056.1                fimbrial biogenesis outer membrane usher protein SteB
+        stfA              WP_001090554.1                Stf fimbria major subunit StfA
+        stgA              WP_000773772.1                Stg fimbria major subunit StgA
+        stiA              WP_000777532.1                Sti fimbria major subunit StiA
+        stjB              WP_000876250.1                StjB fimbria biogenesis outer membrane usher protein StjB
+        stkA              WP_000466117.1                Stk fimbria major subunit StkA
+        stm0854           WP_001521476.1                STM0854 family CoA ester lyase
+        stm0859           WP_000545327.1                STM0859 family transcriptional regulator
+        stm2239           WP_010989045.1                antiterminator Q family protein
+        sty2629           WP_000400611.1                STY2629 family LPS modification acyltransferase
+        sty3281           WP_000768134.1                STY3281 family bacteriocin immunity protein
+        sty4826           WP_000468230.1                STY4826 family bacteriophage gene regulatory protein
+        sugR              WP_001541628.1                AAA family ATPase SugR
+        tcfA              WP_001009503.1                fimbrial chaperone TcfA
+        tinR              WP_000219490.1                Lrp/AsnC family transcriptional regulator TinR
+        traT              WP_000782438.1                conjugal transfer complement resistance protein TraT
+        tssA              WP_079812699.1                type VI secretion system protein TssA
+        tviA              WP_001210944.1                Vi polysaccharide biosynthesis regulator TviA
+        vasL              WP_000076067.1                type VI secretion system protein VasL
+        vexA              WP_000720235.1                Vi polysaccharide ABC transporter protein VexA
+        xis               WP_000065276.1                excisionase Xis
+        yigF              WP_000356594.1                inner membrane protein YigF
+Added point mutations
+    core AMR POINT
+        gyrA_D91G        QUINOLONE Helicobacter_pylori  
+        gyrA_D91N        QUINOLONE Helicobacter_pylori  
+        gyrA_D91Y        QUINOLONE Helicobacter_pylori  
+        gyrA_N87K        QUINOLONE Helicobacter_pylori  
+        mprF_L431F       DAPTOMYCIN/VANCOMYCIN Staphylococcus_aureus 
+        mprF_S829L       DAPTOMYCIN Staphylococcus_aureus 
+        pbp1a_F473L      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_N562T      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_P623L      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_S414R      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_S455N      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_S543R      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_T438M      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_T556S      BETA-LACTAM Helicobacter_pylori 
+        pbp1a_V469M      BETA-LACTAM Helicobacter_pylori 
+        penR_V151E       CARBAPENEM Burkholderia_cepacia 
+        vraS_T331I       DAPTOMYCIN/VANCOMYCIN Staphylococcus_aureus 
+Removed proteins
+    core AMR AMR
+        aac(3)-C1264     NG_242158.1 WP_034000523.1     aminoglycoside N-acetyltransferase AAC(3)-C1264
+        bla              NG_055637.1 WP_011053164.1     class A beta-lactamase Bla1
+        estX/sat2        NG_052372.1 WP_071846307.1     bifunctional putative esterase EstX/streptothricin N-acetyltransferase Sat1
+        tet(34)          NG_048129.1 WP_005592781.1     oxytetracycline resistance phosphoribosyltransferase domain-containing protein Tet(34)
+        blaACC-8         NG_070728.1 WP_188331862.1     cephalosporin-hydrolyzing class C beta-lactamase ACC-8
+        blaBIM-2         NG_244118.1 WP_408906769.1     subclass B1 metallo-beta-lactamase BIM-2
+        blaCMH-9         NG_156998.1 WP_058650678.1     class C beta-lactamase CMH-9
+        blaIMI-28        NG_245145.1 WP_396000269.1     carbapenem-hydrolyzing class A beta-lactamase IMI-28
+        blaLEN-121       NG_245133.1 WP_430799580.1     class A beta-lactamase LEN-121
+        blaLEN-131       NG_245134.1 WP_430799589.1     class A beta-lactamase LEN-131
+        blaLEN-162       NG_245135.1 WP_430799598.1     class A beta-lactamase LEN-162
+        blaLEN-171       NG_244762.1 WP_430689812.1     class A beta-lactamase LEN-171
+        blaLEN-172       NG_244763.1 WP_430689813.1     class A beta-lactamase LEN-172
+        blaLEN-183       NG_245136.1 WP_430799607.1     class A beta-lactamase LEN-183
+        blaLEN-203       NG_245137.1 WP_430799619.1     class A beta-lactamase LEN-203
+        blaNDM-50        NG_149664.1 WP_274293087.1     subclass B1 metallo-beta-lactamase NDM-50
+        blaOKP-B-175     NG_245138.1 WP_430799653.1     broad-spectrum class A beta-lactamase OKP-B-175
+        blaOXA-1324      NG_245147.1 WP_410222686.1     OXA-23 family carbapenem-hydrolyzing class D beta-lactamase OXA-1324
+        blaOXA-955       NG_074734.1 WP_213994600.1     OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-955
+        blaOXY-2-53      NG_245142.1 WP_430799685.1     extended-spectrum class A beta-lactamase OXY-2-53
+        blaOXY-2-55      NG_245143.1 WP_430799692.1     extended-spectrum class A beta-lactamase OXY-2-55
+        blaOXY-2-56      NG_245144.1 WP_430799703.1     extended-spectrum class A beta-lactamase OXY-2-56
+    plus VIRULENCE VIRULENCE
+        alo               WP_095889388.1                anthrolysin O/cereolysin O family cholesterol-dependent cytolysin Alo
+        ipaH3             WP_000936833.1                T3SS effector E3 ubiquitin-protein ligase IpaH3/Hc
+        ipaH3             WP_000936820.1                T3SS effector E3 ubiquitin-protein ligase IpaH3/Hc
+Changed reference gene catalog records
+    bpsX AJI07938.1                                 
+        product_name:    LytR family transcriptional regulator BpsX -> secondary capsule biosynthesis glycopolymer transferase BpsX 
+    stxA2 WP_106905859.1                                
+        genbank_protein_accession: WP_106905859.1 -> <empty>      
+    baeR_G23E WP_000137877.1                                
+        product_name:    two-component system response regulator BaeR -> envelope stress response regulator BaeR 
+    baeR_S104N WP_000680577.1                                
+        product_name:    response regulator BaeR -> envelope stress response regulator BaeR 
+    blaCEMC19-1 UVT38118.1                                
+        product_name:    subclass B1 metallo-beta-lactamase CEMC19-1 -> CHM subclass B1 metallo-beta-lactamase CEMC19-1 
+    blaCIM-1 MEB4758970.1                                
+        gene_family:     blaCIB -> blaCIM               
+    blaOXA-MSI AJP77058.1                                
+        product_name:    class D beta-lactamase MSI-OXA -> class D beta-lactamase OXA-MSI 
+    cphA-11 CAA71441.1                                
+        synonyms:        <empty> -> imiS                
+    cphA-13 CAD69003.1                                
+        synonyms:        <empty> -> imiH                
+    gyrA_T86I WP_002779062.1                                
+        pubmed_reference: 12121947,12493783,15078520,16553723 -> 8384814,12121947,12493783,15078520,16553723,39296292 
+    gyrA_T86I WP_002857904.1                                
+        pubmed_reference: 12121947,12493783,15078520,16553723 -> 8384814,12121947,12493783,15078520,16553723,39296292 
+    mprF_G61V WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_I420N WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_L341S WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_L826F WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_M347R WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_P314L WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_S295L WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_S337L WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_T345A WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_T345I WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_T345K WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_T472K WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+    mprF_V351E WP_001071135.1                                
+        genbank_nucleotide_accession: QHCN01000001.1 -> CP000046.1   
+        genbank_protein_accession: RAL89784.1 -> AAW36644.1       
+        genbank_start:   1592485 -> 1405257             
+        genbank_stop:    1595007 -> 1407779             
+        refseq_nucleotide_accession: NZ_QHCN01000001.1 -> NC_002951.2 
+        refseq_start:    1592485 -> 1405257             
+        refseq_stop:     1595007 -> 1407779             
+
+Hierarchy nodes Added
+    core AMR AMR
+        ant(3'')-IId     ant(3'')-IId                   aminoglycoside nucleotidyltransferase ANT(3')-IId
+        blaOXA-20_fam    blaOXA NF052298.1              OXA-20 family oxacillin-hydrolyzing class D beta-lactamase
+        fosS             fosS                           fosfomycin resistance bacillithiol transferase FosS
+    non-reported VIRULENCE VIRULENCE
+        VIRULENCE_SalmoSPI                                
+    plus AMR AMR
+        aadT             aadT                           multidrug efflux MFS transporter AadT
+    plus VIRULENCE VIRULENCE
+        allD             allD                           ureidoglycolate dehydrogenase AllD
+        bfpA_Salm        bfpA                           type IV pilus major subunit protein BfpA
+        envF             envF                           putative envelope lipoprotein EnvF
+        fljA             fljA                           phase 1 flagellin gene repressor FljA
+        gip              gip                            hydroxypyruvate isomerase Gip
+        gogB             gogB                           type III secretion effector GogB
+        gtrC1            gtrC1                          putative glucosyltransferase GtrC1
+        hlyE_Salm        hlyE                           hemolysin HlyE
+        hscC             hscC                           molecular chaperone HscC
+        hyi              hyi                            hydroxypyruvate isomerase Hyi
+        icmF             icmF                           type VI secretion protein IcmF
+        int              int                            FimB-specific integrase
+        lsrF             lsrF                           3-hydroxy-5-phosphonooxypentane-2,4-dione thiolase LsrF
+        mltE             mltE                           transglycosylase SLT domain-containing protein MltE
+        oafA             oafA                           O-antigen acetyltransferase OafA
+        pagK             pagK                           vesicle-borne virulence factor PagK
+        pagO             pagO                           PhoPQ-activated DMT family transporter PagO
+        pefA             pefA                           major pilin PefA
+        pilL             pilL                           type IV pilin component protein pilL
+        pipA             pipA                           type III secretion system effector protease PipA
+        pltA             pltA                           typhoid-like toxin S-CDT ADP-ribosylating subunit PltA
+        rcK              rcK                            complement resistance protein Rck
+        rfc              rfc                            O-antigen polymerase Rfc
+        rhuM             rhuM                           cytoplasmic virulence protein RhuM
+        ripR             ripR                           itaconate degradation transcriptional regulator RipR
+        s025             s025                           S8 family peptidase
+        safA             safA                           Saf fimbria major subunit SafA
+        safB             safB                           pili assembly chaperone SafB
+        sarA             sarA                           anti-inflammatory response activator SarA
+        sciR             sciR                           Shiga-like toxin A subunit SciR
+        sefA             sefA                           SEF14 fimbria major subunit SefA
+        sopE             sopE                           SPI-1 type III secretion system guanine nucleotide exchange factor SopE
+        spvB             spvB                           SPI-2 type III secretion system effector NAD(+)--protein-arginine ADP-ribosyltransferase SpvB
+        sseI             sseI                           SPI-2 type III secretion system effector SseI
+        staC             staC                           Sta fimbria outer membrane usher protein StaC
+        stcA             stcA                           Stc fimbria major subunit StcA
+        stcD             stcD                           Stc fimbria adhesin StcD
+        steB             steB                           fimbrial biogenesis outer membrane usher protein SteB
+        stfA             stfA                           Stf fimbria major subunit StfA
+        stgA             stgA                           Stg fimbria major subunit StgA
+        stiA             stiA                           Sti fimbria major subunit StiA
+        stjB             stjB                           StjB fimbria biogenesis outer membrane usher protein StjB
+        stkA             stkA                           Stk fimbria major subunit StkA
+        stm0854          stm0854                        STM0854 family CoA ester lyase
+        stm0859          stm0859                        STM0859 family transcriptional regulator
+        stm2239          stm2239                        antiterminator Q family protein
+        sty2629          sty2629                        STY2629 family LPS modification acyltransferase
+        sty3281          sty3281                        STY3281 family bacteriocin immunity protein
+        sty4826          sty4826                        STY4826 family bacteriophage gene regulatory protein
+        sugR             sugR                           AAA family ATPase SugR
+        tcfA             tcfA                           fimbrial chaperone TcfA
+        tinR             tinR                           Lrp/AsnC family transcriptional regulator TinR
+        traT             traT                           conjugal transfer complement resistance protein TraT
+        tssA             tssA                           type VI secretion system protein TssA
+        tviA             tviA                           Vi polysaccharide biosynthesis regulator TviA
+        vasL             vasL                           type VI secretion system protein VasL
+        vexA_Salm        vexA                           Vi polysaccharide ABC transporter protein VexA
+        xis              xis                            excisionase Xis
+        yigF             yigF                           inner membrane protein YigF
+Hierarchy nodes Removed
+    core AMR AMR
+        tet(34)          tet(34) NF000014.1             oxytetracycline resistance phosphoribosyltransferase domain-containing protein Tet(34)
+Changed Hierarchy Nodes
+    arsD_like        arsenite efflux transporter metallochaperone ArsD-related protein 
+        parent_node_id:  METAL -> arsD                  
+    bla1             class A beta-lactamase Bla1    
+        hmm_acc:         NF033096.1 -> NF033096.2       
+    blaCIM           CIM family subclass B1 metallo-beta-lactamase 
+        symbol:          blaCIB -> blaCIM               
+    bpsX             secondary capsule biosynthesis glycopolymer transferase BpsX 
+        name:            LytR family transcriptional regulator BpsX -> secondary capsule biosynthesis glycopolymer transferase BpsX 
+    estX             macrolide esterase EstX        
+        class:           <empty> -> MACROLIDE           
+        hmm_acc:         <empty> -> NF033124.1          
+        name:            alpha/beta fold putative hydrolase EstX -> macrolide esterase EstX 
+        scope:           non-reported -> core           
+        subclass:        <empty> -> TYLOSIN             
+    pbp1a            penicillin-binding protein PBP1A 
+        name:            penicillin-binding protein -> penicillin-binding protein PBP1A 
+    pbp2b            penicillin-binding protein PBP2B 
+        name:            penicillin-binding protein -> penicillin-binding protein PBP2B 
+    pbp2x            penicillin-binding protein PBP2X 
+        name:            penicillin-binding protein -> penicillin-binding protein PBP2X 

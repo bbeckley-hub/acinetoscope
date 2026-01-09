@@ -1,0 +1,1248 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope ABRicate - VFDB Database</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gene-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gene-table th, .gene-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .gene-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .present { background-color: #d4edda; }
+        .high-risk { background-color: #fff3cd; }
+        .critical { background-color: #f8d7da; font-weight: bold; }
+    </style>
+    
+        <script>
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Rotate every 10 seconds
+            setInterval(rotateQuote, 10000);
+            
+            // Initial display
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+            });
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope ABRicate - VFDB Database</h1>
+                <p style="color: #666; font-size: 1.2em;">Genome: GCA_016535705.2 | Generated on: 2026-01-09 15:02</p>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Database Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">128</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Database</h3>
+                    <p style="font-size: 1.5em; margin: 0;">VFDB</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔍 Genes Detected</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Product</th>
+                        <th>Coverage</th>
+                        <th>Identity</th>
+                        <th>Accession</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="present">
+                        <td><strong>lpxB</strong></td>
+                        <td title="(lpxB) lipid-A-disaccharide synthase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(lpxB) lipid-A-disaccharide synthase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>98.13%</td>
+                        <td>98.96%</td>
+                        <td>WP_000013434</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspK</strong></td>
+                        <td title="(gspK) general secretion pathway protein K [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspK) general secretion pathway protein K [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.54%</td>
+                        <td>WP_000301479</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspI</strong></td>
+                        <td title="(gspI) general secretion pathway protein I [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspI) general secretion pathway protein I [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.64%</td>
+                        <td>WP_000836911</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspH</strong></td>
+                        <td title="(gspH) general secretion pathway protein H [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspH) general secretion pathway protein H [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.38%</td>
+                        <td>WP_000841373</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>tagX</strong></td>
+                        <td title="(tagX) type VI-associated gene X peptidoglycan hydrolase [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tagX) type VI-associated gene X peptidoglycan hydrolase [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.95%</td>
+                        <td>WP_000972583</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssL</strong></td>
+                        <td title="(tssL) type IVB secretion system protein TssL [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssL) type IVB secretion system protein TssL [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.01%</td>
+                        <td>WP_000083625</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssK</strong></td>
+                        <td title="(tssK) type VI secretion system baseplate subunit TssK [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssK) type VI secretion system baseplate subunit TssK [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.61%</td>
+                        <td>WP_000471445</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssA</strong></td>
+                        <td title="(tssA) type VI secretion system protein TssA [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssA) type VI secretion system protein TssA [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.54%</td>
+                        <td>WP_000020713</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>clpV/tssH</strong></td>
+                        <td title="(clpV/tssH) type VI secretion system ATPase TssH [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(clpV/tssH) type VI secretion system ATPase TssH [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.69%</td>
+                        <td>WP_002001416</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssM</strong></td>
+                        <td title="(tssM) type VI secretion system membrane subunit TssM [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssM) type VI secretion system membrane subunit TssM [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.69%</td>
+                        <td>WP_000556915</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssG</strong></td>
+                        <td title="(tssG) type VI secretion system baseplate subunit TssG [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssG) type VI secretion system baseplate subunit TssG [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.50%</td>
+                        <td>WP_001190395</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssF</strong></td>
+                        <td title="(tssF) type VI secretion system baseplate subunit TssF [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssF) type VI secretion system baseplate subunit TssF [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.23%</td>
+                        <td>WP_000568832</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssE</strong></td>
+                        <td title="(tssE) type VI secretion system baseplate subunit TssE [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssE) type VI secretion system baseplate subunit TssE [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.79%</td>
+                        <td>WP_001047031</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>hcp/tssD</strong></td>
+                        <td title="(hcp/tssD) type VI secretion system tube protein Hcp [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(hcp/tssD) type VI secretion system tube protein Hcp [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.60%</td>
+                        <td>WP_000653195</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssC</strong></td>
+                        <td title="(tssC) type VI secretion system contractile sheath large subunit [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssC) type VI secretion system contractile sheath large subunit [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.46%</td>
+                        <td>WP_001066523</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>tssB</strong></td>
+                        <td title="(tssB) type VI secretion system contractile sheath small subunit [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(tssB) type VI secretion system contractile sheath small subunit [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.21%</td>
+                        <td>WP_001119042</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>vgrG/tssI</strong></td>
+                        <td title="(vgrG/tssI) type VI secretion system tip protein VgrG [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(vgrG/tssI) type VI secretion system tip protein VgrG [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>88.16%</td>
+                        <td>94.79%</td>
+                        <td>WP_000934999</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04610</strong></td>
+                        <td title="(ACICU_RS04610) hypothetical protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04610) hypothetical protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.64%</td>
+                        <td>WP_000061137</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04605</strong></td>
+                        <td title="(ACICU_RS04605) YbaN family protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04605) YbaN family protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>WP_000359621</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>hemO</strong></td>
+                        <td title="(hemO) biliverdin-producing heme oxygenase [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(hemO) biliverdin-producing heme oxygenase [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.17%</td>
+                        <td>WP_002062720</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04595</strong></td>
+                        <td title="(ACICU_RS04595) TonB family protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04595) TonB family protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>94.03%</td>
+                        <td>WP_000837764</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04590</strong></td>
+                        <td title="(ACICU_RS04590) porin family protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04590) porin family protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.93%</td>
+                        <td>95.84%</td>
+                        <td>WP_085947930</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04585</strong></td>
+                        <td title="(ACICU_RS04585) transferrin-binding protein-like solute binding protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04585) transferrin-binding protein-like solute binding protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.47%</td>
+                        <td>WP_002002089</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04580</strong></td>
+                        <td title="(ACICU_RS04580) TonB-dependent receptor [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04580) TonB-dependent receptor [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>95.30%</td>
+                        <td>WP_085947929</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04575</strong></td>
+                        <td title="(ACICU_RS04575) FecR domain-containing protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04575) FecR domain-containing protein [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>95.67%</td>
+                        <td>WP_001240499</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04570</strong></td>
+                        <td title="(ACICU_RS04570) sigma-70 family RNA polymerase sigma factor [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04570) sigma-70 family RNA polymerase sigma factor [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.51%</td>
+                        <td>WP_004748062</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS04565</strong></td>
+                        <td title="(ACICU_RS04565) LysR family transcriptional regulator [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(ACICU_RS04565) LysR family transcriptional regulator [HemO cluster (VF0636) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>95.17%</td>
+                        <td>WP_001105554</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilT</strong></td>
+                        <td title="(pilT) type IV pilus twitching motility protein PilT [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilT) type IV pilus twitching motility protein PilT [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.30%</td>
+                        <td>WP_000355489</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilU</strong></td>
+                        <td title="(pilU) PilT/PilU family type 4a pilus ATPase [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilU) PilT/PilU family type 4a pilus ATPase [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.03%</td>
+                        <td>WP_000347039</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeH</strong></td>
+                        <td title="(adeH) outer membrane protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeH) outer membrane protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.97%</td>
+                        <td>WP_000633124</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeG</strong></td>
+                        <td title="(adeG) cation/multidrug efflux pump [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeG) cation/multidrug efflux pump [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.61%</td>
+                        <td>WP_001027056</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeF</strong></td>
+                        <td title="(adeF) membrane-fusion protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeF) membrane-fusion protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.95%</td>
+                        <td>WP_000010636</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspE2</strong></td>
+                        <td title="(gspE2) putative secretion pathway ATPase [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspE2) putative secretion pathway ATPase [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.55%</td>
+                        <td>WP_001020922</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspL</strong></td>
+                        <td title="(gspL) general secretion pathway protein L [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspL) general secretion pathway protein L [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.03%</td>
+                        <td>WP_001989189</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspM</strong></td>
+                        <td title="(gspM) general secretion pathway protein M [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspM) general secretion pathway protein M [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.17%</td>
+                        <td>WP_000783000</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>csuA/B</strong></td>
+                        <td title="(csuA/B) Csu pilus major pilin subunit CsuA/B [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(csuA/B) Csu pilus major pilin subunit CsuA/B [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.51%</td>
+                        <td>WP_000790104</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>csuA</strong></td>
+                        <td title="(csuA) Csu pilus subunit CsuA [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(csuA) Csu pilus subunit CsuA [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.00%</td>
+                        <td></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>csuB</strong></td>
+                        <td title="(csuB) Csu pilus subunit CsuB [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(csuB) Csu pilus subunit CsuB [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.84%</td>
+                        <td>WP_000876480</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>csuC</strong></td>
+                        <td title="(csuC) Csu pilus chaperone protein CsuC  [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(csuC) Csu pilus chaperone protein CsuC  [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.32%</td>
+                        <td>WP_001988023</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>csuD</strong></td>
+                        <td title="(csuD) Csu pilus usher protein CsuD [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(csuD) Csu pilus usher protein CsuD [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.12%</td>
+                        <td>WP_000603301</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>csuE</strong></td>
+                        <td title="(csuE) Csu pilus tip adhesin CsuE [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(csuE) Csu pilus tip adhesin CsuE [Csu fimbriae (VF0461) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>95.88%</td>
+                        <td>WP_001022730</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pgaA</strong></td>
+                        <td title="(pgaA) poly-beta-16 N-acetyl-D-glucosamine export porin PgaA [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(pgaA) poly-beta-16 N-acetyl-D-glucosamine export porin PgaA [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.48%</td>
+                        <td></td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pgaB</strong></td>
+                        <td title="(pgaB) poly-beta-16-N-acetyl-D-glucosamine N-deacetylase PgaB [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(pgaB) poly-beta-16-N-acetyl-D-glucosamine N-deacetylase PgaB [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.03%</td>
+                        <td>WP_001061322</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pgaC</strong></td>
+                        <td title="(pgaC) poly-beta-16 N-acetyl-D-glucosamine synthase [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(pgaC) poly-beta-16 N-acetyl-D-glucosamine synthase [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.48%</td>
+                        <td>WP_000866237</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pgaD</strong></td>
+                        <td title="(pgaD) poly-beta-16-N-acetyl-D-glucosamine biosynthesis protein PgaD [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(pgaD) poly-beta-16-N-acetyl-D-glucosamine biosynthesis protein PgaD [PNAG (VF0472) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.42%</td>
+                        <td>WP_000786639</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>plc2</strong></td>
+                        <td title="(plc2) phospholipase C [Phospholipase C (VF0470) - Exotoxin (VFC0235)] [Acinetobacter baumannii ACICU]">(plc2) phospholipase C [Phospholipase C (VF0470) - Exotoxin (VFC0235)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.65%</td>
+                        <td>WP_000632986</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>lpxD</strong></td>
+                        <td title="(lpxD) UDP-3-O-(3-hydroxymyristoyl)glucosamine N-acyltransferase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(lpxD) UDP-3-O-(3-hydroxymyristoyl)glucosamine N-acyltransferase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.63%</td>
+                        <td>WP_000868104</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>lpxA</strong></td>
+                        <td title="(lpxA) acyl-ACP--UDP-N-acetylglucosamine O-acyltransferase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(lpxA) acyl-ACP--UDP-N-acetylglucosamine O-acyltransferase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.62%</td>
+                        <td>WP_000064875</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>vgrG/tssI</strong></td>
+                        <td title="(vgrG/tssI) type VI secretion system tip protein VgrG [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(vgrG/tssI) type VI secretion system tip protein VgrG [T6SS (VF1337) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>91.47%</td>
+                        <td>97.30%</td>
+                        <td>WP_000898330</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>lpxC</strong></td>
+                        <td title="(lpxC) UDP-3-O-acyl-N-acetylglucosamine deacetylase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(lpxC) UDP-3-O-acyl-N-acetylglucosamine deacetylase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.56%</td>
+                        <td>WP_000240700</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilM</strong></td>
+                        <td title="(pilM) pilus assembly protein PilM [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilM) pilus assembly protein PilM [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.06%</td>
+                        <td>WP_004644147</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilN</strong></td>
+                        <td title="(pilN) PilN domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilN) PilN domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.06%</td>
+                        <td>WP_000201227</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilO</strong></td>
+                        <td title="(pilO) type 4a pilus biogenesis protein PilO [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilO) type 4a pilus biogenesis protein PilO [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.06%</td>
+                        <td>WP_000076098</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilP</strong></td>
+                        <td title="(pilP) pilus assembly protein PilP [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilP) pilus assembly protein PilP [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.67%</td>
+                        <td>WP_000695065</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilQ</strong></td>
+                        <td title="(pilQ) type IV pilus secretin PilQ [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilQ) type IV pilus secretin PilQ [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.25%</td>
+                        <td>WP_001017033</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>fimU</strong></td>
+                        <td title="(fimU) GspH/FimT family pseudopilin [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(fimU) GspH/FimT family pseudopilin [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.73%</td>
+                        <td>WP_001214067</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilV</strong></td>
+                        <td title="(pilV) type IV pilus modification protein PilV [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilV) type IV pilus modification protein PilV [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.47%</td>
+                        <td>WP_002194578</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilW</strong></td>
+                        <td title="(pilW) PilW family protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilW) PilW family protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.30%</td>
+                        <td>WP_000079192</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilX</strong></td>
+                        <td title="(pilX) hypothetical protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilX) hypothetical protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.66%</td>
+                        <td>WP_000149377</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilY1</strong></td>
+                        <td title="(pilY1) VWA domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilY1) VWA domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.97%</td>
+                        <td>97.59%</td>
+                        <td>WP_000768964</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS16840</strong></td>
+                        <td title="(ACICU_RS16840) prepilin-type N-terminal cleavage/methylation domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(ACICU_RS16840) prepilin-type N-terminal cleavage/methylation domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>92.13%</td>
+                        <td>WP_001046420</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilE</strong></td>
+                        <td title="(pilE) type IV pilin protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilE) type IV pilin protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.77%</td>
+                        <td>91.29%</td>
+                        <td>WP_000788342</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basJ</strong></td>
+                        <td title="(basJ) acinetobactin biosynthesis protein BasJ [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basJ) acinetobactin biosynthesis protein BasJ [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.20%</td>
+                        <td>WP_000983821</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basI</strong></td>
+                        <td title="(basI) phosphopantetheinyl transferase component of acinetobactin biosynthesis protein BasI [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basI) phosphopantetheinyl transferase component of acinetobactin biosynthesis protein BasI [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.03%</td>
+                        <td>WP_001093095</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basH</strong></td>
+                        <td title="(basH) non-ribosomal peptide biosynthesis thioesterase BasH [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basH) non-ribosomal peptide biosynthesis thioesterase BasH [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.55%</td>
+                        <td>WP_001032906</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>barB</strong></td>
+                        <td title="(barB) siderophore efflux system of the ABC superfamily [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(barB) siderophore efflux system of the ABC superfamily [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.62%</td>
+                        <td>WP_001095752</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>barA</strong></td>
+                        <td title="(barA) siderophore efflux system of the ABC superfamily [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(barA) siderophore efflux system of the ABC superfamily [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.59%</td>
+                        <td>WP_001281538</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basG</strong></td>
+                        <td title="(basG) acinetobactin biosynthesis protein BasF [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basG) acinetobactin biosynthesis protein BasF [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.09%</td>
+                        <td>WP_000603876</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basF</strong></td>
+                        <td title="(basF) aryl carrier protein BasF [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basF) aryl carrier protein BasF [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.05%</td>
+                        <td>WP_001018264</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>entE</strong></td>
+                        <td title="(entE) non-ribosomal peptide synthetase adenylate-forming enzyme of acinetobactin synthesis [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(entE) non-ribosomal peptide synthetase adenylate-forming enzyme of acinetobactin synthesis [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.11%</td>
+                        <td>WP_000744381</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basD</strong></td>
+                        <td title="(basD) acinetobactin biosynthesis protein BasD [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basD) acinetobactin biosynthesis protein BasD [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.84%</td>
+                        <td>WP_001177743</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basC</strong></td>
+                        <td title="(basC) acinetobactin biosynthesis protein BasC [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basC) acinetobactin biosynthesis protein BasC [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.71%</td>
+                        <td>WP_000717759</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>bauB</strong></td>
+                        <td title="(bauB) ferric siderophore ABC transporter periplasmic siderophore-binding protein [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(bauB) ferric siderophore ABC transporter periplasmic siderophore-binding protein [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.14%</td>
+                        <td>WP_001104139</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>bauE</strong></td>
+                        <td title="(bauE) ferric siderophore ABC transporter ATP-binding protein BauE [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(bauE) ferric siderophore ABC transporter ATP-binding protein BauE [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.70%</td>
+                        <td>WP_000582115</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>bauC</strong></td>
+                        <td title="(bauC) ferric siderophore ABC transporter permease protein BauC [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(bauC) ferric siderophore ABC transporter permease protein BauC [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.41%</td>
+                        <td>WP_001223274</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>bauD</strong></td>
+                        <td title="(bauD) ferric siderophore ABC transporter permease protein BauD [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(bauD) ferric siderophore ABC transporter permease protein BauD [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.44%</td>
+                        <td>WP_012391956</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basB</strong></td>
+                        <td title="(basB) non-ribosomal peptide synthetase with condensation and peptidyl carrier protein domains [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basB) non-ribosomal peptide synthetase with condensation and peptidyl carrier protein domains [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.95%</td>
+                        <td>95.76%</td>
+                        <td>WP_000939834</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>basA</strong></td>
+                        <td title="(basA) acinetobactin biosynthesis protein [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(basA) acinetobactin biosynthesis protein [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>95.29%</td>
+                        <td>WP_000910253</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>bauF</strong></td>
+                        <td title="(bauF) siderophore-interacting protein [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]">(bauF) siderophore-interacting protein [Acinetobactin (VF0467) - Nutritional/Metabolic factor (VFC0272)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.21%</td>
+                        <td>WP_000160878</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>lpxM</strong></td>
+                        <td title="(lpxM) lysophospholipid acyltransferase family protein [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(lpxM) lysophospholipid acyltransferase family protein [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.88%</td>
+                        <td>WP_001984639</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>lpxL</strong></td>
+                        <td title="(lpxL) lauroyl acyltransferase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(lpxL) lauroyl acyltransferase [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.37%</td>
+                        <td>WP_000078878</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>lpsB</strong></td>
+                        <td title="(lpsB) glycosyltransferase family 4 protein [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(lpsB) glycosyltransferase family 4 protein [LPS (VF0466) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>96.91%</td>
+                        <td>WP_000867091</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>fimV</strong></td>
+                        <td title="(fimV) hypothetical protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(fimV) hypothetical protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.02%</td>
+                        <td>WP_000128073</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspG</strong></td>
+                        <td title="(gspG) general secretion pathway protein G [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspG) general secretion pathway protein G [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.45%</td>
+                        <td>WP_000865310</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspF</strong></td>
+                        <td title="(gspF) general secretion pathway protein F [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspF) general secretion pathway protein F [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.51%</td>
+                        <td>WP_001112089</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilB</strong></td>
+                        <td title="(pilB) type IV-A pilus assembly ATPase PilB [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilB) type IV-A pilus assembly ATPase PilB [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.07%</td>
+                        <td>WP_001274990</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilC</strong></td>
+                        <td title="(pilC) type II secretion system F family protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilC) type II secretion system F family protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.86%</td>
+                        <td>WP_000279216</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>gspO/pilD</strong></td>
+                        <td title="(gspO/pilD) A24 family peptidase [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(gspO/pilD) A24 family peptidase [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.91%</td>
+                        <td>WP_001152285</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspD</strong></td>
+                        <td title="(gspD) general secretion pathway protein D [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspD) general secretion pathway protein D [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.74%</td>
+                        <td>WP_001196426</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspC</strong></td>
+                        <td title="(gspC) general secretion pathway protein C [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspC) general secretion pathway protein C [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.52%</td>
+                        <td>WP_000870033</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspN</strong></td>
+                        <td title="(gspN) type II secretion system protein N [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspN) type II secretion system protein N [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.79%</td>
+                        <td>WP_000730343</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pbpG</strong></td>
+                        <td title="(pbpG) D-alanyl-D-alanine endopeptidase PBP7/8 [PbpG (VF0468) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(pbpG) D-alanyl-D-alanine endopeptidase PBP7/8 [PbpG (VF0468) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.47%</td>
+                        <td>WP_003384760</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilS</strong></td>
+                        <td title="(pilS) PAS domain-containing sensor histidine kinase [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilS) PAS domain-containing sensor histidine kinase [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.94%</td>
+                        <td>WP_001160337</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pilR</strong></td>
+                        <td title="(pilR) sigma-54 dependent transcriptional regulator [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilR) sigma-54 dependent transcriptional regulator [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.93%</td>
+                        <td>WP_000840548</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>bfmS</strong></td>
+                        <td title="(bfmS) signal transduction histidine kinase [BfmRS (VF0463) - Regulation (VFC0301)] [Acinetobacter baumannii ACICU]">(bfmS) signal transduction histidine kinase [BfmRS (VF0463) - Regulation (VFC0301)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.48%</td>
+                        <td>WP_000472465</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>bfmR</strong></td>
+                        <td title="(bfmR) biofilm-controlling response regulator [BfmRS (VF0463) - Regulation (VFC0301)] [Acinetobacter baumannii ACICU]">(bfmR) biofilm-controlling response regulator [BfmRS (VF0463) - Regulation (VFC0301)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.44%</td>
+                        <td>WP_000076440</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilJ</strong></td>
+                        <td title="(pilJ) methyl-accepting chemotaxis protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilJ) methyl-accepting chemotaxis protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.52%</td>
+                        <td>WP_000505931</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilI</strong></td>
+                        <td title="(pilI) chemotaxis protein CheW [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilI) chemotaxis protein CheW [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.44%</td>
+                        <td>WP_000729757</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilH</strong></td>
+                        <td title="(pilH) response regulator [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilH) response regulator [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.72%</td>
+                        <td>WP_000101096</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilG</strong></td>
+                        <td title="(pilG) twitching motility response regulator PilG [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilG) twitching motility response regulator PilG [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.74%</td>
+                        <td>WP_000389061</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ompA</strong></td>
+                        <td title="(ompA) outer membrane protein OmpA [OmpA (VF0464) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(ompA) outer membrane protein OmpA [OmpA (VF0464) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.16%</td>
+                        <td>94.40%</td>
+                        <td>WP_000777882</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>fimT</strong></td>
+                        <td title="(fimT) GspH/FimT family pseudopilin [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(fimT) GspH/FimT family pseudopilin [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.64%</td>
+                        <td>WP_000477147</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>pilF</strong></td>
+                        <td title="(pilF) type IV pilus biogenesis/stability protein PilW [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(pilF) type IV pilus biogenesis/stability protein PilW [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.25%</td>
+                        <td>WP_002027454</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>abaI</strong></td>
+                        <td title="(abaI) N-acyl-L-homoserine lactone synthetase [Quorom sensing (VF0471) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(abaI) N-acyl-L-homoserine lactone synthetase [Quorom sensing (VF0471) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.88%</td>
+                        <td>WP_002023245</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>abaR</strong></td>
+                        <td title="(abaR) DNA-binding HTH domain-containing protein [Quorom sensing (VF0471) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(abaR) DNA-binding HTH domain-containing protein [Quorom sensing (VF0471) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.47%</td>
+                        <td>WP_000446779</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>tsaP</strong></td>
+                        <td title="(tsaP) LysM peptidoglycan-binding domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(tsaP) LysM peptidoglycan-binding domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.44%</td>
+                        <td>WP_000755268</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>plc1</strong></td>
+                        <td title="(plc1) phospholipase C [Phospholipase C (VF0470) - Exotoxin (VFC0235)] [Acinetobacter baumannii ACICU]">(plc1) phospholipase C [Phospholipase C (VF0470) - Exotoxin (VFC0235)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.95%</td>
+                        <td>96.22%</td>
+                        <td>WP_001081735</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS00395</strong></td>
+                        <td title="(ACICU_RS00395) polysaccharide biosynthesis tyrosine autokinase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(ACICU_RS00395) polysaccharide biosynthesis tyrosine autokinase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.91%</td>
+                        <td>88.72%</td>
+                        <td>WP_001075965</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS00400</strong></td>
+                        <td title="(ACICU_RS00400) low molecular weight phosphotyrosine protein phosphatase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(ACICU_RS00400) low molecular weight phosphotyrosine protein phosphatase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>98.83%</td>
+                        <td>86.08%</td>
+                        <td>WP_001165990</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS00405</strong></td>
+                        <td title="(ACICU_RS00405) polysaccharide biosynthesis/export family protein [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(ACICU_RS00405) polysaccharide biosynthesis/export family protein [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>82.65%</td>
+                        <td>WP_000872593</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>galE</strong></td>
+                        <td title="(galE) UDP-glucose 4-epimerase GalE [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(galE) UDP-glucose 4-epimerase GalE [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>98.43%</td>
+                        <td>83.32%</td>
+                        <td>WP_001062908</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>galU</strong></td>
+                        <td title="(galU) UTP--glucose-1-phosphate uridylyltransferase GalU [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(galU) UTP--glucose-1-phosphate uridylyltransferase GalU [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>99.89%</td>
+                        <td>87.77%</td>
+                        <td>WP_000591436</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS00485</strong></td>
+                        <td title="(ACICU_RS00485) nucleotide sugar dehydrogenase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(ACICU_RS00485) nucleotide sugar dehydrogenase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>82.98%</td>
+                        <td>WP_000686134</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>pgi</strong></td>
+                        <td title="(pgi) glucose-6-phosphate isomerase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(pgi) glucose-6-phosphate isomerase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>91.02%</td>
+                        <td>WP_000045495</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>galE</strong></td>
+                        <td title="(galE) UDP-glucose 4-epimerase GalE [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(galE) UDP-glucose 4-epimerase GalE [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.13%</td>
+                        <td>WP_001062908</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ACICU_RS00500</strong></td>
+                        <td title="(ACICU_RS00500) phosphomannomutase/phosphoglucomutase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]">(ACICU_RS00500) phosphomannomutase/phosphoglucomutase [Capsule (VF0465) - Immune modulation (VFC0258)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.39%</td>
+                        <td>WP_000209960</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspE1</strong></td>
+                        <td title="(gspE1) general secretion pathway protein E [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspE1) general secretion pathway protein E [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.99%</td>
+                        <td>WP_001166319</td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>plcD</strong></td>
+                        <td title="(plcD) phosphatidylserine/phosphatidylglycerophosphate/cardiolipin synthase [Phospholipase D (VF0469) - Exotoxin (VFC0235)] [Acinetobacter baumannii ACICU]">(plcD) phosphatidylserine/phosphatidylglycerophosphate/cardiolipin synthase [Phospholipase D (VF0469) - Exotoxin (VFC0235)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.02%</td>
+                        <td>WP_000079188</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspK</strong></td>
+                        <td title="(gspK) general secretion pathway protein K [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspK) general secretion pathway protein K [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.54%</td>
+                        <td>WP_000301479</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspI</strong></td>
+                        <td title="(gspI) general secretion pathway protein I [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspI) general secretion pathway protein I [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.64%</td>
+                        <td>WP_000836911</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspH</strong></td>
+                        <td title="(gspH) general secretion pathway protein H [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspH) general secretion pathway protein H [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.38%</td>
+                        <td>WP_000841373</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspM</strong></td>
+                        <td title="(gspM) general secretion pathway protein M [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspM) general secretion pathway protein M [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.17%</td>
+                        <td>WP_000783000</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspL</strong></td>
+                        <td title="(gspL) general secretion pathway protein L [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspL) general secretion pathway protein L [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>99.03%</td>
+                        <td>WP_001989189</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gspE2</strong></td>
+                        <td title="(gspE2) putative secretion pathway ATPase [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]">(gspE2) putative secretion pathway ATPase [T2SS (VF1335) - Effector delivery system (VFC0086)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.55%</td>
+                        <td>WP_001020922</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeF</strong></td>
+                        <td title="(adeF) membrane-fusion protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeF) membrane-fusion protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.95%</td>
+                        <td>WP_000010636</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeG</strong></td>
+                        <td title="(adeG) cation/multidrug efflux pump [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeG) cation/multidrug efflux pump [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>97.61%</td>
+                        <td>WP_001027056</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeH</strong></td>
+                        <td title="(adeH) outer membrane protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeH) outer membrane protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.97%</td>
+                        <td>WP_000633124</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>tsaP</strong></td>
+                        <td title="(tsaP) LysM peptidoglycan-binding domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]">(tsaP) LysM peptidoglycan-binding domain-containing protein [TFP (VF1334) - Adherence (VFC0001)] [Acinetobacter baumannii ACICU]</td>
+                        <td>100.00%</td>
+                        <td>98.44%</td>
+                        <td>WP_000755268</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+                Analysis performed using AcinetoScope ABRicate v1.2.0
+            </p>
+        </div>
+    </div>
+</body>
+</html>

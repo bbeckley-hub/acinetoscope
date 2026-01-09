@@ -1,0 +1,776 @@
+{
+    "metadata": {
+        "database_name": "megares",
+        "analysis_type": "ABRicate Antimicrobial Resistance & Virulence",
+        "total_genomes": 9,
+        "total_hits": 354,
+        "analysis_date": "2026-01-09 15:00:42",
+        "tool_version": "1.0.0"
+    },
+    "summary_statistics": {
+        "unique_genes": 41,
+        "unique_genomes": 9,
+        "hits_per_genome": 39.33,
+        "risk_analysis": {
+            "critical_carbapenemase_genes": 0,
+            "critical_esbl_genes": 1,
+            "critical_colistin_genes": 0,
+            "critical_aminoglycoside_genes": 2,
+            "high_risk_resistance_genes": 15,
+            "virulence_factors": 0
+        }
+    },
+    "gene_analysis": {
+        "most_frequent_genes": {
+            "ADET2": 9,
+            "ADEK": 9,
+            "ADEJ": 9,
+            "ADEI": 9,
+            "ADC": 9,
+            "ADEG": 9,
+            "ADEF": 9,
+            "ADEL": 9,
+            "ABES": 9,
+            "AMVA": 9,
+            "ADEN": 9,
+            "ABAQ": 9,
+            "BLAA": 9,
+            "ADES": 9,
+            "ADER": 9,
+            "ADEA": 9,
+            "ADEB": 9,
+            "OXA": 9,
+            "ABAF": 9,
+            "ANT3-DPRIME": 9,
+            "APH3-DPRIME": 9,
+            "MEXT": 9,
+            "ABEM": 9,
+            "SULII": 8,
+            "ADEC": 7,
+            "ADEH": 6,
+            "ANT2-DPRIME": 6,
+            "ADET1": 5,
+            "APH6": 5,
+            "APH3-PRIME": 5,
+            "SULI": 4,
+            "TEM": 4,
+            "MPHE": 4,
+            "MSRE": 4,
+            "AAC3": 3,
+            "AAC6-PRIME": 3,
+            "TETB": 3,
+            "TET39": 2,
+            "CATA": 1,
+            "TETA": 1,
+            "MCA": 1
+        },
+        "gene_details": {
+            "ADET2": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADET2",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.65
+            },
+            "ADEK": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEK",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.38
+            },
+            "ADEJ": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEJ",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.71
+            },
+            "ADEI": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEI",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.96
+            },
+            "ADC": {
+                "product": "Drugs:betalactams:Class_C_betalactamases:ADC",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 99.64,
+                "avg_identity": 99.78
+            },
+            "ADEH": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEH",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.38
+            },
+            "ADEG": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEG",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.2
+            },
+            "ADEF": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEF",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.65
+            },
+            "ADEL": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEL",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.36
+            },
+            "ABES": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_SMR_efflux_pumps:ABES",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.8
+            },
+            "AMVA": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_MFS_efflux_pumps:AMVA",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.45
+            },
+            "ADEN": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEN",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 99.95,
+                "avg_identity": 99.15
+            },
+            "ABAQ": {
+                "product": "Drugs:Fosfomycin:Fosfomycin_MFS_efflux_pump:ABAQ",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.13
+            },
+            "BLAA": {
+                "product": "Drugs:betalactams:Class_A_betalactamases:BLAA",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 99.83,
+                "avg_identity": 96.85
+            },
+            "ADET1": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADET1",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 97.12
+            },
+            "ADES": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADES",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 98.9,
+                "avg_identity": 98.05
+            },
+            "ADER": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADER",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.92
+            },
+            "ADEA": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEA",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.15
+            },
+            "ADEB": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEB",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.66
+            },
+            "ADEC": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEC",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 97.38
+            },
+            "OXA": {
+                "product": "Drugs:betalactams:Class_D_betalactamases:OXA",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 97.18,
+                "avg_identity": 98.3
+            },
+            "ABAF": {
+                "product": "Drugs:Fosfomycin:Fosfomycin_MFS_efflux_pump:ABAF",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 97.65
+            },
+            "SULI": {
+                "product": "Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULI",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 99.89,
+                "avg_identity": 99.96
+            },
+            "ANT3-DPRIME": {
+                "product": "Drugs:Aminoglycosides:Aminoglycoside_O-nucleotidyltransferases:ANT3-DPRIME",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 95.63,
+                "avg_identity": 99.45
+            },
+            "AAC3": {
+                "product": "Drugs:Aminoglycosides:Aminoglycoside_N-acetyltransferases:AAC3",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.06
+            },
+            "APH3-DPRIME": {
+                "product": "Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH3-DPRIME",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 99.1,
+                "avg_identity": 99.93
+            },
+            "TEM": {
+                "product": "Drugs:betalactams:Class_A_betalactamases:TEM",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 99.64,
+                "avg_identity": 99.86
+            },
+            "AAC6-PRIME": {
+                "product": "Drugs:Aminoglycosides:Aminoglycoside_N-acetyltransferases:AAC6-PRIME",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.66
+            },
+            "MEXT": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:MEXT",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.24
+            },
+            "ABEM": {
+                "product": "Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_MATE_efflux_pumps:ABEM",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.72
+            },
+            "APH6": {
+                "product": "Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH6",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "TETB": {
+                "product": "Drugs:Tetracyclines:Tetracycline_resistance_MFS_efflux_pumps:TETB",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 99.5,
+                "avg_identity": 100.0
+            },
+            "SULII": {
+                "product": "Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULII",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "CATA": {
+                "product": "Drugs:Phenicol:Chloramphenicol_acetyltransferases:CATA",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "TETA": {
+                "product": "Drugs:Tetracyclines:Tetracycline_resistance_MFS_efflux_pumps:TETA",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "APH3-PRIME": {
+                "product": "Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH3-PRIME",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.33
+            },
+            "ANT2-DPRIME": {
+                "product": "Drugs:Aminoglycosides:Aminoglycoside_O-nucleotidyltransferases:ANT2-DPRIME",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 92.42,
+                "avg_identity": 99.18
+            },
+            "MPHE": {
+                "product": "Drugs:MLS:Macrolide_phosphotransferases:MPHE",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "MSRE": {
+                "product": "Drugs:MLS:MLS_resistance_ABC_efflux_pumps:MSRE",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "TET39": {
+                "product": "Drugs:Tetracyclines:Tetracycline_resistance_MFS_efflux_pumps:TET39",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "MCA": {
+                "product": "Drugs:betalactams:Class_C_betalactamases:MCA",
+                "databases": [
+                    "megares"
+                ],
+                "avg_coverage": 98.85,
+                "avg_identity": 99.91
+            }
+        }
+    },
+    "genome_analysis": {
+        "GCA_014705785.1": {
+            "total_hits": 37,
+            "unique_genes": 33,
+            "genes": [
+                "SULII",
+                "ADEH",
+                "ADEJ",
+                "ADC",
+                "AAC6-PRIME",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "SULI",
+                "ADEK",
+                "TETB",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ADET1",
+                "AAC3",
+                "ANT3-DPRIME",
+                "OXA",
+                "ABAF",
+                "ABEM",
+                "APH6",
+                "ADEC",
+                "MEXT",
+                "ADET2",
+                "ADER",
+                "BLAA",
+                "ADEN",
+                "TEM"
+            ]
+        },
+        "GCA_016535705.2": {
+            "total_hits": 51,
+            "unique_genes": 30,
+            "genes": [
+                "ADEH",
+                "ADEJ",
+                "ADC",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "TETA",
+                "SULI",
+                "ADEK",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "AAC3",
+                "ABEM",
+                "OXA",
+                "ABAF",
+                "ANT3-DPRIME",
+                "ADEC",
+                "MEXT",
+                "ADET2",
+                "ADER",
+                "CATA",
+                "BLAA",
+                "ADEN",
+                "TEM"
+            ]
+        },
+        "GCA_001444265.1": {
+            "total_hits": 31,
+            "unique_genes": 29,
+            "genes": [
+                "SULII",
+                "ANT2-DPRIME",
+                "ADEJ",
+                "ADC",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "MPHE",
+                "ADEK",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ANT3-DPRIME",
+                "ABEM",
+                "OXA",
+                "ABAF",
+                "ADEC",
+                "MEXT",
+                "ADET2",
+                "APH3-PRIME",
+                "ADER",
+                "BLAA",
+                "MSRE",
+                "ADEN"
+            ]
+        },
+        "GCA_001443265.1": {
+            "total_hits": 31,
+            "unique_genes": 29,
+            "genes": [
+                "SULII",
+                "ANT2-DPRIME",
+                "ADEJ",
+                "ADC",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "MPHE",
+                "ADEK",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ABEM",
+                "ANT3-DPRIME",
+                "OXA",
+                "ABAF",
+                "ADEC",
+                "MEXT",
+                "ADET2",
+                "APH3-PRIME",
+                "ADER",
+                "BLAA",
+                "MSRE",
+                "ADEN"
+            ]
+        },
+        "GCA_001444225.1": {
+            "total_hits": 32,
+            "unique_genes": 29,
+            "genes": [
+                "SULII",
+                "ANT2-DPRIME",
+                "ADEJ",
+                "ADC",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "MPHE",
+                "ADEK",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ABEM",
+                "ANT3-DPRIME",
+                "OXA",
+                "ABAF",
+                "ADEC",
+                "MEXT",
+                "ADET2",
+                "APH3-PRIME",
+                "ADER",
+                "BLAA",
+                "MSRE",
+                "ADEN"
+            ]
+        },
+        "GCA_016539245.2": {
+            "total_hits": 48,
+            "unique_genes": 30,
+            "genes": [
+                "SULII",
+                "TET39",
+                "ADEH",
+                "ANT2-DPRIME",
+                "ADEJ",
+                "ADC",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "ADEK",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ADET1",
+                "APH6",
+                "ANT3-DPRIME",
+                "ABEM",
+                "OXA",
+                "ABAF",
+                "MEXT",
+                "ADET2",
+                "APH3-PRIME",
+                "ADER",
+                "BLAA",
+                "ADEN"
+            ]
+        },
+        "GCA_014705885.1": {
+            "total_hits": 37,
+            "unique_genes": 33,
+            "genes": [
+                "SULII",
+                "ADEH",
+                "ADEJ",
+                "ADC",
+                "AAC6-PRIME",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "SULI",
+                "ADEK",
+                "TETB",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ADET1",
+                "AAC3",
+                "ANT3-DPRIME",
+                "OXA",
+                "ABAF",
+                "ABEM",
+                "APH6",
+                "ADEC",
+                "MEXT",
+                "ADET2",
+                "ADER",
+                "BLAA",
+                "ADEN",
+                "TEM"
+            ]
+        },
+        "GCA_014705825.1": {
+            "total_hits": 40,
+            "unique_genes": 35,
+            "genes": [
+                "SULII",
+                "ADEH",
+                "ANT2-DPRIME",
+                "ADEJ",
+                "ADC",
+                "AAC6-PRIME",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "MPHE",
+                "SULI",
+                "ADEK",
+                "TETB",
+                "ADEF",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ADET1",
+                "ABEM",
+                "OXA",
+                "ABAF",
+                "APH6",
+                "ANT3-DPRIME",
+                "ADEC",
+                "MEXT",
+                "ADET2",
+                "ADER",
+                "BLAA",
+                "MSRE",
+                "ADEN",
+                "TEM"
+            ]
+        },
+        "GCA_016536425.2": {
+            "total_hits": 47,
+            "unique_genes": 31,
+            "genes": [
+                "SULII",
+                "TET39",
+                "ADEH",
+                "ANT2-DPRIME",
+                "ADEJ",
+                "ADC",
+                "ADEI",
+                "ADEB",
+                "ADEA",
+                "ADEK",
+                "ADEF",
+                "MCA",
+                "ADES",
+                "ABAQ",
+                "AMVA",
+                "APH3-DPRIME",
+                "ABES",
+                "ADEL",
+                "ADEG",
+                "ADET1",
+                "APH6",
+                "ANT3-DPRIME",
+                "ABEM",
+                "OXA",
+                "ABAF",
+                "MEXT",
+                "ADET2",
+                "APH3-PRIME",
+                "ADER",
+                "BLAA",
+                "ADEN"
+            ]
+        }
+    },
+    "risk_genes": {
+        "critical_carbapenemase": [],
+        "critical_esbl": [
+            "TEM"
+        ],
+        "critical_colistin": [],
+        "critical_aminoglycoside": [
+            "AAC6-PRIME",
+            "AAC3"
+        ],
+        "high_risk_resistance": [
+            "ADEH",
+            "ADEJ",
+            "ADEI",
+            "ADEB",
+            "ADEA",
+            "TETA",
+            "ADEK",
+            "MPHE",
+            "TETB",
+            "ABES",
+            "ADEL",
+            "ADEG",
+            "ABEM",
+            "ADEC",
+            "ADEN"
+        ],
+        "virulence_factors": []
+    },
+    "raw_hits_summary": {
+        "total_hits": 354,
+        "hits_by_genome": {
+            "GCA_014705785.1": 37,
+            "GCA_016535705.2": 51,
+            "GCA_001444265.1": 31,
+            "GCA_001443265.1": 31,
+            "GCA_001444225.1": 32,
+            "GCA_016539245.2": 48,
+            "GCA_014705885.1": 37,
+            "GCA_014705825.1": 40,
+            "GCA_016536425.2": 47
+        }
+    }
+}

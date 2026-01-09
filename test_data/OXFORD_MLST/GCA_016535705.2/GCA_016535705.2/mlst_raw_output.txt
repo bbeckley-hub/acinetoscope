@@ -1,0 +1,20 @@
+STDOUT:
+GCA_016535705.2.fna,abaumannii,-,Oxf_gltA(10),Oxf_gyrB(53),Oxf_gdhB(74,182),Oxf_recA(11),Oxf_cpn60(4),Oxf_gpi(100),Oxf_rpoD(5)
+
+STDERR:
+[14:31:08] This is mlst 2.25.0 running on linux with Perl 5.032001
+[14:31:08] Checking mlst dependencies:
+[14:31:08] Found 'blastn' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/blastn
+[14:31:08] Found 'any2fasta' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/any2fasta
+[14:31:09] Found blastn: 2.16.0+ (002016)
+[14:31:09] Setting --minscore=0 because user chose --scheme
+[14:31:11] Found exact allele match abaumannii.Oxf_recA-11
+[14:31:11] Found exact allele match abaumannii.Oxf_gdhB-182
+[14:31:11] WARNING: found additional exact allele match abaumannii.Oxf_gdhB-74
+[14:31:11] Found exact allele match abaumannii.Oxf_cpn60-4
+[14:31:11] Found exact allele match abaumannii.Oxf_rpoD-5
+[14:31:11] Found exact allele match abaumannii.Oxf_gltA-10
+[14:31:11] Found exact allele match abaumannii.Oxf_gpi-100
+[14:31:11] Found exact allele match abaumannii.Oxf_gyrB-53
+[14:31:11] Remember that --minscore is only used when using automatic scheme detection.
+[14:31:11] Done.

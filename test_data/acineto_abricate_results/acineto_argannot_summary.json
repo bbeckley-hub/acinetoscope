@@ -1,0 +1,563 @@
+{
+    "metadata": {
+        "database_name": "argannot",
+        "analysis_type": "ABRicate Antimicrobial Resistance & Virulence",
+        "total_genomes": 9,
+        "total_hits": 178,
+        "analysis_date": "2026-01-09 15:00:42",
+        "tool_version": "1.0.0"
+    },
+    "summary_statistics": {
+        "unique_genes": 33,
+        "unique_genomes": 9,
+        "hits_per_genome": 19.78,
+        "risk_analysis": {
+            "critical_carbapenemase_genes": 2,
+            "critical_esbl_genes": 1,
+            "critical_colistin_genes": 0,
+            "critical_aminoglycoside_genes": 7,
+            "high_risk_resistance_genes": 7,
+            "virulence_factors": 0
+        }
+    },
+    "gene_analysis": {
+        "most_frequent_genes": {
+            "(Bla)Zn-dependent_hydrolase": 9,
+            "(Bla)BlaA1": 9,
+            "(Bla)Mbl": 9,
+            "(Bla)BlaA2": 9,
+            "(AGly)ant(3'')-IIa": 9,
+            "(Sul)sul2": 8,
+            "(AGly)aph(3'')-Ia": 6,
+            "(AGly)aadB": 6,
+            "(AGly)strA": 5,
+            "(AGly)strB": 5,
+            "(AGly)aphA6": 5,
+            "(Sul)sul1": 4,
+            "(Bla)blaTEM-1D": 4,
+            "(Bla)blaOXA-69": 4,
+            "(Bla)beta-lactamase_class-C": 4,
+            "(Bla)blaOXA-23": 4,
+            "(MLS)mph(E)": 4,
+            "(MLS)msr(E)": 4,
+            "(Bla)blaADC-30": 3,
+            "(Bla)blaOXA-66": 3,
+            "(AGly)aadA1-pm": 3,
+            "(AGly)aac3-I": 3,
+            "(AGly)aac6-Iaf": 3,
+            "(Tet)tetB": 3,
+            "(Bla)blaADC-10": 2,
+            "(Bla)blaOXA-91": 2,
+            "(Tet)tet(39)": 2,
+            "(Phe)catA1": 1,
+            "(Tet)tetA": 1,
+            "(Tet)tetR": 1,
+            "(Bla)blaADC-75": 1,
+            "(Phe)catB3": 1,
+            "(Tmt)dfrA19": 1
+        },
+        "gene_details": {
+            "(Bla)Zn-dependent_hydrolase": {
+                "product": "(Bla)Zn-dependent_hydrolase",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.36
+            },
+            "(Bla)blaADC-30": {
+                "product": "(Bla)blaADC-30",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)BlaA1": {
+                "product": "(Bla)BlaA1",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 99.89,
+                "avg_identity": 95.54
+            },
+            "(Bla)Mbl": {
+                "product": "(Bla)Mbl",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.02
+            },
+            "(Bla)blaOXA-66": {
+                "product": "(Bla)blaOXA-66",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)BlaA2": {
+                "product": "(Bla)BlaA2",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 99.76,
+                "avg_identity": 98.15
+            },
+            "(Sul)sul1": {
+                "product": "(Sul)sul1",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.99
+            },
+            "(AGly)aadA1-pm": {
+                "product": "(AGly)aadA1-pm",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 96.51,
+                "avg_identity": 99.88
+            },
+            "(AGly)aac3-I": {
+                "product": "(AGly)aac3-I",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.06
+            },
+            "(AGly)aph(3'')-Ia": {
+                "product": "(AGly)aph(3'')-Ia",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)blaTEM-1D": {
+                "product": "(Bla)blaTEM-1D",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)aac6-Iaf": {
+                "product": "(AGly)aac6-Iaf",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.01
+            },
+            "(AGly)strA": {
+                "product": "(AGly)strA",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.98
+            },
+            "(AGly)strB": {
+                "product": "(AGly)strB",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Tet)tetB": {
+                "product": "(Tet)tetB",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 99.5,
+                "avg_identity": 99.75
+            },
+            "(Sul)sul2": {
+                "product": "(Sul)sul2",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)ant(3'')-IIa": {
+                "product": "(AGly)ant(3'')-IIa",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.59
+            },
+            "(Bla)blaOXA-69": {
+                "product": "(Bla)blaOXA-69",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)beta-lactamase_class-C": {
+                "product": "(Bla)beta-lactamase_class-C",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 97.57,
+                "avg_identity": 98.76
+            },
+            "(Phe)catA1": {
+                "product": "(Phe)catA1",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.85
+            },
+            "(Tet)tetA": {
+                "product": "(Tet)tetA",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Tet)tetR": {
+                "product": "(Tet)tetR",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)blaADC-10": {
+                "product": "(Bla)blaADC-10",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.16
+            },
+            "(Bla)blaOXA-23": {
+                "product": "(Bla)blaOXA-23",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)aphA6": {
+                "product": "(AGly)aphA6",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.99
+            },
+            "(AGly)aadB": {
+                "product": "(AGly)aadB",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.13
+            },
+            "(MLS)mph(E)": {
+                "product": "(MLS)mph(E)",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.89
+            },
+            "(MLS)msr(E)": {
+                "product": "(MLS)msr(E)",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)blaADC-75": {
+                "product": "(Bla)blaADC-75",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 96.61
+            },
+            "(Bla)blaOXA-91": {
+                "product": "(Bla)blaOXA-91",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.52
+            },
+            "(Tet)tet(39)": {
+                "product": "(Tet)tet(39)",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Phe)catB3": {
+                "product": "(Phe)catB3",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.84
+            },
+            "(Tmt)dfrA19": {
+                "product": "(Tmt)dfrA19",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.83
+            }
+        }
+    },
+    "genome_analysis": {
+        "GCA_014705785.1": {
+            "total_hits": 18,
+            "unique_genes": 17,
+            "genes": [
+                "(AGly)strB",
+                "(Bla)BlaA2",
+                "(AGly)aadA1-pm",
+                "(Tet)tetB",
+                "(Bla)blaOXA-66",
+                "(Bla)blaADC-30",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aac3-I",
+                "(Sul)sul1",
+                "(AGly)aph(3'')-Ia",
+                "(AGly)aac6-Iaf",
+                "(AGly)strA",
+                "(Bla)blaTEM-1D",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_016535705.2": {
+            "total_hits": 30,
+            "unique_genes": 17,
+            "genes": [
+                "(Bla)blaOXA-69",
+                "(Bla)BlaA2",
+                "(Phe)catA1",
+                "(AGly)aadA1-pm",
+                "(Bla)beta-lactamase_class-C",
+                "(Bla)blaADC-10",
+                "(Tet)tetA",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aac3-I",
+                "(Tet)tetR",
+                "(AGly)aph(3'')-Ia",
+                "(Bla)blaOXA-23",
+                "(Sul)sul1",
+                "(Bla)blaTEM-1D",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_001444265.1": {
+            "total_hits": 14,
+            "unique_genes": 14,
+            "genes": [
+                "(Bla)blaOXA-69",
+                "(AGly)aphA6",
+                "(Bla)BlaA2",
+                "(Bla)beta-lactamase_class-C",
+                "(MLS)msr(E)",
+                "(MLS)mph(E)",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aadB",
+                "(AGly)aph(3'')-Ia",
+                "(Bla)blaOXA-23",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_001443265.1": {
+            "total_hits": 14,
+            "unique_genes": 14,
+            "genes": [
+                "(Bla)blaOXA-69",
+                "(AGly)aphA6",
+                "(Bla)BlaA2",
+                "(Bla)beta-lactamase_class-C",
+                "(MLS)msr(E)",
+                "(MLS)mph(E)",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aadB",
+                "(AGly)aph(3'')-Ia",
+                "(Bla)blaOXA-23",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_001444225.1": {
+            "total_hits": 15,
+            "unique_genes": 14,
+            "genes": [
+                "(Bla)blaOXA-69",
+                "(AGly)aphA6",
+                "(Bla)BlaA2",
+                "(Bla)beta-lactamase_class-C",
+                "(MLS)msr(E)",
+                "(MLS)mph(E)",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aadB",
+                "(AGly)aph(3'')-Ia",
+                "(Bla)blaOXA-23",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_016539245.2": {
+            "total_hits": 25,
+            "unique_genes": 13,
+            "genes": [
+                "(AGly)aphA6",
+                "(AGly)strB",
+                "(Bla)BlaA2",
+                "(Bla)blaADC-10",
+                "(Bla)blaOXA-91",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aadB",
+                "(AGly)strA",
+                "(Tet)tet(39)",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_014705885.1": {
+            "total_hits": 18,
+            "unique_genes": 17,
+            "genes": [
+                "(AGly)strB",
+                "(Bla)BlaA2",
+                "(AGly)aadA1-pm",
+                "(Tet)tetB",
+                "(Bla)blaOXA-66",
+                "(Bla)blaADC-30",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aac3-I",
+                "(Sul)sul1",
+                "(AGly)aph(3'')-Ia",
+                "(AGly)aac6-Iaf",
+                "(AGly)strA",
+                "(Bla)blaTEM-1D",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_014705825.1": {
+            "total_hits": 22,
+            "unique_genes": 19,
+            "genes": [
+                "(AGly)strB",
+                "(MLS)msr(E)",
+                "(AGly)aadB",
+                "(Bla)BlaA2",
+                "(Tet)tetB",
+                "(Bla)blaADC-30",
+                "(AGly)aac6-Iaf",
+                "(AGly)strA",
+                "(Bla)blaTEM-1D",
+                "(AGly)ant(3'')-IIa",
+                "(Phe)catB3",
+                "(Bla)Mbl",
+                "(Bla)blaOXA-66",
+                "(MLS)mph(E)",
+                "(Tmt)dfrA19",
+                "(Sul)sul1",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        },
+        "GCA_016536425.2": {
+            "total_hits": 22,
+            "unique_genes": 13,
+            "genes": [
+                "(AGly)aphA6",
+                "(AGly)strB",
+                "(Bla)BlaA2",
+                "(Bla)blaADC-75",
+                "(Bla)blaOXA-91",
+                "(AGly)ant(3'')-IIa",
+                "(AGly)aadB",
+                "(AGly)strA",
+                "(Tet)tet(39)",
+                "(Bla)Mbl",
+                "(Bla)Zn-dependent_hydrolase",
+                "(Sul)sul2",
+                "(Bla)BlaA1"
+            ]
+        }
+    },
+    "risk_genes": {
+        "critical_carbapenemase": [
+            "(Bla)blaOXA-23",
+            "(Bla)blaOXA-66"
+        ],
+        "critical_esbl": [
+            "(Bla)blaTEM-1D"
+        ],
+        "critical_colistin": [],
+        "critical_aminoglycoside": [
+            "(AGly)strB",
+            "(AGly)aadB",
+            "(AGly)aadA1-pm",
+            "(AGly)aac6-Iaf",
+            "(AGly)strA",
+            "(AGly)aphA6",
+            "(AGly)aac3-I"
+        ],
+        "high_risk_resistance": [
+            "(Tet)tetB",
+            "(Tet)tetA",
+            "(Phe)catB3",
+            "(Phe)catA1",
+            "(Tmt)dfrA19",
+            "(Sul)sul1",
+            "(Sul)sul2"
+        ],
+        "virulence_factors": []
+    },
+    "raw_hits_summary": {
+        "total_hits": 178,
+        "hits_by_genome": {
+            "GCA_014705785.1": 18,
+            "GCA_016535705.2": 30,
+            "GCA_001444265.1": 14,
+            "GCA_001443265.1": 14,
+            "GCA_001444225.1": 15,
+            "GCA_016539245.2": 25,
+            "GCA_014705885.1": 18,
+            "GCA_014705825.1": 22,
+            "GCA_016536425.2": 22
+        }
+    }
+}

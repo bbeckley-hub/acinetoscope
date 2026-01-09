@@ -1,0 +1,2 @@
+#accesion_version@gene_name@gene_symbol:start-stop	mutation_position	standard_mutation_symbol	reported_mutation_symbol	class	subclass	mutated_gene_name
+NR_103973.1@23S_ribosomal_RNA@23S:1-2882	2037	23S_A2047G	23S_A2047G	MACROLIDE	AZITHROMYCIN/CLARITHROMYCIN/ERYTHROMYCIN	Bordetella_pertussis_azithromycin/clarithromycin/erythromycin_resistant_23S

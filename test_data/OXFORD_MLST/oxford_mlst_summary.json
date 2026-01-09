@@ -1,0 +1,260 @@
+{
+  "metadata": {
+    "analysis_date": "2026-01-09T14:31:17.931439",
+    "scheme": "abaumannii",
+    "scheme_display": "OXFORD",
+    "samples_analyzed": 9,
+    "version": "1.0",
+    "tool": "AcinetoScope"
+  },
+  "results": [
+    {
+      "sample": "GCA_001443265.1.fna",
+      "original_filename": "GCA_001443265.1.fna",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(15)-Oxf_gdhB(4(?)-182)(?)-Oxf_recA(11)-Oxf_cpn60(4)-Oxf_gpi(200)-Oxf_rpoD(4)",
+        "alleles": {
+          "Oxf_gltA": "1",
+          "Oxf_gyrB": "15",
+          "Oxf_gdhB(4": "?",
+          "182)": "?",
+          "Oxf_recA": "11",
+          "Oxf_cpn60": "4",
+          "Oxf_gpi": "200",
+          "Oxf_rpoD": "4"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_001444225.1.fna",
+      "original_filename": "GCA_001444225.1.fna",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(15)-Oxf_gdhB(4(?)-182)(?)-Oxf_recA(11)-Oxf_cpn60(4)-Oxf_gpi(200)-Oxf_rpoD(4)",
+        "alleles": {
+          "Oxf_gltA": "1",
+          "Oxf_gyrB": "15",
+          "Oxf_gdhB(4": "?",
+          "182)": "?",
+          "Oxf_recA": "11",
+          "Oxf_cpn60": "4",
+          "Oxf_gpi": "200",
+          "Oxf_rpoD": "4"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_001444265.1.fna",
+      "original_filename": "GCA_001444265.1.fna",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(15)-Oxf_gdhB(4(?)-182)(?)-Oxf_recA(11)-Oxf_cpn60(4)-Oxf_gpi(200)-Oxf_rpoD(4)",
+        "alleles": {
+          "Oxf_gltA": "1",
+          "Oxf_gyrB": "15",
+          "Oxf_gdhB(4": "?",
+          "182)": "?",
+          "Oxf_recA": "11",
+          "Oxf_cpn60": "4",
+          "Oxf_gpi": "200",
+          "Oxf_rpoD": "4"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_014705785.1.fna",
+      "original_filename": "GCA_014705785.1.fna",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(3)-Oxf_gdhB(3(?)-189)(?)-Oxf_recA(2)-Oxf_cpn60(2)-Oxf_gpi(97)-Oxf_rpoD(3)",
+        "alleles": {
+          "Oxf_gltA": "1",
+          "Oxf_gyrB": "3",
+          "Oxf_gdhB(3": "?",
+          "189)": "?",
+          "Oxf_recA": "2",
+          "Oxf_cpn60": "2",
+          "Oxf_gpi": "97",
+          "Oxf_rpoD": "3"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_014705825.1.fna",
+      "original_filename": "GCA_014705825.1.fna",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(3)-Oxf_gdhB(3(?)-189)(?)-Oxf_recA(2)-Oxf_cpn60(2)-Oxf_gpi(97)-Oxf_rpoD(3)",
+        "alleles": {
+          "Oxf_gltA": "1",
+          "Oxf_gyrB": "3",
+          "Oxf_gdhB(3": "?",
+          "189)": "?",
+          "Oxf_recA": "2",
+          "Oxf_cpn60": "2",
+          "Oxf_gpi": "97",
+          "Oxf_rpoD": "3"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_014705885.1.fna",
+      "original_filename": "GCA_014705885.1.fna",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(3)-Oxf_gdhB(3(?)-189)(?)-Oxf_recA(2)-Oxf_cpn60(2)-Oxf_gpi(97)-Oxf_rpoD(3)",
+        "alleles": {
+          "Oxf_gltA": "1",
+          "Oxf_gyrB": "3",
+          "Oxf_gdhB(3": "?",
+          "189)": "?",
+          "Oxf_recA": "2",
+          "Oxf_cpn60": "2",
+          "Oxf_gpi": "97",
+          "Oxf_rpoD": "3"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_016535705.2.fna",
+      "original_filename": "GCA_016535705.2.fna",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(10)-Oxf_gyrB(53)-Oxf_gdhB(74(?)-182)(?)-Oxf_recA(11)-Oxf_cpn60(4)-Oxf_gpi(100)-Oxf_rpoD(5)",
+        "alleles": {
+          "Oxf_gltA": "10",
+          "Oxf_gyrB": "53",
+          "Oxf_gdhB(74": "?",
+          "182)": "?",
+          "Oxf_recA": "11",
+          "Oxf_cpn60": "4",
+          "Oxf_gpi": "100",
+          "Oxf_rpoD": "5"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_016536425.2.fna",
+      "original_filename": "GCA_016536425.2.fna",
+      "mlst_results": {
+        "sequence_type": "460",
+        "confidence": "HIGH",
+        "mlst_assigned": true,
+        "allele_profile": "Oxf_gltA(65)-Oxf_gyrB(17)-Oxf_gdhB(107)-Oxf_recA(11)-Oxf_cpn60(1)-Oxf_gpi(156)-Oxf_rpoD(6)",
+        "alleles": {
+          "Oxf_gltA": "65",
+          "Oxf_gyrB": "17",
+          "Oxf_gdhB": "107",
+          "Oxf_recA": "11",
+          "Oxf_cpn60": "1",
+          "Oxf_gpi": "156",
+          "Oxf_rpoD": "6"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Unknown",
+        "clonal_complex": "Unknown (ST460)",
+        "classification": "Not in database - novel or uncommon",
+        "geographic_distribution": "Unknown",
+        "outbreak_potential": "UNKNOWN"
+      }
+    },
+    {
+      "sample": "GCA_016539245.2.fna",
+      "original_filename": "GCA_016539245.2.fna",
+      "mlst_results": {
+        "sequence_type": "460",
+        "confidence": "HIGH",
+        "mlst_assigned": true,
+        "allele_profile": "Oxf_gltA(65)-Oxf_gyrB(17)-Oxf_gdhB(107)-Oxf_recA(11)-Oxf_cpn60(1)-Oxf_gpi(156)-Oxf_rpoD(6)",
+        "alleles": {
+          "Oxf_gltA": "65",
+          "Oxf_gyrB": "17",
+          "Oxf_gdhB": "107",
+          "Oxf_recA": "11",
+          "Oxf_cpn60": "1",
+          "Oxf_gpi": "156",
+          "Oxf_rpoD": "6"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Unknown",
+        "clonal_complex": "Unknown (ST460)",
+        "classification": "Not in database - novel or uncommon",
+        "geographic_distribution": "Unknown",
+        "outbreak_potential": "UNKNOWN"
+      }
+    }
+  ],
+  "summary_statistics": {
+    "total_samples": 9,
+    "assigned_st": 2,
+    "unknown_st": 7,
+    "high_confidence": 2,
+    "low_confidence": 7
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "sample": "GCA_014705825.1.fna",
+    "original_filename": "GCA_014705825.1.fna",
+    "analysis_date": "2026-01-09T14:30:38.596103",
+    "scheme": "abaumannii_2",
+    "scheme_display": "PASTEUR",
+    "version": "1.0",
+    "tool": "AcinetoScope"
+  },
+  "mlst_results": {
+    "sequence_type": "2",
+    "confidence": "HIGH",
+    "mlst_assigned": true,
+    "allele_profile": "Pas_cpn60(2)-Pas_fusA(2)-Pas_gltA(2)-Pas_pyrG(2)-Pas_recA(2)-Pas_rplB(2)-Pas_rpoB(2)",
+    "alleles": {
+      "Pas_cpn60": "2",
+      "Pas_fusA": "2",
+      "Pas_gltA": "2",
+      "Pas_pyrG": "2",
+      "Pas_recA": "2",
+      "Pas_rplB": "2",
+      "Pas_rpoB": "2"
+    },
+    "detected_scheme": "abaumannii_2"
+  },
+  "lineage_information": {
+    "international_clone": "IC II",
+    "clonal_complex": "CC2",
+    "classification": "Global Epidemic Clone",
+    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+    "outbreak_potential": "VERY HIGH",
+    "common_resistance": [
+      "Carbapenem-resistant",
+      "MDR",
+      "XDR"
+    ],
+    "typical_resistance_genes": [
+      "OXA-23",
+      "OXA-58",
+      "OXA-66",
+      "ADC-30"
+    ],
+    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=2"
+  }
+}

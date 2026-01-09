@@ -1,0 +1,2245 @@
+{
+    "metadata": {
+        "database_name": "bacmet2",
+        "analysis_type": "ABRicate Antimicrobial Resistance & Virulence",
+        "total_genomes": 9,
+        "total_hits": 1450,
+        "analysis_date": "2026-01-09 15:00:42",
+        "tool_version": "1.0.0"
+    },
+    "summary_statistics": {
+        "unique_genes": 130,
+        "unique_genomes": 9,
+        "hits_per_genome": 161.11,
+        "risk_analysis": {
+            "critical_carbapenemase_genes": 0,
+            "critical_esbl_genes": 0,
+            "critical_colistin_genes": 0,
+            "critical_aminoglycoside_genes": 0,
+            "high_risk_resistance_genes": 15,
+            "virulence_factors": 0
+        }
+    },
+    "gene_analysis": {
+        "most_frequent_genes": {
+            "adeT1-BAC0478": 9,
+            "mexJ-BAC0241": 9,
+            "mexK-BAC0242": 9,
+            "adeL-BAC0508": 9,
+            "baeR-BAC0039": 9,
+            "fptA-BAC0168": 9,
+            "actP/yjcG-BAC0564": 9,
+            "cpxR-BAC0533": 9,
+            "mdeA-BAC0207": 9,
+            "czcA-BAC0119": 9,
+            "czcD-BAC0122": 9,
+            "bfrA-BAC0048": 9,
+            "mdfA/cmr-BAC0208": 9,
+            "pstB-BAC0316": 9,
+            "corA-BAC0641": 9,
+            "recG-BAC0356": 9,
+            "adeT2-BAC0479": 9,
+            "merA-BAC0651": 9,
+            "bcr-BAC0041": 9,
+            "pmrC-BAC0485": 9,
+            "copR-BAC0719": 9,
+            "adeK-BAC0019": 9,
+            "adeJ-BAC0018": 9,
+            "adeI-BAC0017": 9,
+            "adeE-BAC0013": 9,
+            "ydeP-BAC0438": 9,
+            "ruvB-BAC0355": 9,
+            "G2alt-BAC0490": 9,
+            "modB-BAC0599": 9,
+            "modB-BAC0610": 9,
+            "yddg/emrE-BAC0435": 9,
+            "fecE-BAC0164": 9,
+            "sodB-BAC0706": 9,
+            "ruvB-BAC0293": 9,
+            "sitB-BAC0350": 9,
+            "adeG-BAC0015": 9,
+            "adeF-BAC0014": 9,
+            "abeS-BAC0002": 9,
+            "pmrA-BAC0487": 9,
+            "nikE-BAC0274": 9,
+            "fpvA-BAC0169": 9,
+            "mgtA-BAC0642": 9,
+            "amvA-BAC0025": 9,
+            "galE-BAC0755": 9,
+            "adeN-BAC0496": 9,
+            "zraR/hydH-BAC0467": 9,
+            "fabL/ygaA-BAC0158": 9,
+            "vceA-BAC0418": 9,
+            "emrAsm-BAC0499": 9,
+            "adeA-BAC0471": 9,
+            "adeB-BAC0472": 9,
+            "modA-BAC0609": 9,
+            "mexT-BAC0244": 9,
+            "chrA-BAC0026": 9,
+            "lmrS-BAC0535": 9,
+            "nikD-BAC0273": 9,
+            "nikB-BAC0271": 9,
+            "ostA/lptD-BAC0296": 9,
+            "vcaM-BAC0417": 9,
+            "arsT-BAC0714": 9,
+            "arsB-BAC0573": 9,
+            "arsC-BAC0584": 9,
+            "fabK-BAC0157": 9,
+            "soxR-BAC0370": 9,
+            "hmrR-BAC0190": 9,
+            "golT-BAC0183": 9,
+            "pbrR-BAC0301": 9,
+            "oxyRkp-BAC0536": 9,
+            "pitA-BAC0312": 9,
+            "vceB-BAC0419": 9,
+            "sugE-BAC0378": 9,
+            "pcoA-BAC0303": 9,
+            "nreB-BAC0285": 9,
+            "acn-BAC0003": 9,
+            "smeF-BAC0360": 9,
+            "fabI-BAC0156": 9,
+            "abeM-BAC0001": 9,
+            "corC-BAC0088": 9,
+            "cutE/lnt-BAC0115": 9,
+            "frnE-BAC0170": 9,
+            "abuO-BAC0758": 9,
+            "dsbC-BAC0138": 9,
+            "corR-BAC0089": 9,
+            "comR/ycfQ-BAC0076": 9,
+            "znuC/yebM-BAC0465": 9,
+            "znuB/yebI-BAC0464": 9,
+            "hmrM-BAC0189": 8,
+            "hefC-BAC0188": 8,
+            "mdtN/yjcR-BAC0220": 8,
+            "mtrA-BAC0256": 8,
+            "pmrB-BAC0488": 7,
+            "emrBsm-BAC0500": 7,
+            "adeC-BAC0473": 7,
+            "dmeF-BAC0132": 7,
+            "adeH-BAC0016": 6,
+            "norA-BAC0282": 6,
+            "copF-BAC0747": 6,
+            "pcoS-BAC0309": 6,
+            "czcR-BAC0125": 5,
+            "fecD-BAC0163": 5,
+            "silB-BAC0342": 5,
+            "cusA/ybdE-BAC0107": 5,
+            "smdA-BAC0353": 5,
+            "qacEdelta1-BAC0323": 4,
+            "merR-BAC0689": 4,
+            "merP-BAC0678": 4,
+            "merC-BAC0664": 4,
+            "merA-BAC0652": 4,
+            "blt-BAC0050": 4,
+            "irlR-BAC0197": 4,
+            "czcS-BAC0126": 4,
+            "copR-BAC0083": 4,
+            "aioE-BAC0715": 4,
+            "arsH-BAC0034": 4,
+            "nccN-BAC0554": 3,
+            "merT-BAC0695": 3,
+            "arsC-BAC0585": 3,
+            "arsB-BAC0579": 3,
+            "wtpC-BAC0604": 2,
+            "arsC-BAC0583": 1,
+            "merT-BAC0233": 1,
+            "merD-BAC0666": 1,
+            "merE-BAC0672": 1,
+            "qacE-BAC0322": 1,
+            "smdB-BAC0354": 1,
+            "klaB/telA/kilB-BAC0199": 1,
+            "cadR-BAC0058": 1,
+            "mtrE-BAC0259": 1,
+            "vexH-BAC0509": 1,
+            "dsbA-BAC0136": 1
+        },
+        "gene_details": {
+            "adeT1-BAC0478": {
+                "product": "AdeT1 OS=Acinetobacter baumannii PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 56.14
+            },
+            "mexJ-BAC0241": {
+                "product": "Probable Resistance-Nodulation-Cell Division (RND) efflux membrane fusion protein OS=Pseudomonas aeruginosa (strain ATCC 15692 / PAO1 / 1C / PRS 101 / LMG 12228) GN=PA3677 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.0,
+                "avg_identity": 44.32
+            },
+            "mexK-BAC0242": {
+                "product": "Probable Resistance-Nodulation-Cell Division (RND) efflux transporter OS=Pseudomonas aeruginosa (strain ATCC 15692 / PAO1 / 1C / PRS 101 / LMG 12228) GN=PA3676 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 99.51,
+                "avg_identity": 66.39
+            },
+            "adeL-BAC0508": {
+                "product": "Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 86.91,
+                "avg_identity": 42.07
+            },
+            "hmrM-BAC0189": {
+                "product": "Multidrug resistance protein HmrM OS=Haemophilus influenzae (strain ATCC 51907 / DSM 11121 / KW20 / Rd) GN=hmrM PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.42,
+                "avg_identity": 27.3
+            },
+            "baeR-BAC0039": {
+                "product": "Transcriptional regulatory protein BaeR OS=Escherichia coli (strain K12) GN=baeR PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.75,
+                "avg_identity": 40.08
+            },
+            "fptA-BAC0168": {
+                "product": "Fe(3+)-pyochelin receptor OS=Pseudomonas aeruginosa (strain ATCC 15692 / PAO1 / 1C / PRS 101 / LMG 12228) GN=fptA PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 83.69,
+                "avg_identity": 26.17
+            },
+            "actP/yjcG-BAC0564": {
+                "product": "Cation/acetate symporter ActP OS=Escherichia coli (strain K12) GN=actP PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.54,
+                "avg_identity": 64.55
+            },
+            "cpxR-BAC0533": {
+                "product": "Response regulator of stress-related two-component regulatory system OS=Klebsiella pneumoniae subsp. pneumoniae NTUH-K2044 GN=cpxR PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.64,
+                "avg_identity": 38.71
+            },
+            "mdeA-BAC0207": {
+                "product": "Methionine gamma-lyase OS=Pseudomonas putida GN=mdeA PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.36,
+                "avg_identity": 39.18
+            },
+            "nccN-BAC0554": {
+                "product": "Nickel-cobalt-cadmium resistance protein NccN OS=Alcaligenes xylosoxydans xylosoxydans GN=nccN PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 84.98,
+                "avg_identity": 34.24
+            },
+            "czcA-BAC0119": {
+                "product": "Cobalt-zinc-cadmium resistance protein CzcA OS=Ralstonia metallidurans (strain CH34 / ATCC 43123 / DSM 2839) GN=czcA PE=1 SV=3",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.46,
+                "avg_identity": 62.24
+            },
+            "czcD-BAC0122": {
+                "product": "Cobalt-zinc-cadmium resistance protein CzcD OS=Ralstonia metallidurans (strain CH34 / ATCC 43123 / DSM 2839) GN=czcD PE=2 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 89.87,
+                "avg_identity": 60.14
+            },
+            "bfrA-BAC0048": {
+                "product": "Bacterioferritin OS=Mycobacterium tuberculosis GN=bfr PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 93.39,
+                "avg_identity": 38.14
+            },
+            "mdfA/cmr-BAC0208": {
+                "product": "Multidrug transporter MdfA OS=Escherichia coli (strain K12) GN=mdfA PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 87.8,
+                "avg_identity": 44.9
+            },
+            "pstB-BAC0316": {
+                "product": "Phosphate import ATP-binding protein PstB OS=Escherichia coli (strain K12) GN=pstB PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.52,
+                "avg_identity": 41.2
+            },
+            "corA-BAC0641": {
+                "product": "Magnesium transport protein CorA OS=Salmonella typhimurium (strain LT2 / SGSC1412 / ATCC 700720) GN=corA PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 88.92,
+                "avg_identity": 39.94
+            },
+            "recG-BAC0356": {
+                "product": "ATP-dependent DNA helicase RecG OS=Pseudomonas aeruginosa (strain ATCC 15692 / PAO1 / 1C / PRS 101 / LMG 12228) GN=recG PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.97,
+                "avg_identity": 57.6
+            },
+            "adeT2-BAC0479": {
+                "product": "AdeT2 OS=Acinetobacter baumannii PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.58
+            },
+            "merA-BAC0651": {
+                "product": "Mercuric reductase OS=Staphylococcus aureus GN=merA PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 82.91,
+                "avg_identity": 29.19
+            },
+            "hefC-BAC0188": {
+                "product": "Cytoplasmic pump protein of the HefABC efflux system HefC OS=Helicobacter pylori (strain P12) GN=hefC PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.28,
+                "avg_identity": 32.95
+            },
+            "bcr-BAC0041": {
+                "product": "Bicyclomycin resistance protein OS=Escherichia coli (strain K12) GN=bcr PE=1 SV=4",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.6,
+                "avg_identity": 29.9
+            },
+            "pmrC-BAC0485": {
+                "product": "Putative cytoplasmic membrane protein pmrC OS=Pectobacterium carotovorum subsp. carotovorum GN=pmrC PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.61,
+                "avg_identity": 41.63
+            },
+            "copR-BAC0719": {
+                "product": "Two-component heavy metal response regulator OS=Achromobacter sp. AO22 GN=copR PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.43,
+                "avg_identity": 46.52
+            },
+            "adeK-BAC0019": {
+                "product": "AdeK OS=Acinetobacter baumannii GN=adeK PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "adeJ-BAC0018": {
+                "product": "AdeJ OS=Acinetobacter baumannii GN=adeJ PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.85
+            },
+            "adeI-BAC0017": {
+                "product": "AdeI OS=Acinetobacter baumannii GN=adeI PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "adeE-BAC0013": {
+                "product": "AdeE OS=Acinetobacter sp. 4365 GN=adeE PE=4 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 98.75,
+                "avg_identity": 54.81
+            },
+            "ydeP-BAC0438": {
+                "product": "Protein YdeP OS=Escherichia coli (strain K12) GN=ydeP PE=2 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 99.34,
+                "avg_identity": 49.35
+            },
+            "ruvB-BAC0355": {
+                "product": "Holliday junction ATP-dependent DNA helicase RuvB OS=Pseudomonas aeruginosa (strain ATCC 15692 / PAO1 / 1C / PRS 101 / LMG 12228) GN=ruvB PE=3 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 93.47,
+                "avg_identity": 71.0
+            },
+            "G2alt-BAC0490": {
+                "product": "7-cyano-7-deazaguanine synthase OS=Anoxybacillus gonensis GN=queC PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 90.95,
+                "avg_identity": 38.03
+            },
+            "modB-BAC0599": {
+                "product": "Molybdenum ABC transporter permease protein OS=Desulfovibrio vulgaris (strain Hildenborough / ATCC 29579 / NCIMB 8303) GN=modB PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 85.41,
+                "avg_identity": 32.67
+            },
+            "modB-BAC0610": {
+                "product": "Molybdenum transport system permease protein ModB OS=Escherichia coli (strain K12) GN=modB PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.16,
+                "avg_identity": 42.19
+            },
+            "yddg/emrE-BAC0435": {
+                "product": "Methyl viologen resistance protein YddG OS=Salmonella typhimurium (strain 14028s / SGSC 2262) GN=yddG PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 98.79,
+                "avg_identity": 43.05
+            },
+            "fecE-BAC0164": {
+                "product": "Fe(3+) dicitrate transport ATP-binding protein FecE OS=Escherichia coli (strain K12) GN=fecE PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 92.65,
+                "avg_identity": 38.89
+            },
+            "sodB-BAC0706": {
+                "product": "Superoxide dismutase [Fe] OS=Pseudomonas aeruginosa (strain ATCC 15692 / PAO1 / 1C / PRS 101 / LMG 12228) GN=sodB PE=3 SV=3",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.41,
+                "avg_identity": 63.08
+            },
+            "ruvB-BAC0293": {
+                "product": "Malic enzyme family protein (Fragment) OS=Pseudomonas corrugata PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 98.49,
+                "avg_identity": 56.34
+            },
+            "sitB-BAC0350": {
+                "product": "SitB OS=Salmonella typhimurium GN=sitB PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 82.05,
+                "avg_identity": 28.99
+            },
+            "adeH-BAC0016": {
+                "product": "Putative RND family drug transporter OS=Acinetobacter baumannii GN=29_170 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.54
+            },
+            "adeG-BAC0015": {
+                "product": "Cation/multidrug efflux pump OS=Acinetobacter baumannii GN=29_167 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.7
+            },
+            "adeF-BAC0014": {
+                "product": "Putative RND family drug transporter OS=Acinetobacter baumannii GN=29_161 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.75
+            },
+            "abeS-BAC0002": {
+                "product": "QacEdelta1 SMR family efflux pump OS=Acinetobacter baumannii GN=qacEdelta1 PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "pmrA-BAC0487": {
+                "product": "Transcriptional regulatory protein PmrA OS=Pectobacterium sp. (strain SCC3193) GN=pmrA PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.4,
+                "avg_identity": 39.45
+            },
+            "pmrB-BAC0488": {
+                "product": "Sensor histidine kinase PmrB OS=Pectobacterium sp. (strain SCC3193) GN=pmrB PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 80.77,
+                "avg_identity": 32.46
+            },
+            "nikE-BAC0274": {
+                "product": "Nickel import ATP-binding protein NikE OS=Escherichia coli (strain K12) GN=nikE PE=3 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 81.72,
+                "avg_identity": 38.23
+            },
+            "czcR-BAC0125": {
+                "product": "Transcriptional activator protein CzcR OS=Ralstonia metallidurans (strain CH34 / ATCC 43123 / DSM 2839) GN=czcR PE=2 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.56,
+                "avg_identity": 34.56
+            },
+            "fpvA-BAC0169": {
+                "product": "Ferripyoverdine receptor OS=Pseudomonas aeruginosa (strain ATCC 15692 / PAO1 / 1C / PRS 101 / LMG 12228) GN=fpvA PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 83.38,
+                "avg_identity": 32.81
+            },
+            "mgtA-BAC0642": {
+                "product": "Magnesium-transporting ATPase P-type 1 OS=Salmonella typhimurium (strain LT2 / SGSC1412 / ATCC 700720) GN=mgtA PE=2 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.56,
+                "avg_identity": 61.68
+            },
+            "amvA-BAC0025": {
+                "product": "Major facilitator superfamily efflux pump OS=Acinetobacter baumannii PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.43
+            },
+            "galE-BAC0755": {
+                "product": "UDP-glucose 4-epimerase OS=uncultured bacterium GN=galE PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.37,
+                "avg_identity": 35.24
+            },
+            "adeN-BAC0496": {
+                "product": "Bacterial regulatory protein tetR family protein OS=Acinetobacter baumannii (strain AB307-0294) GN=ABBFA_001467 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.85,
+                "avg_identity": 96.63
+            },
+            "zraR/hydH-BAC0467": {
+                "product": "Transcriptional regulatory protein ZraR OS=Escherichia coli (strain K12) GN=zraR PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.51,
+                "avg_identity": 40.76
+            },
+            "fabL/ygaA-BAC0158": {
+                "product": "Enoyl-[acyl-carrier-protein] reductase [NADPH] FabL OS=Bacillus subtilis (strain 168) GN=fabL PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 93.7,
+                "avg_identity": 29.73
+            },
+            "vceA-BAC0418": {
+                "product": "VceA OS=Vibrio cholerae GN=vceA PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 89.5,
+                "avg_identity": 42.02
+            },
+            "fecD-BAC0163": {
+                "product": "Fe(3+) dicitrate transport system permease protein FecD OS=Escherichia coli (strain K12) GN=fecD PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 85.75,
+                "avg_identity": 31.74
+            },
+            "emrAsm-BAC0499": {
+                "product": "Putative multidrug resistance protein A OS=Stenotrophomonas maltophilia (strain K279a) GN=emrA PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 83.15,
+                "avg_identity": 32.78
+            },
+            "emrBsm-BAC0500": {
+                "product": "Putative multidrug resistance protein B OS=Stenotrophomonas maltophilia (strain K279a) GN=emrB PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 87.5,
+                "avg_identity": 29.19
+            },
+            "adeA-BAC0471": {
+                "product": "AdeA membrane fusion protein OS=Acinetobacter baumannii GN=adeA PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.21
+            },
+            "adeB-BAC0472": {
+                "product": "AdeB RND protein OS=Acinetobacter baumannii GN=adeB PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.67
+            },
+            "adeC-BAC0473": {
+                "product": "AdeC outer membrane protein OS=Acinetobacter baumannii GN=adeC PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.4
+            },
+            "modA-BAC0609": {
+                "product": "Molybdate-binding periplasmic protein OS=Escherichia coli (strain K12) GN=modA PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 94.29,
+                "avg_identity": 44.81
+            },
+            "mexT-BAC0244": {
+                "product": "MexT protein OS=Pseudomonas aeruginosa GN=mexT PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 93.26,
+                "avg_identity": 32.11
+            },
+            "chrA-BAC0026": {
+                "product": "Chromate transporter OS=Ochrobactrum tritici GN=chrA PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.38,
+                "avg_identity": 63.55
+            },
+            "lmrS-BAC0535": {
+                "product": "Drug resistance transporter EmrB/QacA subfamily OS=Staphylococcus aureus (strain COL) GN=SACOL2157 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 83.38,
+                "avg_identity": 26.79
+            },
+            "nikD-BAC0273": {
+                "product": "Nickel import ATP-binding protein NikD OS=Escherichia coli (strain K12) GN=nikD PE=3 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 89.74,
+                "avg_identity": 39.68
+            },
+            "nikB-BAC0271": {
+                "product": "Nickel transport system permease protein NikB OS=Escherichia coli (strain K12) GN=nikB PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.18,
+                "avg_identity": 30.03
+            },
+            "ostA/lptD-BAC0296": {
+                "product": "LPS-assembly protein LptD OS=Escherichia coli (strain K12) GN=lptD PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 84.12,
+                "avg_identity": 27.33
+            },
+            "vcaM-BAC0417": {
+                "product": "ABC transporter ATP-binding protein OS=Vibrio cholerae serotype O1 (strain ATCC 39315 / El Tor Inaba N16961) GN=VCA0996 PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.75,
+                "avg_identity": 53.47
+            },
+            "arsT-BAC0714": {
+                "product": "Thioredoxin reductase OS=Microbacterium sp. A33 GN=arsT PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 90.25,
+                "avg_identity": 38.16
+            },
+            "arsB-BAC0573": {
+                "product": "Arsenite resistance protein ArsB OS=Bacillus subtilis (strain 168) GN=arsB PE=3 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 98.59,
+                "avg_identity": 61.93
+            },
+            "arsC-BAC0584": {
+                "product": "Arsenate reductase OS=Acidiphilium multivorum (strain DSM 11245 / JCM 8867 / AIU301) GN=arsC PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 98.4,
+                "avg_identity": 65.71
+            },
+            "fabK-BAC0157": {
+                "product": "Trans-2-enoyl-ACP reductase II OS=Streptococcus pneumoniae GN=fabK PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.36,
+                "avg_identity": 36.49
+            },
+            "soxR-BAC0370": {
+                "product": "Redox-sensitive transcriptional activator SoxR OS=Escherichia coli (strain K12) GN=soxR PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 90.91,
+                "avg_identity": 66.43
+            },
+            "hmrR-BAC0190": {
+                "product": "HTH-type transcriptional regulator HmrR OS=Sinorhizobium medicae (strain WSM419) GN=hmrR PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.84,
+                "avg_identity": 51.85
+            },
+            "golT-BAC0183": {
+                "product": "Putative cation transport ATPase OS=Salmonella typhimurium (strain LT2 / SGSC1412 / ATCC 700720) GN=STM0353 PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.11,
+                "avg_identity": 69.68
+            },
+            "qacEdelta1-BAC0323": {
+                "product": "Disinfectant resistance protein OS=Pseudomonas aeruginosa GN=qacEdelta1 PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "merR-BAC0689": {
+                "product": "Mer operon regulatory protein OS=Thiobacillus ferrooxidans GN=merR PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 89.14
+            },
+            "merT-BAC0695": {
+                "product": "Mercuric transport protein OS=Serratia marcescens GN=merT PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 96.55
+            },
+            "merP-BAC0678": {
+                "product": "MerP OS=Pseudomonas stutzeri GN=merP PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 90.41
+            },
+            "merC-BAC0664": {
+                "product": "MerC OS=Pseudomonas stutzeri GN=merC PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.44,
+                "avg_identity": 69.5
+            },
+            "merA-BAC0652": {
+                "product": "MerA OS=Pseudomonas stutzeri GN=merA PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 99.78,
+                "avg_identity": 90.35
+            },
+            "pbrR-BAC0301": {
+                "product": "Pb-specific transcription regulator protein OS=Herbaspirillum seropedicae (strain SmR1) GN=pbrR PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 87.18,
+                "avg_identity": 40.89
+            },
+            "oxyRkp-BAC0536": {
+                "product": "Activator of hydrogen peroxide-inducible genes OS=Klebsiella pneumoniae subsp. pneumoniae NTUH-K2044 GN=oxyR PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 87.03,
+                "avg_identity": 32.43
+            },
+            "pitA-BAC0312": {
+                "product": "Low-affinity inorganic phosphate transporter 1 OS=Escherichia coli (strain K12) GN=pitA PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.58,
+                "avg_identity": 42.12
+            },
+            "vceB-BAC0419": {
+                "product": "VceB OS=Vibrio cholerae GN=vceB PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.95,
+                "avg_identity": 46.49
+            },
+            "sugE-BAC0378": {
+                "product": "Quaternary ammonium compound-resistance protein SugE OS=Escherichia coli (strain K12) GN=sugE PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 99.05,
+                "avg_identity": 51.92
+            },
+            "pcoA-BAC0303": {
+                "product": "Copper resistance protein A OS=Escherichia coli GN=pcoA PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 90.18,
+                "avg_identity": 46.15
+            },
+            "nreB-BAC0285": {
+                "product": "NrsD nreB nickel permease involved in nickel and cobalt tolerance OS=Acinetobacter calcoaceticus (strain PHEA-2) GN=entS PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.27
+            },
+            "acn-BAC0003": {
+                "product": "Aconitate hydratase OS=Mycobacterium tuberculosis H37Rv GN=RVBD_1475c PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.69,
+                "avg_identity": 49.47
+            },
+            "smeF-BAC0360": {
+                "product": "Outer membrane protein OS=Stenotrophomonas maltophilia GN=smeF PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 94.72,
+                "avg_identity": 32.16
+            },
+            "fabI-BAC0156": {
+                "product": "Enoyl-[acyl-carrier-protein] reductase [NADH] FabI OS=Escherichia coli (strain K12) GN=fabI PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 98.09,
+                "avg_identity": 65.5
+            },
+            "abeM-BAC0001": {
+                "product": "Multidrug efflux pump AbeM OS=Acinetobacter baumannii GN=abeM PE=4 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.4
+            },
+            "corC-BAC0088": {
+                "product": "Magnesium and cobalt efflux protein CorC OS=Salmonella typhimurium (strain LT2 / SGSC1412 / ATCC 700720) GN=corC PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 85.62,
+                "avg_identity": 42.31
+            },
+            "cutE/lnt-BAC0115": {
+                "product": "Apolipoprotein N-acyltransferase OS=Escherichia coli (strain K12) GN=lnt PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 92.58,
+                "avg_identity": 36.63
+            },
+            "mdtN/yjcR-BAC0220": {
+                "product": "Multidrug resistance protein MdtN OS=Escherichia coli (strain K12) GN=mdtN PE=2 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 85.13,
+                "avg_identity": 29.91
+            },
+            "frnE-BAC0170": {
+                "product": "FrnE protein OS=Deinococcus radiodurans (strain ATCC 13939 / DSM 20539 / JCM 16871 / LMG 4051 / NBRC 15346 / NCIMB 9279 / R1 / VKM B-1422) GN=DR_0659 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.67,
+                "avg_identity": 35.71
+            },
+            "abuO-BAC0758": {
+                "product": "Channel-tunnel spanning the outer membrane and periplasm segregation of daughter chromosomes OS=Acinetobacter baumannii (strain AYE) GN=abuO PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.7
+            },
+            "dsbC-BAC0138": {
+                "product": "Thiol:disulfide interchange protein DsbC OS=Escherichia coli (strain K12) GN=dsbC PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 83.05,
+                "avg_identity": 39.45
+            },
+            "corR-BAC0089": {
+                "product": "Sigma-54 dependent DNA-binding response regulator OS=Myxococcus xanthus (strain DK 1622) GN=MXAN_3418 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.35,
+                "avg_identity": 36.6
+            },
+            "blt-BAC0050": {
+                "product": "Multidrug resistance protein 2 OS=Bacillus subtilis (strain 168) GN=blt PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 86.8,
+                "avg_identity": 27.66
+            },
+            "comR/ycfQ-BAC0076": {
+                "product": "HTH-type transcriptional repressor ComR OS=Escherichia coli (strain K12) GN=comR PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 93.33,
+                "avg_identity": 34.22
+            },
+            "znuC/yebM-BAC0465": {
+                "product": "Zinc import ATP-binding protein ZnuC OS=Escherichia coli (strain K12) GN=znuC PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 88.05,
+                "avg_identity": 46.44
+            },
+            "znuB/yebI-BAC0464": {
+                "product": "High-affinity zinc uptake system membrane protein ZnuB OS=Escherichia coli (strain K12) GN=znuB PE=1 SV=3",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 98.72,
+                "avg_identity": 36.28
+            },
+            "dmeF-BAC0132": {
+                "product": "Co/Zn/Cd efflux system component OS=Ralstonia metallidurans (strain CH34 / ATCC 43123 / DSM 2839) GN=dmeF PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 81.94,
+                "avg_identity": 53.42
+            },
+            "mtrA-BAC0256": {
+                "product": "MtrA OS=Neisseria gonorrhoeae GN=mtrA PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.35,
+                "avg_identity": 26.28
+            },
+            "irlR-BAC0197": {
+                "product": "Transcriptional activator protein IrlR OS=Burkholderia pseudomallei (strain K96243) GN=irlR PE=3 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 96.51,
+                "avg_identity": 53.85
+            },
+            "czcS-BAC0126": {
+                "product": "Sensor protein CzcS OS=Ralstonia metallidurans (strain CH34 / ATCC 43123 / DSM 2839) GN=czcS PE=2 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 92.65,
+                "avg_identity": 29.07
+            },
+            "copR-BAC0083": {
+                "product": "Transcriptional activator protein CopR OS=Pseudomonas syringae pv. tomato GN=copR PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.15,
+                "avg_identity": 33.95
+            },
+            "norA-BAC0282": {
+                "product": "Quinolone resistance protein NorA OS=Staphylococcus aureus GN=norA PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 88.41,
+                "avg_identity": 27.02
+            },
+            "copF-BAC0747": {
+                "product": "CopF OS=Xanthomonas citri subsp. citri GN=copF PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 89.78,
+                "avg_identity": 66.74
+            },
+            "pcoS-BAC0309": {
+                "product": "Probable sensor protein PcoS OS=Escherichia coli GN=pcoS PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.42,
+                "avg_identity": 37.56
+            },
+            "aioE-BAC0715": {
+                "product": "FAD-dependent pyridine nucleotide-disulfide oxidoreductase OS=Agrobacterium radiobacter DSM 30147 GN=aioE PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.82,
+                "avg_identity": 55.13
+            },
+            "arsH-BAC0034": {
+                "product": "Arsenic resistance protein ArsH OS=Yersinia pestis Java 9 GN=arsH PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.77,
+                "avg_identity": 65.72
+            },
+            "arsC-BAC0583": {
+                "product": "Arsenate reductase OS=Escherichia coli GN=arsC PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.87,
+                "avg_identity": 65.22
+            },
+            "merT-BAC0233": {
+                "product": "Mercuric transport protein OS=Alcaligenes sp. GN=merT PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 99.14,
+                "avg_identity": 99.13
+            },
+            "merD-BAC0666": {
+                "product": "MerD OS=Pseudomonas stutzeri GN=merD PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 90.08
+            },
+            "merE-BAC0672": {
+                "product": "Urf1 OS=Pseudomonas stutzeri PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 96.15
+            },
+            "qacE-BAC0322": {
+                "product": "Quaternary ammonium compound-resistance protein QacE OS=Escherichia coli GN=qacE PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 84.55,
+                "avg_identity": 100.0
+            },
+            "silB-BAC0342": {
+                "product": "Putative membrane fusion protein SilB OS=Salmonella typhimurium GN=silB PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 91.44,
+                "avg_identity": 38.73
+            },
+            "cusA/ybdE-BAC0107": {
+                "product": "Cation efflux system protein CusA OS=Escherichia coli (strain K12) GN=cusA PE=1 SV=2",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 99.14,
+                "avg_identity": 67.83
+            },
+            "arsC-BAC0585": {
+                "product": "Arsenate reductase OS=Yersinia enterocolitica GN=arsC PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 97.87,
+                "avg_identity": 70.29
+            },
+            "smdA-BAC0353": {
+                "product": "Multidrug efflux pump SmdA OS=Serratia marcescens GN=smdA PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 88.63,
+                "avg_identity": 25.02
+            },
+            "smdB-BAC0354": {
+                "product": "Multidrug efflux pump SmdB OS=Serratia marcescens GN=smdB PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 88.68,
+                "avg_identity": 25.59
+            },
+            "klaB/telA/kilB-BAC0199": {
+                "product": "Protein KlaB OS=Escherichia coli GN=klaB PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 87.3,
+                "avg_identity": 32.04
+            },
+            "arsB-BAC0579": {
+                "product": "Uncharacterized transporter slr0944 OS=Synechocystis sp. (strain PCC 6803 / Kazusa) GN=slr0944 PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 87.47,
+                "avg_identity": 44.22
+            },
+            "wtpC-BAC0604": {
+                "product": "Molybdate/tungstate import ATP-binding protein WtpC OS=Pyrococcus furiosus (strain ATCC 43587 / DSM 3638 / JCM 8422 / Vc1) GN=wtpC PE=3 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.06,
+                "avg_identity": 37.5
+            },
+            "cadR-BAC0058": {
+                "product": "CadR OS=Pseudomonas putida GN=cadR PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 85.03,
+                "avg_identity": 48.03
+            },
+            "mtrE-BAC0259": {
+                "product": "MtrE OS=Neisseria gonorrhoeae (strain NCCP11945) GN=NGK_1596 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 92.29,
+                "avg_identity": 30.25
+            },
+            "vexH-BAC0509": {
+                "product": "Multidrug resistance protein putative OS=Vibrio cholerae serotype O1 (strain ATCC 39315 / El Tor Inaba N16961) GN=VC0914 PE=4 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 95.95,
+                "avg_identity": 31.35
+            },
+            "dsbA-BAC0136": {
+                "product": "Thiol:disulfide interchange protein DsbA OS=Escherichia coli (strain K12) GN=dsbA PE=1 SV=1",
+                "databases": [
+                    "bacmet2"
+                ],
+                "avg_coverage": 86.06,
+                "avg_identity": 32.99
+            }
+        }
+    },
+    "genome_analysis": {
+        "GCA_014705785.1": {
+            "total_hits": 150,
+            "unique_genes": 105,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "hmrM-BAC0189",
+                "golT-BAC0183",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "actP/yjcG-BAC0564",
+                "mexT-BAC0244",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "adeL-BAC0508",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "fpvA-BAC0169",
+                "qacEdelta1-BAC0323",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "dmeF-BAC0132",
+                "mdtN/yjcR-BAC0220",
+                "merA-BAC0652",
+                "czcD-BAC0122",
+                "blt-BAC0050",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "zraR/hydH-BAC0467",
+                "corA-BAC0641",
+                "adeG-BAC0015",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "fecD-BAC0163",
+                "smeF-BAC0360",
+                "pmrA-BAC0487",
+                "emrBsm-BAC0500",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "merP-BAC0678",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "merR-BAC0689",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "pmrB-BAC0488",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "adeC-BAC0473",
+                "galE-BAC0755",
+                "mtrA-BAC0256",
+                "merA-BAC0651",
+                "nccN-BAC0554",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "czcR-BAC0125",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "adeH-BAC0016",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "fabL/ygaA-BAC0158",
+                "modA-BAC0609",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "merT-BAC0695",
+                "yddg/emrE-BAC0435",
+                "arsT-BAC0714",
+                "pitA-BAC0312",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "merC-BAC0664",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_016535705.2": {
+            "total_hits": 183,
+            "unique_genes": 113,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "golT-BAC0183",
+                "copR-BAC0083",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "czcS-BAC0126",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "mexT-BAC0244",
+                "actP/yjcG-BAC0564",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "adeL-BAC0508",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "merD-BAC0666",
+                "bcr-BAC0041",
+                "fpvA-BAC0169",
+                "qacEdelta1-BAC0323",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "dmeF-BAC0132",
+                "mdtN/yjcR-BAC0220",
+                "merA-BAC0652",
+                "czcD-BAC0122",
+                "blt-BAC0050",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "irlR-BAC0197",
+                "zraR/hydH-BAC0467",
+                "adeG-BAC0015",
+                "corA-BAC0641",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "smeF-BAC0360",
+                "pmrA-BAC0487",
+                "copF-BAC0747",
+                "emrBsm-BAC0500",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "merP-BAC0678",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "merR-BAC0689",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "pmrB-BAC0488",
+                "mdfA/cmr-BAC0208",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "merT-BAC0233",
+                "comR/ycfQ-BAC0076",
+                "adeC-BAC0473",
+                "galE-BAC0755",
+                "aioE-BAC0715",
+                "norA-BAC0282",
+                "mtrA-BAC0256",
+                "arsH-BAC0034",
+                "merA-BAC0651",
+                "arsC-BAC0583",
+                "merE-BAC0672",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "adeH-BAC0016",
+                "qacE-BAC0322",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "modA-BAC0609",
+                "fabL/ygaA-BAC0158",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "yddg/emrE-BAC0435",
+                "arsT-BAC0714",
+                "pitA-BAC0312",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "merC-BAC0664",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "pcoS-BAC0309",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_001444265.1": {
+            "total_hits": 161,
+            "unique_genes": 107,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "hmrM-BAC0189",
+                "golT-BAC0183",
+                "copR-BAC0083",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "dsbA-BAC0136",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "czcS-BAC0126",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "actP/yjcG-BAC0564",
+                "mexT-BAC0244",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "smdA-BAC0353",
+                "adeL-BAC0508",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "fpvA-BAC0169",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "dmeF-BAC0132",
+                "czcD-BAC0122",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "irlR-BAC0197",
+                "zraR/hydH-BAC0467",
+                "corA-BAC0641",
+                "adeG-BAC0015",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "arsB-BAC0579",
+                "smeF-BAC0360",
+                "copF-BAC0747",
+                "pmrA-BAC0487",
+                "emrBsm-BAC0500",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "cusA/ybdE-BAC0107",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "pmrB-BAC0488",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "adeC-BAC0473",
+                "galE-BAC0755",
+                "aioE-BAC0715",
+                "norA-BAC0282",
+                "mtrA-BAC0256",
+                "arsH-BAC0034",
+                "merA-BAC0651",
+                "silB-BAC0342",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "arsC-BAC0585",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "fabL/ygaA-BAC0158",
+                "modA-BAC0609",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "yddg/emrE-BAC0435",
+                "pitA-BAC0312",
+                "arsT-BAC0714",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "pcoS-BAC0309",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_001443265.1": {
+            "total_hits": 160,
+            "unique_genes": 107,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "hmrM-BAC0189",
+                "golT-BAC0183",
+                "copR-BAC0083",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "czcS-BAC0126",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "actP/yjcG-BAC0564",
+                "mexT-BAC0244",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "adeL-BAC0508",
+                "smdA-BAC0353",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "fpvA-BAC0169",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "dmeF-BAC0132",
+                "mdtN/yjcR-BAC0220",
+                "czcD-BAC0122",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "irlR-BAC0197",
+                "zraR/hydH-BAC0467",
+                "corA-BAC0641",
+                "adeG-BAC0015",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "arsB-BAC0579",
+                "smeF-BAC0360",
+                "copF-BAC0747",
+                "pmrA-BAC0487",
+                "emrBsm-BAC0500",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "cusA/ybdE-BAC0107",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "pmrB-BAC0488",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "adeC-BAC0473",
+                "galE-BAC0755",
+                "aioE-BAC0715",
+                "norA-BAC0282",
+                "mtrA-BAC0256",
+                "arsH-BAC0034",
+                "merA-BAC0651",
+                "silB-BAC0342",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "arsC-BAC0585",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "modA-BAC0609",
+                "fabL/ygaA-BAC0158",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "yddg/emrE-BAC0435",
+                "pitA-BAC0312",
+                "arsT-BAC0714",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "pcoS-BAC0309",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_001444225.1": {
+            "total_hits": 164,
+            "unique_genes": 109,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "hmrM-BAC0189",
+                "golT-BAC0183",
+                "copR-BAC0083",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "czcS-BAC0126",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "actP/yjcG-BAC0564",
+                "mexT-BAC0244",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "adeL-BAC0508",
+                "smdA-BAC0353",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "fpvA-BAC0169",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "dmeF-BAC0132",
+                "mdtN/yjcR-BAC0220",
+                "czcD-BAC0122",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "irlR-BAC0197",
+                "zraR/hydH-BAC0467",
+                "corA-BAC0641",
+                "adeG-BAC0015",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "arsB-BAC0579",
+                "smeF-BAC0360",
+                "copF-BAC0747",
+                "pmrA-BAC0487",
+                "emrBsm-BAC0500",
+                "adeK-BAC0019",
+                "klaB/telA/kilB-BAC0199",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "cusA/ybdE-BAC0107",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "pmrB-BAC0488",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "adeC-BAC0473",
+                "galE-BAC0755",
+                "aioE-BAC0715",
+                "smdB-BAC0354",
+                "norA-BAC0282",
+                "mtrA-BAC0256",
+                "arsH-BAC0034",
+                "merA-BAC0651",
+                "silB-BAC0342",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "arsC-BAC0585",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "modA-BAC0609",
+                "fabL/ygaA-BAC0158",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "yddg/emrE-BAC0435",
+                "pitA-BAC0312",
+                "arsT-BAC0714",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "pcoS-BAC0309",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_016539245.2": {
+            "total_hits": 170,
+            "unique_genes": 101,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "golT-BAC0183",
+                "hmrM-BAC0189",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "mexT-BAC0244",
+                "actP/yjcG-BAC0564",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "adeL-BAC0508",
+                "smdA-BAC0353",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "wtpC-BAC0604",
+                "fpvA-BAC0169",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "mdtN/yjcR-BAC0220",
+                "czcD-BAC0122",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "zraR/hydH-BAC0467",
+                "adeG-BAC0015",
+                "corA-BAC0641",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "fecD-BAC0163",
+                "smeF-BAC0360",
+                "pmrA-BAC0487",
+                "copF-BAC0747",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "cusA/ybdE-BAC0107",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "galE-BAC0755",
+                "norA-BAC0282",
+                "mtrA-BAC0256",
+                "mtrE-BAC0259",
+                "merA-BAC0651",
+                "silB-BAC0342",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "czcR-BAC0125",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "adeH-BAC0016",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "fabL/ygaA-BAC0158",
+                "modA-BAC0609",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "yddg/emrE-BAC0435",
+                "arsT-BAC0714",
+                "pitA-BAC0312",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "pcoS-BAC0309",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_014705885.1": {
+            "total_hits": 149,
+            "unique_genes": 104,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "hmrM-BAC0189",
+                "golT-BAC0183",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "actP/yjcG-BAC0564",
+                "mexT-BAC0244",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "adeL-BAC0508",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "fpvA-BAC0169",
+                "qacEdelta1-BAC0323",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "dmeF-BAC0132",
+                "mdtN/yjcR-BAC0220",
+                "merA-BAC0652",
+                "czcD-BAC0122",
+                "blt-BAC0050",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "zraR/hydH-BAC0467",
+                "corA-BAC0641",
+                "adeG-BAC0015",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "fecD-BAC0163",
+                "smeF-BAC0360",
+                "pmrA-BAC0487",
+                "emrBsm-BAC0500",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "merP-BAC0678",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "merR-BAC0689",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "pmrB-BAC0488",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "adeC-BAC0473",
+                "galE-BAC0755",
+                "merA-BAC0651",
+                "nccN-BAC0554",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "czcR-BAC0125",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "adeH-BAC0016",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "fabL/ygaA-BAC0158",
+                "modA-BAC0609",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "merT-BAC0695",
+                "yddg/emrE-BAC0435",
+                "arsT-BAC0714",
+                "pitA-BAC0312",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "merC-BAC0664",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_014705825.1": {
+            "total_hits": 150,
+            "unique_genes": 105,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "hmrM-BAC0189",
+                "golT-BAC0183",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "actP/yjcG-BAC0564",
+                "mexT-BAC0244",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "adeL-BAC0508",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "fpvA-BAC0169",
+                "qacEdelta1-BAC0323",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "dmeF-BAC0132",
+                "mdtN/yjcR-BAC0220",
+                "merA-BAC0652",
+                "vexH-BAC0509",
+                "czcD-BAC0122",
+                "blt-BAC0050",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "zraR/hydH-BAC0467",
+                "corA-BAC0641",
+                "adeG-BAC0015",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "fecD-BAC0163",
+                "smeF-BAC0360",
+                "pmrA-BAC0487",
+                "emrBsm-BAC0500",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "merP-BAC0678",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "merR-BAC0689",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "pmrB-BAC0488",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "adeC-BAC0473",
+                "galE-BAC0755",
+                "mtrA-BAC0256",
+                "merA-BAC0651",
+                "nccN-BAC0554",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "czcR-BAC0125",
+                "recG-BAC0356",
+                "ydeP-BAC0438",
+                "adeH-BAC0016",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "fabL/ygaA-BAC0158",
+                "modA-BAC0609",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "merT-BAC0695",
+                "yddg/emrE-BAC0435",
+                "arsT-BAC0714",
+                "pitA-BAC0312",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "merC-BAC0664",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        },
+        "GCA_016536425.2": {
+            "total_hits": 163,
+            "unique_genes": 101,
+            "genes": [
+                "nikE-BAC0274",
+                "adeA-BAC0471",
+                "cutE/lnt-BAC0115",
+                "znuB/yebI-BAC0464",
+                "cpxR-BAC0533",
+                "golT-BAC0183",
+                "hmrM-BAC0189",
+                "adeN-BAC0496",
+                "arsB-BAC0573",
+                "hefC-BAC0188",
+                "fabK-BAC0157",
+                "dsbC-BAC0138",
+                "ruvB-BAC0355",
+                "frnE-BAC0170",
+                "znuC/yebM-BAC0465",
+                "hmrR-BAC0190",
+                "sugE-BAC0378",
+                "mdeA-BAC0207",
+                "mexT-BAC0244",
+                "actP/yjcG-BAC0564",
+                "fptA-BAC0168",
+                "pcoA-BAC0303",
+                "smdA-BAC0353",
+                "adeL-BAC0508",
+                "mexK-BAC0242",
+                "abuO-BAC0758",
+                "bcr-BAC0041",
+                "wtpC-BAC0604",
+                "fpvA-BAC0169",
+                "mexJ-BAC0241",
+                "fecE-BAC0164",
+                "copR-BAC0719",
+                "oxyRkp-BAC0536",
+                "corR-BAC0089",
+                "baeR-BAC0039",
+                "mdtN/yjcR-BAC0220",
+                "czcD-BAC0122",
+                "adeI-BAC0017",
+                "adeF-BAC0014",
+                "czcA-BAC0119",
+                "pmrC-BAC0485",
+                "vceA-BAC0418",
+                "zraR/hydH-BAC0467",
+                "adeG-BAC0015",
+                "corA-BAC0641",
+                "nikB-BAC0271",
+                "soxR-BAC0370",
+                "fecD-BAC0163",
+                "smeF-BAC0360",
+                "pmrA-BAC0487",
+                "copF-BAC0747",
+                "adeK-BAC0019",
+                "emrAsm-BAC0499",
+                "abeS-BAC0002",
+                "fabI-BAC0156",
+                "lmrS-BAC0535",
+                "bfrA-BAC0048",
+                "vceB-BAC0419",
+                "cusA/ybdE-BAC0107",
+                "nreB-BAC0285",
+                "mgtA-BAC0642",
+                "pstB-BAC0316",
+                "adeT2-BAC0479",
+                "mdfA/cmr-BAC0208",
+                "adeT1-BAC0478",
+                "arsC-BAC0584",
+                "sodB-BAC0706",
+                "ostA/lptD-BAC0296",
+                "modB-BAC0599",
+                "comR/ycfQ-BAC0076",
+                "galE-BAC0755",
+                "norA-BAC0282",
+                "mtrA-BAC0256",
+                "merA-BAC0651",
+                "silB-BAC0342",
+                "adeE-BAC0013",
+                "acn-BAC0003",
+                "czcR-BAC0125",
+                "recG-BAC0356",
+                "cadR-BAC0058",
+                "ydeP-BAC0438",
+                "adeH-BAC0016",
+                "vcaM-BAC0417",
+                "sitB-BAC0350",
+                "ruvB-BAC0293",
+                "modA-BAC0609",
+                "fabL/ygaA-BAC0158",
+                "adeB-BAC0472",
+                "adeJ-BAC0018",
+                "yddg/emrE-BAC0435",
+                "arsT-BAC0714",
+                "pitA-BAC0312",
+                "amvA-BAC0025",
+                "G2alt-BAC0490",
+                "pbrR-BAC0301",
+                "abeM-BAC0001",
+                "nikD-BAC0273",
+                "corC-BAC0088",
+                "pcoS-BAC0309",
+                "modB-BAC0610",
+                "chrA-BAC0026"
+            ]
+        }
+    },
+    "risk_genes": {
+        "critical_carbapenemase": [],
+        "critical_esbl": [],
+        "critical_colistin": [],
+        "critical_aminoglycoside": [],
+        "high_risk_resistance": [
+            "adeA-BAC0471",
+            "adeN-BAC0496",
+            "adeL-BAC0508",
+            "adeI-BAC0017",
+            "adeG-BAC0015",
+            "emrBsm-BAC0500",
+            "adeK-BAC0019",
+            "emrAsm-BAC0499",
+            "abeS-BAC0002",
+            "adeC-BAC0473",
+            "adeH-BAC0016",
+            "adeB-BAC0472",
+            "adeJ-BAC0018",
+            "yddg/emrE-BAC0435",
+            "abeM-BAC0001"
+        ],
+        "virulence_factors": []
+    },
+    "raw_hits_summary": {
+        "total_hits": 1450,
+        "hits_by_genome": {
+            "GCA_014705785.1": 150,
+            "GCA_016535705.2": 183,
+            "GCA_001444265.1": 161,
+            "GCA_001443265.1": 160,
+            "GCA_001444225.1": 164,
+            "GCA_016539245.2": 170,
+            "GCA_014705885.1": 149,
+            "GCA_014705825.1": 150,
+            "GCA_016536425.2": 163
+        }
+    }
+}

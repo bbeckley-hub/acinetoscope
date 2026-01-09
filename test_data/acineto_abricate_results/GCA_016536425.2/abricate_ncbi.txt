@@ -1,0 +1,21 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+GCA_016536425.2.fna	AAYNPC020000001.1	390951	392102	+	blaADC-88	1-1152/1152	===============	0/0	100.00	100.00	ncbi	NG_051452.1	extended-spectrum class C beta-lactamase ADC-88	CEPHALOSPORIN
+GCA_016536425.2.fna	AAYNPC020000002.1	266996	267820	+	blaOXA-317	1-825/825	===============	0/0	100.00	100.00	ncbi	NG_049611.1	OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-317	CARBAPENEM
+GCA_016536425.2.fna	AAYNPC020000007.1	127830	128618	+	ant(3'')-IIa	1-789/789	===============	0/0	100.00	98.86	ncbi	NG_054646.1	aminoglycoside nucleotidyltransferase ANT(3'')-IIa	SPECTINOMYCIN;STREPTOMYCIN
+GCA_016536425.2.fna	AAYNPC020000010.1	116198	117000	+	aph(3'')-Ib	2-804/804	===============	0/0	99.88	100.00	ncbi	NG_047413.1	aminoglycoside O-phosphotransferase APH(3'')-Ib	STREPTOMYCIN
+GCA_016536425.2.fna	AAYNPC020000010.1	117000	117836	+	aph(6)-Id	1-837/837	===============	0/0	100.00	100.00	ncbi	NG_047464.1	aminoglycoside O-phosphotransferase APH(6)-Id	STREPTOMYCIN
+GCA_016536425.2.fna	AAYNPC020000010.1	120449	121264	-	sul2	1-816/816	===============	0/0	100.00	100.00	ncbi	NG_051852.1	sulfonamide-resistant dihydropteroate synthase Sul2	SULFONAMIDE
+GCA_016536425.2.fna	AAYNPC020000020.1	5739	6926	+	tet(39)	1-1188/1188	===============	0/0	100.00	100.00	ncbi	NG_048137.1	tetracycline efflux MFS transporter Tet(39)	TETRACYCLINE
+GCA_016536425.2.fna	AAYNPC020000021.1	4721	5254	-	ant(2'')-Ia	1-534/534	===============	0/0	100.00	99.06	ncbi	NG_052432.1	aminoglycoside nucleotidyltransferase ANT(2'')-Ia	GENTAMICIN;KANAMYCIN;TOBRAMYCIN
+GCA_016536425.2.fna	AAYNPC020000022.1	4791	5936	-	blaMCA	28-1173/1173	===============	0/0	97.70	99.91	ncbi	NG_055474.1	MCA family class C beta-lactamase	BETA-LACTAM
+GCA_016536425.2.fna	AAYNPC020000023.1	4735	5514	-	aph(3')-VI	1-780/780	===============	0/0	100.00	99.23	ncbi	NG_051730.1	APH(3')-VI family aminoglycoside O-phosphotransferase	AMIKACIN;KANAMYCIN
+GCA_016536425.2.fna	AAYNPC020000037.1	67054	67878	+	blaOXA-317	1-825/825	===============	0/0	100.00	100.00	ncbi	NG_049611.1	OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-317	CARBAPENEM
+GCA_016536425.2.fna	AAYNPC020000039.1	24671	25822	+	blaADC-88	1-1152/1152	===============	0/0	100.00	100.00	ncbi	NG_051452.1	extended-spectrum class C beta-lactamase ADC-88	CEPHALOSPORIN
+GCA_016536425.2.fna	AAYNPC020000040.1	41131	41933	+	aph(3'')-Ib	2-804/804	===============	0/0	99.88	100.00	ncbi	NG_047413.1	aminoglycoside O-phosphotransferase APH(3'')-Ib	STREPTOMYCIN
+GCA_016536425.2.fna	AAYNPC020000040.1	41933	42769	+	aph(6)-Id	1-837/837	===============	0/0	100.00	100.00	ncbi	NG_047464.1	aminoglycoside O-phosphotransferase APH(6)-Id	STREPTOMYCIN
+GCA_016536425.2.fna	AAYNPC020000040.1	45382	46197	-	sul2	1-816/816	===============	0/0	100.00	100.00	ncbi	NG_051852.1	sulfonamide-resistant dihydropteroate synthase Sul2	SULFONAMIDE
+GCA_016536425.2.fna	AAYNPC020000041.1	7682	8470	+	ant(3'')-IIa	1-789/789	===============	0/0	100.00	98.86	ncbi	NG_054646.1	aminoglycoside nucleotidyltransferase ANT(3'')-IIa	SPECTINOMYCIN;STREPTOMYCIN
+GCA_016536425.2.fna	AAYNPC020000042.1	7431	8618	+	tet(39)	1-1188/1188	===============	0/0	100.00	100.00	ncbi	NG_048137.1	tetracycline efflux MFS transporter Tet(39)	TETRACYCLINE
+GCA_016536425.2.fna	AAYNPC020000043.1	1	534	+	ant(2'')-Ia	1-534/534	===============	0/0	100.00	99.06	ncbi	NG_052432.1	aminoglycoside nucleotidyltransferase ANT(2'')-Ia	GENTAMICIN;KANAMYCIN;TOBRAMYCIN
+GCA_016536425.2.fna	AAYNPC020000044.1	4149	5321	+	blaMCA	1-1173/1173	===============	0/0	100.00	99.92	ncbi	NG_055474.1	MCA family class C beta-lactamase	BETA-LACTAM
+GCA_016536425.2.fna	AAYNPC020000045.1	238	1017	+	aph(3')-VI	1-780/780	===============	0/0	100.00	99.23	ncbi	NG_051730.1	APH(3')-VI family aminoglycoside O-phosphotransferase	AMIKACIN;KANAMYCIN

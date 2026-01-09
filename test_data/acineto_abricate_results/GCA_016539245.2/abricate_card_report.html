@@ -1,0 +1,584 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope ABRicate - CARD Database</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gene-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gene-table th, .gene-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .gene-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .present { background-color: #d4edda; }
+        .high-risk { background-color: #fff3cd; }
+        .critical { background-color: #f8d7da; font-weight: bold; }
+    </style>
+    
+        <script>
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Rotate every 10 seconds
+            setInterval(rotateQuote, 10000);
+            
+            // Initial display
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+            });
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope ABRicate - CARD Database</h1>
+                <p style="color: #666; font-size: 1.2em;">Genome: GCA_016539245.2 | Generated on: 2026-01-09 15:10</p>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Database Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">45</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Database</h3>
+                    <p style="font-size: 1.5em; margin: 0;">CARD</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔍 Genes Detected</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Product</th>
+                        <th>Coverage</th>
+                        <th>Identity</th>
+                        <th>Accession</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="present">
+                        <td><strong>OXA-317</strong></td>
+                        <td title="OXA-317 is a beta-lactamase found in A. baumannii.">OXA-317 is a beta-lactamase found in A. baumannii.</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>KF057034.1:0-825</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>Acinetobacter_baumannii_AbaF</strong></td>
+                        <td title="Expression of abaF in E. coli resulted in increased resistance to fosfomycin.">Expression of abaF in E. coli resulted in increased resistance to fosfomycin.</td>
+                        <td>100.00%</td>
+                        <td>96.98%</td>
+                        <td>CP000521.1:1558523-1557233</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeH</strong></td>
+                        <td title="AdeH is the outer membrane channel protein of the AdeFGH multidrug efflux complex.">AdeH is the outer membrane channel protein of the AdeFGH multidrug efflux complex.</td>
+                        <td>100.00%</td>
+                        <td>99.38%</td>
+                        <td>CT025802.2:0-1452</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeF</strong></td>
+                        <td title="AdeF is the membrane fusion protein of the multidrug efflux complex AdeFGH.">AdeF is the membrane fusion protein of the multidrug efflux complex AdeFGH.</td>
+                        <td>100.00%</td>
+                        <td>96.38%</td>
+                        <td>CT025801.2:0-3180</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeG</strong></td>
+                        <td title="AdeG is the inner membrane transporter of the AdeFGH multidrug efflux complex.">AdeG is the inner membrane transporter of the AdeFGH multidrug efflux complex.</td>
+                        <td>100.00%</td>
+                        <td>97.22%</td>
+                        <td>CT025800.2:0-1221</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeL</strong></td>
+                        <td title="AdeL is a regulator of AdeFGH in Acinetobacter baumannii. AdeL mutations are associated with AdeFGH overexpression and multidrug resistance.">AdeL is a regulator of AdeFGH in Acinetobacter baumannii. AdeL mutations are associated with AdeFGH overexpression and multidrug resistance.</td>
+                        <td>100.00%</td>
+                        <td>98.92%</td>
+                        <td>KR297239.1:1428-414</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>abeS</strong></td>
+                        <td title="AbeS in an efflux pump of the SMR family of transporters found in Acinetobacter baumannii.">AbeS in an efflux pump of the SMR family of transporters found in Acinetobacter baumannii.</td>
+                        <td>100.00%</td>
+                        <td>99.39%</td>
+                        <td>CP001172.1:1249348-1249018</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>Acinetobacter_baumannii_AmvA</strong></td>
+                        <td title="AmvA has 14 alpha-helical transmembrane segments qualifying it as a member of the DHA2 transporter family of the major facilitator superfamily (MFS). When AmvA was expressed in E. coli  the cells had at least four-fold decreased susceptibility to erythromycin acridine orange acriflavine deoxycholate and methyl viologen. AmvA from the AC0037 strain of A. baumannii was tested.">AmvA has 14 alpha-helical transmembrane segments qualifying it as a member of the DHA2 transporter family of the major facilitator superfamily (MFS). When AmvA was expressed in E. coli  the cells had at least four-fold decreased susceptibility to erythromycin acridine orange acriflavine deoxycholate and methyl viologen. AmvA from the AC0037 strain of A. baumannii was tested.</td>
+                        <td>100.00%</td>
+                        <td>97.30%</td>
+                        <td>FJ911554.1:176-1655</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeN</strong></td>
+                        <td title="AdeN is a repressor of AdeIJK a RND-type efflux pump in Acinetobacter baumannii. Its inactivation increases expression of AdeJ.">AdeN is a repressor of AdeIJK a RND-type efflux pump in Acinetobacter baumannii. Its inactivation increases expression of AdeJ.</td>
+                        <td>100.00%</td>
+                        <td>98.01%</td>
+                        <td>KF147862.1:0-654</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>ADC-96</strong></td>
+                        <td title="ADC-96 is a ADC beta-lactamase.">ADC-96 is a ADC beta-lactamase.</td>
+                        <td>100.00%</td>
+                        <td>98.72%</td>
+                        <td>NG_051460.1:0-1167</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>abeM</strong></td>
+                        <td title="AbeM is an multidrug efflux pump found in Acinetobacter baumannii.">AbeM is an multidrug efflux pump found in Acinetobacter baumannii.</td>
+                        <td>100.00%</td>
+                        <td>98.81%</td>
+                        <td>AB204810.2:186-1533</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>LpsB</strong></td>
+                        <td title="LpsB is involved in lipopolysaccharide synthesis. It confers intrinsic resistance to colistin and other peptide antibiotics.">LpsB is involved in lipopolysaccharide synthesis. It confers intrinsic resistance to colistin and other peptide antibiotics.</td>
+                        <td>100.00%</td>
+                        <td>94.82%</td>
+                        <td>CP045110.1:522372-521271</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ANT(3'')-IIa</strong></td>
+                        <td title="ANT(3'')-IIa is a aminoglycoside nucleotidyltransferase identified in Acinetobacter spp. via horizontal gene transfer mechanisms.">ANT(3'')-IIa is a aminoglycoside nucleotidyltransferase identified in Acinetobacter spp. via horizontal gene transfer mechanisms.</td>
+                        <td>100.00%</td>
+                        <td>98.73%</td>
+                        <td>GG704579.1:35369-34580</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>APH(3'')-Ib</strong></td>
+                        <td title="APH(3'')-Ib is an aminoglycoside phosphotransferase encoded by plasmids transposons integrative conjugative elements and chromosomes in Enterobacteriaceae and Pseudomonas spp.">APH(3'')-Ib is an aminoglycoside phosphotransferase encoded by plasmids transposons integrative conjugative elements and chromosomes in Enterobacteriaceae and Pseudomonas spp.</td>
+                        <td>100.00%</td>
+                        <td>99.88%</td>
+                        <td>AF313472.2:15593-16397</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>APH(6)-Id</strong></td>
+                        <td title="APH(6)-Id is an aminoglycoside phosphotransferase encoded by plasmids integrative conjugative elements and chromosomal genomic islands in K. pneumoniae Salmonella spp. E. coli Shigella flexneri Providencia alcalifaciens Pseudomonas spp. V. cholerae Edwardsiella tarda Pasteurella multocida and Aeromonas bestiarum.">APH(6)-Id is an aminoglycoside phosphotransferase encoded by plasmids integrative conjugative elements and chromosomal genomic islands in K. pneumoniae Salmonella spp. E. coli Shigella flexneri Providencia alcalifaciens Pseudomonas spp. V. cholerae Edwardsiella tarda Pasteurella multocida and Aeromonas bestiarum.</td>
+                        <td>100.00%</td>
+                        <td>99.88%</td>
+                        <td>AF024602.1:3155-3992</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>sul2</strong></td>
+                        <td title="Sul2 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria usually found on small plasmids.">Sul2 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria usually found on small plasmids.</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>AY055428.1:21084-20268</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeI</strong></td>
+                        <td title="AdeI is the membrane fusion protein of the AdeIJK multidrug efflux complex.">AdeI is the membrane fusion protein of the AdeIJK multidrug efflux complex.</td>
+                        <td>100.00%</td>
+                        <td>99.84%</td>
+                        <td>CP001182.2:3283426-3284677</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeJ</strong></td>
+                        <td title="AdeJ is a RND efflux protein that acts as the inner membrane transporter of the AdeIJK efflux complex. It has 57% identity with E. coli AcrB.">AdeJ is a RND efflux protein that acts as the inner membrane transporter of the AdeIJK efflux complex. It has 57% identity with E. coli AcrB.</td>
+                        <td>100.00%</td>
+                        <td>99.50%</td>
+                        <td>AY769962.1:2434-5611</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeK</strong></td>
+                        <td title="AdeK is the outer membrane factor protein in the adeIJK multidrug efflux complex.">AdeK is the outer membrane factor protein in the adeIJK multidrug efflux complex.</td>
+                        <td>100.00%</td>
+                        <td>99.04%</td>
+                        <td>AY769962.1:5610-7065</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeB</strong></td>
+                        <td title="AdeB is the multidrug transporter of the adeABC efflux system.">AdeB is the multidrug transporter of the adeABC efflux system.</td>
+                        <td>100.00%</td>
+                        <td>98.42%</td>
+                        <td>AF370885.1:4628-7736</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeA</strong></td>
+                        <td title="AdeA is the membrane fusion protein of the multidrug efflux complex AdeABC.">AdeA is the membrane fusion protein of the multidrug efflux complex AdeABC.</td>
+                        <td>100.00%</td>
+                        <td>96.39%</td>
+                        <td>AF370885.1:3438-4629</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeR</strong></td>
+                        <td title="AdeR is a positive regulator of AdeABC efflux system. AdeR inactivation leads to susceptibility to aminoglycoside antibiotics.">AdeR is a positive regulator of AdeABC efflux system. AdeR inactivation leads to susceptibility to aminoglycoside antibiotics.</td>
+                        <td>100.00%</td>
+                        <td>97.98%</td>
+                        <td>HM440348.1:0-744</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeS</strong></td>
+                        <td title="AdeS is a sensor kinase in the AdeRS regulatory system of AdeABC. It is essential for AdeABC expression.">AdeS is a sensor kinase in the AdeRS regulatory system of AdeABC. It is essential for AdeABC expression.</td>
+                        <td>98.07%</td>
+                        <td>96.90%</td>
+                        <td>HM440348.1:775-1861</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>Acinetobacter_baumannii_AbaQ</strong></td>
+                        <td title="AbaQ is an MFS transporter mainly involved in the extrusion of quinolone-type drugs in A. baumannii.">AbaQ is an MFS transporter mainly involved in the extrusion of quinolone-type drugs in A. baumannii.</td>
+                        <td>100.00%</td>
+                        <td>99.31%</td>
+                        <td>CP001182.2:2256889-2255584</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>tet(39)</strong></td>
+                        <td title="Tet39 is a tetracycline efflux pump found in Gram-negative bacteria including Brevundimonas Stenotrophomonas Enterobacter Alcaligenes Acinetobacter and Providencia.">Tet39 is a tetracycline efflux pump found in Gram-negative bacteria including Brevundimonas Stenotrophomonas Enterobacter Alcaligenes Acinetobacter and Providencia.</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>AY743590.1:0-1188</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ANT(2'')-Ia</strong></td>
+                        <td title="Plasmid or integron-encoded nucleotidylylation of 2-deoxystreptamine aminoglycosides at the hydroxyl group at position 2'' in P. aeruginosa K. pneumoniae Morganella morganii E. coli S. typhimurium C. freundii and A. baumannii.">Plasmid or integron-encoded nucleotidylylation of 2-deoxystreptamine aminoglycosides at the hydroxyl group at position 2'' in P. aeruginosa K. pneumoniae Morganella morganii E. coli S. typhimurium C. freundii and A. baumannii.</td>
+                        <td>100.00%</td>
+                        <td>98.88%</td>
+                        <td>AF078527.1:3769-4303</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>APH(3')-VIa</strong></td>
+                        <td title="APH(3')-VIa is a plasmid-encoded aminoglycoside phosphotransferase in A. baumannii.">APH(3')-VIa is a plasmid-encoded aminoglycoside phosphotransferase in A. baumannii.</td>
+                        <td>100.00%</td>
+                        <td>98.97%</td>
+                        <td>X07753.1:102-882</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>abeS</strong></td>
+                        <td title="AbeS in an efflux pump of the SMR family of transporters found in Acinetobacter baumannii.">AbeS in an efflux pump of the SMR family of transporters found in Acinetobacter baumannii.</td>
+                        <td>100.00%</td>
+                        <td>99.39%</td>
+                        <td>CP001172.1:1249348-1249018</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeL</strong></td>
+                        <td title="AdeL is a regulator of AdeFGH in Acinetobacter baumannii. AdeL mutations are associated with AdeFGH overexpression and multidrug resistance.">AdeL is a regulator of AdeFGH in Acinetobacter baumannii. AdeL mutations are associated with AdeFGH overexpression and multidrug resistance.</td>
+                        <td>100.00%</td>
+                        <td>98.92%</td>
+                        <td>KR297239.1:1428-414</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeG</strong></td>
+                        <td title="AdeG is the inner membrane transporter of the AdeFGH multidrug efflux complex.">AdeG is the inner membrane transporter of the AdeFGH multidrug efflux complex.</td>
+                        <td>100.00%</td>
+                        <td>97.22%</td>
+                        <td>CT025800.2:0-1221</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeF</strong></td>
+                        <td title="AdeF is the membrane fusion protein of the multidrug efflux complex AdeFGH.">AdeF is the membrane fusion protein of the multidrug efflux complex AdeFGH.</td>
+                        <td>100.00%</td>
+                        <td>96.38%</td>
+                        <td>CT025801.2:0-3180</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>adeH</strong></td>
+                        <td title="AdeH is the outer membrane channel protein of the AdeFGH multidrug efflux complex.">AdeH is the outer membrane channel protein of the AdeFGH multidrug efflux complex.</td>
+                        <td>100.00%</td>
+                        <td>99.38%</td>
+                        <td>CT025802.2:0-1452</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>LpsB</strong></td>
+                        <td title="LpsB is involved in lipopolysaccharide synthesis. It confers intrinsic resistance to colistin and other peptide antibiotics.">LpsB is involved in lipopolysaccharide synthesis. It confers intrinsic resistance to colistin and other peptide antibiotics.</td>
+                        <td>100.00%</td>
+                        <td>94.82%</td>
+                        <td>CP045110.1:522372-521271</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>OXA-317</strong></td>
+                        <td title="OXA-317 is a beta-lactamase found in A. baumannii.">OXA-317 is a beta-lactamase found in A. baumannii.</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>KF057034.1:0-825</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ANT(3'')-IIa</strong></td>
+                        <td title="ANT(3'')-IIa is a aminoglycoside nucleotidyltransferase identified in Acinetobacter spp. via horizontal gene transfer mechanisms.">ANT(3'')-IIa is a aminoglycoside nucleotidyltransferase identified in Acinetobacter spp. via horizontal gene transfer mechanisms.</td>
+                        <td>100.00%</td>
+                        <td>98.73%</td>
+                        <td>GG704579.1:35369-34580</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>ADC-96</strong></td>
+                        <td title="ADC-96 is a ADC beta-lactamase.">ADC-96 is a ADC beta-lactamase.</td>
+                        <td>100.00%</td>
+                        <td>98.72%</td>
+                        <td>NG_051460.1:0-1167</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>tet(39)</strong></td>
+                        <td title="Tet39 is a tetracycline efflux pump found in Gram-negative bacteria including Brevundimonas Stenotrophomonas Enterobacter Alcaligenes Acinetobacter and Providencia.">Tet39 is a tetracycline efflux pump found in Gram-negative bacteria including Brevundimonas Stenotrophomonas Enterobacter Alcaligenes Acinetobacter and Providencia.</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>AY743590.1:0-1188</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ANT(2'')-Ia</strong></td>
+                        <td title="Plasmid or integron-encoded nucleotidylylation of 2-deoxystreptamine aminoglycosides at the hydroxyl group at position 2'' in P. aeruginosa K. pneumoniae Morganella morganii E. coli S. typhimurium C. freundii and A. baumannii.">Plasmid or integron-encoded nucleotidylylation of 2-deoxystreptamine aminoglycosides at the hydroxyl group at position 2'' in P. aeruginosa K. pneumoniae Morganella morganii E. coli S. typhimurium C. freundii and A. baumannii.</td>
+                        <td>100.00%</td>
+                        <td>98.88%</td>
+                        <td>AF078527.1:3769-4303</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>APH(3'')-Ib</strong></td>
+                        <td title="APH(3'')-Ib is an aminoglycoside phosphotransferase encoded by plasmids transposons integrative conjugative elements and chromosomes in Enterobacteriaceae and Pseudomonas spp.">APH(3'')-Ib is an aminoglycoside phosphotransferase encoded by plasmids transposons integrative conjugative elements and chromosomes in Enterobacteriaceae and Pseudomonas spp.</td>
+                        <td>100.00%</td>
+                        <td>99.88%</td>
+                        <td>AF313472.2:15593-16397</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>APH(6)-Id</strong></td>
+                        <td title="APH(6)-Id is an aminoglycoside phosphotransferase encoded by plasmids integrative conjugative elements and chromosomal genomic islands in K. pneumoniae Salmonella spp. E. coli Shigella flexneri Providencia alcalifaciens Pseudomonas spp. V. cholerae Edwardsiella tarda Pasteurella multocida and Aeromonas bestiarum.">APH(6)-Id is an aminoglycoside phosphotransferase encoded by plasmids integrative conjugative elements and chromosomal genomic islands in K. pneumoniae Salmonella spp. E. coli Shigella flexneri Providencia alcalifaciens Pseudomonas spp. V. cholerae Edwardsiella tarda Pasteurella multocida and Aeromonas bestiarum.</td>
+                        <td>100.00%</td>
+                        <td>99.88%</td>
+                        <td>AF024602.1:3155-3992</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>sul2</strong></td>
+                        <td title="Sul2 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria usually found on small plasmids.">Sul2 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria usually found on small plasmids.</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>AY055428.1:21084-20268</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>APH(3'')-Ib</strong></td>
+                        <td title="APH(3'')-Ib is an aminoglycoside phosphotransferase encoded by plasmids transposons integrative conjugative elements and chromosomes in Enterobacteriaceae and Pseudomonas spp.">APH(3'')-Ib is an aminoglycoside phosphotransferase encoded by plasmids transposons integrative conjugative elements and chromosomes in Enterobacteriaceae and Pseudomonas spp.</td>
+                        <td>100.00%</td>
+                        <td>99.75%</td>
+                        <td>AF313472.2:15593-16397</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>APH(6)-Id</strong></td>
+                        <td title="APH(6)-Id is an aminoglycoside phosphotransferase encoded by plasmids integrative conjugative elements and chromosomal genomic islands in K. pneumoniae Salmonella spp. E. coli Shigella flexneri Providencia alcalifaciens Pseudomonas spp. V. cholerae Edwardsiella tarda Pasteurella multocida and Aeromonas bestiarum.">APH(6)-Id is an aminoglycoside phosphotransferase encoded by plasmids integrative conjugative elements and chromosomal genomic islands in K. pneumoniae Salmonella spp. E. coli Shigella flexneri Providencia alcalifaciens Pseudomonas spp. V. cholerae Edwardsiella tarda Pasteurella multocida and Aeromonas bestiarum.</td>
+                        <td>100.00%</td>
+                        <td>99.88%</td>
+                        <td>AF024602.1:3155-3992</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>sul2</strong></td>
+                        <td title="Sul2 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria usually found on small plasmids.">Sul2 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria usually found on small plasmids.</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>AY055428.1:21084-20268</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>APH(3')-VIa</strong></td>
+                        <td title="APH(3')-VIa is a plasmid-encoded aminoglycoside phosphotransferase in A. baumannii.">APH(3')-VIa is a plasmid-encoded aminoglycoside phosphotransferase in A. baumannii.</td>
+                        <td>100.00%</td>
+                        <td>98.97%</td>
+                        <td>X07753.1:102-882</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+                Analysis performed using AcinetoScope ABRicate v1.2.0
+            </p>
+        </div>
+    </div>
+</body>
+</html>

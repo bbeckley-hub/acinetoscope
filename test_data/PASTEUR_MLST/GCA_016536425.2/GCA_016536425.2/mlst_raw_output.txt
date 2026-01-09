@@ -1,0 +1,19 @@
+STDOUT:
+GCA_016536425.2.fna,abaumannii_2,136,Pas_cpn60(3),Pas_fusA(2),Pas_gltA(19),Pas_pyrG(25),Pas_recA(5),Pas_rplB(2),Pas_rpoB(5)
+
+STDERR:
+[14:30:44] This is mlst 2.25.0 running on linux with Perl 5.032001
+[14:30:44] Checking mlst dependencies:
+[14:30:44] Found 'blastn' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/blastn
+[14:30:44] Found 'any2fasta' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/any2fasta
+[14:30:44] Found blastn: 2.16.0+ (002016)
+[14:30:44] Setting --minscore=0 because user chose --scheme
+[14:30:47] Found exact allele match abaumannii_2.Pas_cpn60-3
+[14:30:47] Found exact allele match abaumannii_2.Pas_rpoB-5
+[14:30:47] Found exact allele match abaumannii_2.Pas_rplB-2
+[14:30:47] Found exact allele match abaumannii_2.Pas_fusA-2
+[14:30:47] Found exact allele match abaumannii_2.Pas_recA-5
+[14:30:47] Found exact allele match abaumannii_2.Pas_pyrG-25
+[14:30:47] Found exact allele match abaumannii_2.Pas_gltA-19
+[14:30:47] Use --quiet or -q to avoid all the message output, including these witticisms.
+[14:30:47] Done.

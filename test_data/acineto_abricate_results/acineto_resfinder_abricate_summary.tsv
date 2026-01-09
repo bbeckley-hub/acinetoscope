@@ -1,0 +1,129 @@
+file	sequence	start	end	strand	gene	coverage	coverage_map	gaps	coverage_percent	identity_percent	database	accession	product	resistance	genome
+GCA_014705885.1.fna	CP061519.1	1255227	1256378	-	blaADC-25_1	1-1152/1152	===============	0/0	100.00	99.91	resfinder	EF016355	blaADC-25		GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2317900	2318724	+	blaOXA-66_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY750909	blaOXA-66		GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2801476	2802342	-	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2802820	2803621	-	ant(3'')-Ia_1	171-972/972	..=============	0/0	82.51	100.00	resfinder	X02340	ant(3'')-Ia	Streptomycin	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2805193	2805726	-	aac(3)-Ia_1	1-534/534	===============	0/0	100.00	99.06	resfinder	X15852	aac(3)-Ia	Astromicin;Fortimicin;Gentamicin	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2808167	2808982	+	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2814756	2815616	-	blaTEM-1D_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF188200	blaTEM-1D	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2818326	2818877	-	aac(6')-Iaf_1	1-552/552	===============	0/0	100.00	98.01	resfinder	AB462903	aac(6')-Iaf	Amikacin;Dibekacin;Netilmicin;Sisomicin;Tobramycin	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	2821618	2822484	+	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	3773629	3774431	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	3774431	3775267	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	3778640	3779839	+	tet(B)_1	1-1200/1206	===============	0/0	99.50	100.00	resfinder	AP000342	tet(B)	Doxycycline;Minocycline;Tetracycline	GCA_014705885.1
+GCA_014705885.1.fna	CP061519.1	3792463	3793278	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_014705885.1
+GCA_016535705.2.fna	AAYNNC020000001.1	257503	258327	+	blaOXA-69_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY859527	blaOXA-69	Amoxicillin;Ampicillin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000004.1	34608	35759	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	96.88	resfinder	EF016355	blaADC-25		GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000017.1	18	878	-	blaTEM-1D_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF188200	blaTEM-1D	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000017.1	5774	6433	+	catA1_1	1-660/660	===============	0/0	100.00	99.85	resfinder	V00622	catA1	Chloramphenicol	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000017.1	10307	11553	-	tet(A)_6	1-1247/1275	===============	0/0	97.80	100.00	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000024.1	66	881	+	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000025.1	445	1246	-	ant(3'')-Ia_1	171-972/972	..=============	0/0	82.51	100.00	resfinder	X02340	ant(3'')-Ia	Streptomycin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000025.1	2280	2813	-	aac(3)-Ia_1	1-534/534	===============	0/0	100.00	99.06	resfinder	X15852	aac(3)-Ia	Astromicin;Fortimicin;Gentamicin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000029.1	1981	3147	-	blaADC-25_1	1-1152/1152	========/======	1/15	100.00	95.97	resfinder	EF016355	blaADC-25		GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000031.1	34	855	+	blaOXA-23_1	1-822/822	===============	0/0	100.00	100.00	resfinder	AY795964	blaOXA-23	Imipenem;Meropenem	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000035.1	678	1544	-	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000049.1	96822	97646	+	blaOXA-69_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY859527	blaOXA-69	Amoxicillin;Ampicillin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000052.1	24685	25836	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	96.88	resfinder	EF016355	blaADC-25		GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000053.1	5419	6665	+	tet(A)_6	1-1247/1275	===============	0/0	97.80	100.00	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000053.1	10539	11198	-	catA1_1	1-660/660	===============	0/0	100.00	99.85	resfinder	V00622	catA1	Chloramphenicol	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000053.1	16094	16954	+	blaTEM-1D_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF188200	blaTEM-1D	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000055.1	1695	2228	+	aac(3)-Ia_1	1-534/534	===============	0/0	100.00	99.06	resfinder	X15852	aac(3)-Ia	Astromicin;Fortimicin;Gentamicin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000055.1	3262	4063	+	ant(3'')-Ia_1	171-972/972	..=============	0/0	82.51	100.00	resfinder	X02340	ant(3'')-Ia	Streptomycin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000055.1	4541	5407	+	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000056.1	75	896	+	blaOXA-23_1	1-822/822	===============	0/0	100.00	100.00	resfinder	AY795964	blaOXA-23	Imipenem;Meropenem	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000057.1	107	922	+	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin	GCA_016535705.2
+GCA_016535705.2.fna	AAYNNC020000058.1	48	1214	+	blaADC-25_1	1-1152/1152	========/======	1/15	100.00	95.97	resfinder	EF016355	blaADC-25		GCA_016535705.2
+GCA_001444225.1.fna	LNCW01000016.1	11	1162	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	97.05	resfinder	EF016355	blaADC-25		GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000045.1	3927	4751	-	blaOXA-69_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY859527	blaOXA-69	Amoxicillin;Ampicillin	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000060.1	14591	15406	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000076.1	801	1580	+	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000080.1	3780	4313	+	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000085.1	144	1028	-	mph(E)_1	1-885/885	===============	0/0	100.00	100.00	resfinder	DQ839391	mph(E)	Erythromycin	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000085.1	1084	2559	-	msr(E)_1	1-1476/1476	===============	0/0	100.00	100.00	resfinder	FR751518	msr(E)	Azithromycin;Erythromycin;Pristinamycin_IA;Quinupristin;Virginiamycin_S	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000088.1	1591	2412	-	blaOXA-23_1	1-822/822	===============	0/0	100.00	100.00	resfinder	AY795964	blaOXA-23	Imipenem;Meropenem	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000103.1	104	919	-	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin	GCA_001444225.1
+GCA_001444225.1.fna	LNCW01000105.1	92	871	+	aph(3')-VIa_1	1-780/780	===============	0/0	100.00	99.87	resfinder	X07753	aph(3')-VIa	Amikacin;Butirosin;Gentamicin;Kanamycin;Neomycin;Paromomycin;Ribostamycin	GCA_001444225.1
+GCA_016536425.2.fna	AAYNPC020000001.1	390951	392102	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	96.35	resfinder	EF016355	blaADC-25		GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000002.1	266996	267820	+	blaOXA-317_1	1-825/825	===============	0/0	100.00	100.00	resfinder	KF057034	blaOXA-317		GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000010.1	116198	117000	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000010.1	117000	117836	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000010.1	120449	121264	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000020.1	5739	6926	+	tet(39)_2	1-1188/1188	===============	0/0	100.00	99.92	resfinder	CP044518	tet(39)	Doxycycline;Tetracycline;Tigecycline	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000021.1	4721	5254	-	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000023.1	4735	5514	-	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000037.1	67054	67878	+	blaOXA-317_1	1-825/825	===============	0/0	100.00	100.00	resfinder	KF057034	blaOXA-317		GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000039.1	24671	25822	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	96.35	resfinder	EF016355	blaADC-25		GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000040.1	41131	41933	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000040.1	41933	42769	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000040.1	45382	46197	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000042.1	7431	8618	+	tet(39)_2	1-1188/1188	===============	0/0	100.00	99.92	resfinder	CP044518	tet(39)	Doxycycline;Tetracycline;Tigecycline	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000043.1	1	534	+	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_016536425.2
+GCA_016536425.2.fna	AAYNPC020000045.1	238	1017	+	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin	GCA_016536425.2
+GCA_016539245.2.fna	AAYNTL020000002.1	266996	267820	+	blaOXA-317_1	1-825/825	===============	0/0	100.00	100.00	resfinder	KF057034	blaOXA-317		GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000005.1	9	1178	+	blaADC-25_1	1-1152/1152	========/======	2/18	100.00	94.96	resfinder	EF016355	blaADC-25		GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000010.1	116198	117000	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000010.1	117000	117836	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000010.1	120449	121264	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000022.1	155	1342	-	tet(39)_2	1-1188/1188	===============	0/0	100.00	99.92	resfinder	CP044518	tet(39)	Doxycycline;Tetracycline;Tigecycline	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000023.1	4721	5254	-	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000024.1	4735	5514	-	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000040.1	42690	43514	+	blaOXA-317_1	1-825/825	===============	0/0	100.00	100.00	resfinder	KF057034	blaOXA-317		GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000042.1	50	1219	+	blaADC-25_1	1-1152/1152	========/======	2/18	100.00	94.96	resfinder	EF016355	blaADC-25		GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000043.1	4798	5985	+	tet(39)_2	1-1188/1188	===============	0/0	100.00	99.92	resfinder	CP044518	tet(39)	Doxycycline;Tetracycline;Tigecycline	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000044.1	1	534	+	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000045.1	101	903	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000045.1	903	1739	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000045.1	4352	5167	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000046.1	101	903	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	99.88	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000046.1	903	1739	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000046.1	4352	5167	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_016539245.2
+GCA_016539245.2.fna	AAYNTL020000047.1	238	1017	+	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin	GCA_016539245.2
+GCA_014705785.1.fna	CP061517.1	1274669	1275820	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	99.91	resfinder	EF016355	blaADC-25		GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2321343	2322167	+	blaOXA-66_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY750909	blaOXA-66		GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2804919	2805785	-	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2806263	2807064	-	ant(3'')-Ia_1	171-972/972	..=============	0/0	82.51	100.00	resfinder	X02340	ant(3'')-Ia	Streptomycin	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2808636	2809169	-	aac(3)-Ia_1	1-534/534	===============	0/0	100.00	99.06	resfinder	X15852	aac(3)-Ia	Astromicin;Fortimicin;Gentamicin	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2811610	2812425	+	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2818199	2819059	-	blaTEM-1D_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF188200	blaTEM-1D	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2821769	2822320	-	aac(6')-Iaf_1	1-552/552	===============	0/0	100.00	98.01	resfinder	AB462903	aac(6')-Iaf	Amikacin;Dibekacin;Netilmicin;Sisomicin;Tobramycin	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	2825061	2825927	+	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	3777064	3777866	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	3777866	3778702	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	3782075	3783274	+	tet(B)_1	1-1200/1206	===============	0/0	99.50	100.00	resfinder	AP000342	tet(B)	Doxycycline;Minocycline;Tetracycline	GCA_014705785.1
+GCA_014705785.1.fna	CP061517.1	3795898	3796713	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_014705785.1
+GCA_001443265.1.fna	LNBZ01000019.1	13	1164	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	97.05	resfinder	EF016355	blaADC-25		GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000048.1	26304	27128	+	blaOXA-69_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY859527	blaOXA-69	Amoxicillin;Ampicillin	GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000064.1	25	840	+	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000076.1	1782	2315	-	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000084.1	458	1933	+	msr(E)_1	1-1476/1476	===============	0/0	100.00	100.00	resfinder	FR751518	msr(E)	Azithromycin;Erythromycin;Pristinamycin_IA;Quinupristin;Virginiamycin_S	GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000084.1	1989	2873	+	mph(E)_1	1-885/885	===============	0/0	100.00	100.00	resfinder	DQ839391	mph(E)	Erythromycin	GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000085.1	4627	5406	-	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin	GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000089.1	38	859	+	blaOXA-23_1	1-822/822	===============	0/0	100.00	100.00	resfinder	AY795964	blaOXA-23	Imipenem;Meropenem	GCA_001443265.1
+GCA_001443265.1.fna	LNBZ01000104.1	104	919	-	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin	GCA_001443265.1
+GCA_014705825.1.fna	CP061525.1	424842	425726	-	mph(E)_1	1-885/885	===============	0/0	100.00	100.00	resfinder	DQ839391	mph(E)	Erythromycin	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	425782	427257	-	msr(E)_1	1-1476/1476	===============	0/0	100.00	100.00	resfinder	FR751518	msr(E)	Azithromycin;Erythromycin;Pristinamycin_IA;Quinupristin;Virginiamycin_S	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	429527	430393	-	sul1_5	1-867/867	===============	0/0	100.00	99.77	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	430864	431496	-	catB3_2	1-633/633	===============	0/0	100.00	100.00	resfinder	U13880	catB3	Chloramphenicol	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	431579	432112	-	ant(2'')-Ia_1	1-534/534	===============	0/0	100.00	100.00	resfinder	X04555	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	433874	434443	-	dfrA19_2	1-570/570	===============	0/0	100.00	100.00	resfinder	EU855687	dfrA19	Trimethoprim	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	437155	438021	-	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	438492	439025	-	ant(2'')-Ia_1	1-534/534	===============	0/0	100.00	100.00	resfinder	X04555	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	1274717	1275868	-	blaADC-25_1	1-1152/1152	===============	0/0	100.00	99.91	resfinder	EF016355	blaADC-25		GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	2326402	2327226	+	blaOXA-66_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY750909	blaOXA-66		GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	2808781	2809641	-	blaTEM-1D_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF188200	blaTEM-1D	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	2812351	2812902	-	aac(6')-Iaf_1	1-552/552	===============	0/0	100.00	98.01	resfinder	AB462903	aac(6')-Iaf	Amikacin;Dibekacin;Netilmicin;Sisomicin;Tobramycin	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	2815624	2816490	+	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	3767599	3768401	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	3768401	3769237	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	3772610	3773809	+	tet(B)_1	1-1200/1206	===============	0/0	99.50	100.00	resfinder	AP000342	tet(B)	Doxycycline;Minocycline;Tetracycline	GCA_014705825.1
+GCA_014705825.1.fna	CP061525.1	3786433	3787248	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_014705825.1
+GCA_001444265.1.fna	LNCY01000015.1	86820	87971	-	blaADC-25_1	1-1152/1152	===============	0/0	100.00	97.05	resfinder	EF016355	blaADC-25		GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000043.1	3932	4756	-	blaOXA-69_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY859527	blaOXA-69	Amoxicillin;Ampicillin	GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000056.1	23	838	+	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole	GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000075.1	457	1932	+	msr(E)_1	1-1476/1476	===============	0/0	100.00	100.00	resfinder	FR751518	msr(E)	Azithromycin;Erythromycin;Pristinamycin_IA;Quinupristin;Virginiamycin_S	GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000075.1	1988	2872	+	mph(E)_1	1-885/885	===============	0/0	100.00	100.00	resfinder	DQ839391	mph(E)	Erythromycin	GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000077.1	4762	5295	+	ant(2'')-Ia_13	1-534/534	===============	0/0	100.00	99.06	resfinder	DQ176450	ant(2'')-Ia	Gentamicin;Tobramycin	GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000078.1	2581	3360	-	aph(3')-VI_1	1-780/780	===============	0/0	100.00	99.23	resfinder	KC170992	aph(3')-VI	Amikacin	GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000084.1	1591	2412	-	blaOXA-23_1	1-822/822	===============	0/0	100.00	100.00	resfinder	AY795964	blaOXA-23	Imipenem;Meropenem	GCA_001444265.1
+GCA_001444265.1.fna	LNCY01000098.1	104	919	-	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin	GCA_001444265.1

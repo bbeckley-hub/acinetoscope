@@ -1,0 +1,16 @@
+linclude README.md
+include LICENSE
+include requirements.txt
+include CITATION.cff
+include environment.yml
+include setup.py
+include meta.yaml
+
+# Include EVERYTHING in acinetoscope directory
+recursive-include acinetoscope *
+# Standard exclusions
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *~
+global-exclude .DS_Store

@@ -1,0 +1,231 @@
+{
+  "metadata": {
+    "genome": "GCA_016535705.2",
+    "analysis_date": "2026-01-09 14:31:18",
+    "tool": "AcinetoScope Kaptive K/O Analysis",
+    "version": "1.0.0",
+    "kaptive_version": "3.1.0",
+    "database_version": "2025-12-26 (ab_k/ab_o)"
+  },
+  "summary": {
+    "total_loci": 2,
+    "k_loci": 1,
+    "o_loci": 1,
+    "k_types": [
+      "K4"
+    ],
+    "o_types": [
+      "unknown (OCL3)"
+    ]
+  },
+  "hits": [
+    {
+      "Assembly": "GCA_016535705.2",
+      "Best match locus": "KL4",
+      "Best match type": "K4",
+      "Match confidence": "Typeable",
+      "Problems": "",
+      "Identity": "100.00%",
+      "Coverage": "100.00%",
+      "Length discrepancy": "0 bp",
+      "Expected genes in locus": "23 / 23 (100.00%)",
+      "Expected genes in locus, details": "KL4_01_wzc,100.00%,100.00%;KL4_02_wzb,100.00%,100.00%;KL4_03_wza,100.00%,100.00%;KL4_04_gna1,100.00%,100.00%;KL4_05_gne2,100.00%,100.00%;KL4_06_wzx_KL4,100.00%,100.00%;KL4_07_ptr1,100.00%,100.00%;KL4_08_gtr10,100.00%,100.00%;KL4_09_wzy_KL4,100.00%,100.00%;KL4_10_gtr11,100.00%,100.00%;KL4_11_gtr12,100.00%,100.00%;KL4_12_qnr1,100.00%,100.00%;KL4_13_itrB1,100.00%,100.00%;KL4_14_atr3,100.00%,100.00%;KL4_15_gdr,100.00%,100.00%;KL4_16_gne3,100.00%,100.00%;KL4_17_atr4,100.00%,100.00%;KL4_18_atr5,100.00%,100.00%;KL4_19_galU,100.00%,100.00%;KL4_20_ugd,100.00%,100.00%;KL4_21_gpi,100.00%,100.00%;KL4_22_gne1,100.00%,100.00%;KL4_23_pgm,100.00%,100.00%",
+      "Missing expected genes": "",
+      "Other genes in locus": "0",
+      "Other genes in locus, details": "",
+      "Expected genes outside locus": "0 / 23 (0.00%)",
+      "Expected genes outside locus, details": "",
+      "Other genes outside locus": "0",
+      "Other genes outside locus, details": "",
+      "Truncated genes, details": "",
+      "Extra genes, details": "",
+      "Locus Type": "K",
+      "Gene Details Parsed": [
+        {
+          "name": "KL4_01_wzc",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_02_wzb",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_03_wza",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_04_gna1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_05_gne2",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_06_wzx_KL4",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_07_ptr1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_08_gtr10",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_09_wzy_KL4",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_10_gtr11",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_11_gtr12",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_12_qnr1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_13_itrB1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_14_atr3",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_15_gdr",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_16_gne3",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_17_atr4",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_18_atr5",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_19_galU",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_20_ugd",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_21_gpi",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_22_gne1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL4_23_pgm",
+          "identity": "100.00",
+          "coverage": "100.00"
+        }
+      ]
+    },
+    {
+      "Assembly": "GCA_016535705.2",
+      "Best match locus": "OCL3",
+      "Best match type": "unknown (OCL3)",
+      "Match confidence": "Typeable",
+      "Problems": "",
+      "Identity": "100.00%",
+      "Coverage": "100.00%",
+      "Length discrepancy": "0 bp",
+      "Expected genes in locus": "9 / 9 (100.00%)",
+      "Expected genes in locus, details": "OCL3_01_gtrOC1,100.00%,100.00%;OCL3_02_gtrOC2,100.00%,100.00%;OCL3_03_pda1,100.00%,100.00%;OCL3_04_gtrOC3,100.00%,100.00%;OCL3_05_gtrOC4,100.00%,100.00%;OCL3_06_orf1(ghy),100.00%,100.00%;OCL3_07_gtrOC8,100.00%,100.00%;OCL3_08_gtrOC10,100.00%,100.00%;OCL3_09_gtrOC11,100.00%,100.00%",
+      "Missing expected genes": "",
+      "Other genes in locus": "0",
+      "Other genes in locus, details": "",
+      "Expected genes outside locus": "0 / 9 (0.00%)",
+      "Expected genes outside locus, details": "",
+      "Other genes outside locus": "0",
+      "Other genes outside locus, details": "",
+      "Truncated genes, details": "",
+      "Extra genes, details": "",
+      "Locus Type": "O",
+      "Gene Details Parsed": [
+        {
+          "name": "OCL3_01_gtrOC1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_02_gtrOC2",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_03_pda1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_04_gtrOC3",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_05_gtrOC4",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_06_orf1(ghy)",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_07_gtrOC8",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_08_gtrOC10",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL3_09_gtrOC11",
+          "identity": "100.00",
+          "coverage": "100.00"
+        }
+      ]
+    }
+  ]
+}

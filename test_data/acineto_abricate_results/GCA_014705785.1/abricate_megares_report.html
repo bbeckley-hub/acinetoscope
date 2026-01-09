@@ -1,0 +1,520 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope ABRicate - MEGARES Database</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gene-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gene-table th, .gene-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .gene-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .present { background-color: #d4edda; }
+        .high-risk { background-color: #fff3cd; }
+        .critical { background-color: #f8d7da; font-weight: bold; }
+    </style>
+    
+        <script>
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Rotate every 10 seconds
+            setInterval(rotateQuote, 10000);
+            
+            // Initial display
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+            });
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope ABRicate - MEGARES Database</h1>
+                <p style="color: #666; font-size: 1.2em;">Genome: GCA_014705785.1 | Generated on: 2026-01-09 15:12</p>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Database Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">37</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Database</h3>
+                    <p style="font-size: 1.5em; margin: 0;">MEGARES</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔍 Genes Detected</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Product</th>
+                        <th>Coverage</th>
+                        <th>Identity</th>
+                        <th>Accession</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="present">
+                        <td><strong>ADET2</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADET2">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADET2</td>
+                        <td>100.00%</td>
+                        <td>98.61%</td>
+                        <td>MEG_706</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEI</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEI">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEI</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_687</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEJ</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEJ">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEJ</td>
+                        <td>100.00%</td>
+                        <td>99.97%</td>
+                        <td>MEG_692</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEK</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEK">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEK</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_693</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>ADC</strong></td>
+                        <td title="Drugs:betalactams:Class_C_betalactamases:ADC">Drugs:betalactams:Class_C_betalactamases:ADC</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_658</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEH</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEH">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEH</td>
+                        <td>100.00%</td>
+                        <td>98.97%</td>
+                        <td>MEG_685</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEG</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEG">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEG</td>
+                        <td>100.00%</td>
+                        <td>97.61%</td>
+                        <td>MEG_684</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEF</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEF">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEF</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_682</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEL</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEL">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEL</td>
+                        <td>100.00%</td>
+                        <td>99.70%</td>
+                        <td>MEG_699</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>ABES</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_SMR_efflux_pumps:ABES">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_SMR_efflux_pumps:ABES</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_376</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>AMVA</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_MFS_efflux_pumps:AMVA">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_MFS_efflux_pumps:AMVA</td>
+                        <td>100.00%</td>
+                        <td>97.16%</td>
+                        <td>MEG_733</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEN</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEN">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEN</td>
+                        <td>100.00%</td>
+                        <td>98.93%</td>
+                        <td>MEG_702</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ABAQ</strong></td>
+                        <td title="Drugs:Fosfomycin:Fosfomycin_MFS_efflux_pump:ABAQ">Drugs:Fosfomycin:Fosfomycin_MFS_efflux_pump:ABAQ</td>
+                        <td>100.00%</td>
+                        <td>97.85%</td>
+                        <td>MEG_370</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>BLAA</strong></td>
+                        <td title="Drugs:betalactams:Class_A_betalactamases:BLAA">Drugs:betalactams:Class_A_betalactamases:BLAA</td>
+                        <td>99.80%</td>
+                        <td>91.94%</td>
+                        <td>MEG_1246</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADET1</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADET1">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADET1</td>
+                        <td>100.00%</td>
+                        <td>96.94%</td>
+                        <td>MEG_705</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADES</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADES">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADES</td>
+                        <td>98.07%</td>
+                        <td>96.62%</td>
+                        <td>MEG_704</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADER</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADER">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADER</td>
+                        <td>100.00%</td>
+                        <td>98.12%</td>
+                        <td>MEG_703</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEA</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEA">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEA</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_677</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEB</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEB">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEB</td>
+                        <td>100.00%</td>
+                        <td>99.94%</td>
+                        <td>MEG_678</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ADEC</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEC">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEC</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_679</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>OXA</strong></td>
+                        <td title="Drugs:betalactams:Class_D_betalactamases:OXA">Drugs:betalactams:Class_D_betalactamases:OXA</td>
+                        <td>98.75%</td>
+                        <td>97.27%</td>
+                        <td>MEG_5236</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ABAF</strong></td>
+                        <td title="Drugs:Fosfomycin:Fosfomycin_MFS_efflux_pump:ABAF">Drugs:Fosfomycin:Fosfomycin_MFS_efflux_pump:ABAF</td>
+                        <td>100.00%</td>
+                        <td>97.75%</td>
+                        <td>MEG_369</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>BLAA</strong></td>
+                        <td title="Drugs:betalactams:Class_A_betalactamases:BLAA">Drugs:betalactams:Class_A_betalactamases:BLAA</td>
+                        <td>99.29%</td>
+                        <td>96.38%</td>
+                        <td>MEG_1247</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>SULI</strong></td>
+                        <td title="Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULI">Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULI</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_6615</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ANT3-DPRIME</strong></td>
+                        <td title="Drugs:Aminoglycosides:Aminoglycoside_O-nucleotidyltransferases:ANT3-DPRIME">Drugs:Aminoglycosides:Aminoglycoside_O-nucleotidyltransferases:ANT3-DPRIME</td>
+                        <td>82.51%</td>
+                        <td>100.00%</td>
+                        <td>MEG_949</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>AAC3</strong></td>
+                        <td title="Drugs:Aminoglycosides:Aminoglycoside_N-acetyltransferases:AAC3">Drugs:Aminoglycosides:Aminoglycoside_N-acetyltransferases:AAC3</td>
+                        <td>100.00%</td>
+                        <td>99.06%</td>
+                        <td>MEG_67</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>APH3-DPRIME</strong></td>
+                        <td title="Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH3-DPRIME">Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH3-DPRIME</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_1044</td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>TEM</strong></td>
+                        <td title="Drugs:betalactams:Class_A_betalactamases:TEM">Drugs:betalactams:Class_A_betalactamases:TEM</td>
+                        <td>100.00%</td>
+                        <td>99.84%</td>
+                        <td>MEG_6875</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>AAC6-PRIME</strong></td>
+                        <td title="Drugs:Aminoglycosides:Aminoglycoside_N-acetyltransferases:AAC6-PRIME">Drugs:Aminoglycosides:Aminoglycoside_N-acetyltransferases:AAC6-PRIME</td>
+                        <td>100.00%</td>
+                        <td>99.66%</td>
+                        <td>MEG_266</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>SULI</strong></td>
+                        <td title="Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULI">Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULI</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_6615</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>MEXT</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:MEXT">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:MEXT</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_3934</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ABEM</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_MATE_efflux_pumps:ABEM">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_MATE_efflux_pumps:ABEM</td>
+                        <td>100.00%</td>
+                        <td>98.44%</td>
+                        <td>MEG_373</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>APH3-DPRIME</strong></td>
+                        <td title="Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH3-DPRIME">Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH3-DPRIME</td>
+                        <td>98.31%</td>
+                        <td>99.88%</td>
+                        <td>MEG_1019</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>APH6</strong></td>
+                        <td title="Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH6">Drugs:Aminoglycosides:Aminoglycoside_O-phosphotransferases:APH6</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_1086</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>TETB</strong></td>
+                        <td title="Drugs:Tetracyclines:Tetracycline_resistance_MFS_efflux_pumps:TETB">Drugs:Tetracyclines:Tetracycline_resistance_MFS_efflux_pumps:TETB</td>
+                        <td>99.50%</td>
+                        <td>100.00%</td>
+                        <td>MEG_7042</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>SULII</strong></td>
+                        <td title="Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULII">Drugs:Sulfonamides:Sulfonamide-resistant_dihydropteroate_synthases:SULII</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>MEG_6617</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ANT3-DPRIME</strong></td>
+                        <td title="Drugs:Aminoglycosides:Aminoglycoside_O-nucleotidyltransferases:ANT3-DPRIME">Drugs:Aminoglycosides:Aminoglycoside_O-nucleotidyltransferases:ANT3-DPRIME</td>
+                        <td>100.00%</td>
+                        <td>98.61%</td>
+                        <td>MEG_913</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+                Analysis performed using AcinetoScope ABRicate v1.2.0
+            </p>
+        </div>
+    </div>
+</body>
+</html>

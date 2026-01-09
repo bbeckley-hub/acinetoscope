@@ -1,0 +1,14 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+GCA_014705785.1.fna	CP061517.1	1274669	1275820	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	99.91	resfinder	EF016355	blaADC-25	
+GCA_014705785.1.fna	CP061517.1	2321343	2322167	+	blaOXA-66_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY750909	blaOXA-66	
+GCA_014705785.1.fna	CP061517.1	2804919	2805785	-	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole
+GCA_014705785.1.fna	CP061517.1	2806263	2807064	-	ant(3'')-Ia_1	171-972/972	..=============	0/0	82.51	100.00	resfinder	X02340	ant(3'')-Ia	Streptomycin
+GCA_014705785.1.fna	CP061517.1	2808636	2809169	-	aac(3)-Ia_1	1-534/534	===============	0/0	100.00	99.06	resfinder	X15852	aac(3)-Ia	Astromicin;Fortimicin;Gentamicin
+GCA_014705785.1.fna	CP061517.1	2811610	2812425	+	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	100.00	resfinder	X62115	aph(3')-Ia	Kanamycin
+GCA_014705785.1.fna	CP061517.1	2818199	2819059	-	blaTEM-1D_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF188200	blaTEM-1D	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin
+GCA_014705785.1.fna	CP061517.1	2821769	2822320	-	aac(6')-Iaf_1	1-552/552	===============	0/0	100.00	98.01	resfinder	AB462903	aac(6')-Iaf	Amikacin;Dibekacin;Netilmicin;Sisomicin;Tobramycin
+GCA_014705785.1.fna	CP061517.1	2825061	2825927	+	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole
+GCA_014705785.1.fna	CP061517.1	3777064	3777866	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin
+GCA_014705785.1.fna	CP061517.1	3777866	3778702	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+GCA_014705785.1.fna	CP061517.1	3782075	3783274	+	tet(B)_1	1-1200/1206	===============	0/0	99.50	100.00	resfinder	AP000342	tet(B)	Doxycycline;Minocycline;Tetracycline
+GCA_014705785.1.fna	CP061517.1	3795898	3796713	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole

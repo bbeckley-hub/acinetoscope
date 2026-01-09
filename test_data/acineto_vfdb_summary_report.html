@@ -1,0 +1,1100 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope ABRicate - VFDB Database Summary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gene-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gene-table th, .gene-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .gene-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .present { background-color: #d4edda; }
+    </style>
+    
+        <script>
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Rotate every 10 seconds
+            setInterval(rotateQuote, 10000);
+            
+            // Initial display
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+            });
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope ABRicate - VFDB Database Summary</h1>
+                <p style="color: #666; font-size: 1.2em;">Cross-genome analysis of VFDB database results</p>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Database Overview</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total Hits</h3>
+                    <p style="font-size: 2em; margin: 0;">1093</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Genomes</h3>
+                    <p style="font-size: 2em; margin: 0;">9</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Unique Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">134</p>
+                </div>
+            </div>
+            <p><strong>Database:</strong> VFDB</p>
+            <p><strong>Date:</strong> 2026-01-09 15:00:42</p>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔍 Genes by Genome</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Genome</th>
+                        <th>Gene Count</th>
+                        <th>Genes Detected</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="present">
+                        <td><strong>GCA_001443265.1</strong></td>
+                        <td>96</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, tsaP, tse1, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_001444225.1</strong></td>
+                        <td>96</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, tsaP, tse1, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_001444265.1</strong></td>
+                        <td>96</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, tsaP, tse1, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_014705785.1</strong></td>
+                        <td>125</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00445, ACICU_RS00450, ACICU_RS00455*, ACICU_RS00460, ACICU_RS00465, ACICU_RS00470*, ACICU_RS00475, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, adeH, bap, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauA, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, clpV/tssH, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, hcp/tssD, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilA, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, pseB, pseC, pseF, pseG, pseH, pseI, tagX, tsaP, tssA, tssB, tssC, tssE, tssF, tssG, tssK, tssL, tssM, tviB, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_014705825.1</strong></td>
+                        <td>125</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00445, ACICU_RS00450, ACICU_RS00455*, ACICU_RS00460, ACICU_RS00465, ACICU_RS00470*, ACICU_RS00475, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, adeH, bap, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauA, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, clpV/tssH, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, hcp/tssD, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilA, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, pseB, pseC, pseF, pseG, pseH, pseI, tagX, tsaP, tssA, tssB, tssC, tssE, tssF, tssG, tssK, tssL, tssM, tviB, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_014705885.1</strong></td>
+                        <td>125</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00445, ACICU_RS00450, ACICU_RS00455*, ACICU_RS00460, ACICU_RS00465, ACICU_RS00470*, ACICU_RS00475, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, adeH, bap, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauA, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, clpV/tssH, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, hcp/tssD, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilA, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, pseB, pseC, pseF, pseG, pseH, pseI, tagX, tsaP, tssA, tssB, tssC, tssE, tssF, tssG, tssK, tssL, tssM, tviB, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_016535705.2</strong></td>
+                        <td>116</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04570, ACICU_RS04575, ACICU_RS04580, ACICU_RS04585, ACICU_RS04590, ACICU_RS04595, ACICU_RS04605, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, adeH, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, clpV/tssH, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, hcp/tssD, hemO, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, tagX, tsaP, tssA, tssB, tssC, tssE, tssF, tssG, tssK, tssL, tssM, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_016536425.2</strong></td>
+                        <td>118</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04570, ACICU_RS04575, ACICU_RS04580, ACICU_RS04585, ACICU_RS04590, ACICU_RS04595, ACICU_RS04605, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, adeH, bap, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauA, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, clpV/tssH, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, hcp/tssD, hemO, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, tagX, tsaP, tssA, tssB, tssC, tssE, tssF, tssG, tssK, tssL, tssM, vgrG/tssI</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>GCA_016539245.2</strong></td>
+                        <td>118</td>
+                        <td>ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, ACICU_RS00485, ACICU_RS00500, ACICU_RS04565, ACICU_RS04570, ACICU_RS04575, ACICU_RS04580, ACICU_RS04585, ACICU_RS04590, ACICU_RS04595, ACICU_RS04605, ACICU_RS04610, ACICU_RS16840, abaI, abaR, adeF, adeG, adeH, bap, barA, barB, basA, basB, basC, basD, basF, basG, basH, basI, basJ, bauA, bauB, bauC, bauD, bauE, bauF, bfmR, bfmS, clpV/tssH, csuA, csuA/B, csuB, csuC, csuD, csuE, entE, fimT, fimU, fimV, galE, galU, gspC, gspD, gspE1, gspE2, gspF, gspG, gspH, gspI, gspK, gspL, gspM, gspN, gspO/pilD, hcp/tssD, hemO, lpsB, lpxA, lpxB, lpxC, lpxD, lpxL, lpxM, ompA, pbpG, pgaA, pgaB, pgaC, pgaD, pgi, pilB, pilC, pilE, pilF, pilG, pilH, pilI, pilJ, pilM, pilN, pilO, pilP, pilQ, pilR, pilS, pilT, pilU, pilV, pilW, pilX, pilY1, plc1, plc2, plcD, tagX, tsaP, tssA, tssB, tssC, tssE, tssF, tssG, tssK, tssL, tssM, vgrG/tssI</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Gene Frequency</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Frequency</th>
+                        <th>Genomes</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td><strong>vgrG/tssI</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxC</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilM</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilN</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilO</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilP</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilQ</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>fimU</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilV</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilW</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilX</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilY1</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS16840</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilE</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>plcD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>fimT</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ompA</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilG</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilH</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilI</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilJ</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxM</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bauF</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basA</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bauD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bauC</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bauE</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bauB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basC</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>entE</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basF</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basG</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>barA</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>barB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basH</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basI</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>basJ</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeG</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeF</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspE2</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspL</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspM</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>csuA/B</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>csuA</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>csuB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>csuC</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>csuD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>csuE</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pgaA</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pgaB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pgaC</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pgaD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>plc2</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxA</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspK</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspI</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspH</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04610</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04565</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilT</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilU</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bfmS</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bfmR</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspE1</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilF</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxL</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpsB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>fimV</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspG</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspF</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilB</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilC</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspO/pilD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspD</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspC</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gspN</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pbpG</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilS</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilR</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tsaP</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>abaR</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>abaI</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00500</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>galE</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pgi</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00485</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>galU</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00405</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00400</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00395</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>plc1</strong></td>
+                        <td>9</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1, GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeH</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tagX</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssL</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssK</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssA</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>clpV/tssH</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssM</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssG</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssF</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssE</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>hcp/tssD</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssC</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tssB</strong></td>
+                        <td>6</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bap</strong></td>
+                        <td>5</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>bauA</strong></td>
+                        <td>5</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pilA</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00475</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00470*</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00465</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00460</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00455*</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00450</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS00445</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pseI</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pseH</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pseG</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pseF</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pseC</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pseB</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tviB</strong></td>
+                        <td>3</td>
+                        <td>GCA_014705785.1, GCA_014705825.1, GCA_014705885.1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04605</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>hemO</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04595</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04590</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04585</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04580</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04575</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ACICU_RS04570</strong></td>
+                        <td>3</td>
+                        <td>GCA_016535705.2, GCA_016536425.2, GCA_016539245.2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>tse1</strong></td>
+                        <td>3</td>
+                        <td>GCA_001443265.1, GCA_001444225.1, GCA_001444265.1</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+                Analysis performed using AcinetoScope (ABRicate v1.2.0)
+            </p>
+        </div>
+    </div>
+</body>
+</html>

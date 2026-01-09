@@ -1,0 +1,42 @@
+ACINETOSCOPE - MLST Analysis Report
+======================================
+
+Sample: GCA_014705825.1.fna
+Original File: GCA_014705825.1.fna
+Analysis Date: 2026-01-09 14:31:05
+MLST Scheme: OXFORD
+MLST Database: abaumannii
+Detected Scheme: abaumannii
+
+MLST TYPING RESULTS:
+-------------------
+Sequence Type (ST): UNKNOWN
+Confidence: LOW
+MLST Status: Not Assigned
+
+Allele Profile (OXFORD scheme):
+Oxf_gltA(1)-Oxf_gyrB(3)-Oxf_gdhB(3(?)-189)(?)-Oxf_recA(2)-Oxf_cpn60(2)-Oxf_gpi(97)-Oxf_rpoD(3)
+
+Detailed Alleles:
+- Oxf_gltA: 1
+- Oxf_gyrB: 3
+- Oxf_gdhB(3: ?
+- 189): ?
+- Oxf_recA: 2
+- Oxf_cpn60: 2
+- Oxf_gpi: 97
+- Oxf_rpoD: 3
+
+LINEAGE ANALYSIS:
+-----------------
+International Clone: Not Assigned
+Clonal Complex: Not Assigned
+Classification: MLST typing failed
+Geographic Distribution: N/A
+Clinical Significance: Could not determine sequence type.
+Outbreak Potential: UNKNOWN
+
+Common Resistance: Cannot determine
+Typical Resistance Genes: Cannot determine
+
+PubMLST Link: https://pubmlst.org/organisms/acinetobacter-baumannii

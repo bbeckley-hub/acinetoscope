@@ -1,0 +1,221 @@
+{
+  "metadata": {
+    "genome": "GCA_001443265.1",
+    "analysis_date": "2026-01-09 14:31:18",
+    "tool": "AcinetoScope Kaptive K/O Analysis",
+    "version": "1.0.0",
+    "kaptive_version": "3.1.0",
+    "database_version": "2025-12-26 (ab_k/ab_o)"
+  },
+  "summary": {
+    "total_loci": 2,
+    "k_loci": 1,
+    "o_loci": 1,
+    "k_types": [
+      "K15"
+    ],
+    "o_types": [
+      "unknown (OCL5)"
+    ]
+  },
+  "hits": [
+    {
+      "Assembly": "GCA_001443265.1",
+      "Best match locus": "KL15",
+      "Best match type": "K15",
+      "Match confidence": "Typeable",
+      "Problems": "",
+      "Identity": "99.98%",
+      "Coverage": "100.00%",
+      "Length discrepancy": "0 bp",
+      "Expected genes in locus": "22 / 22 (100.00%)",
+      "Expected genes in locus, details": "KL15_01_wzc,100.00%,100.00%;KL15_02_wzb,100.00%,100.00%;KL15_03_wza,100.00%,100.00%;KL15_04_gna3,100.00%,100.00%;KL15_05_dgaA,100.00%,100.00%;KL15_06_dgaB,100.00%,100.00%;KL15_07_dgaC,100.00%,100.00%;KL15_08_gtr34,100.00%,100.00%;KL15_09_wzx_KL15,100.00%,100.00%;KL15_10_wzy_KL15,100.00%,100.00%;KL15_11_gtr35,100.00%,100.00%;KL15_12_gtr36,100.00%,100.00%;KL15_13_itrA1,100.00%,100.00%;KL15_14_qhbC,100.00%,100.00%;KL15_15_qhbB,100.00%,100.00%;KL15_16_gdr,100.00%,100.00%;KL15_17_orf_KL15,99.80%,100.00%;KL15_18_galU,100.00%,100.00%;KL15_19_ugd,100.00%,100.00%;KL15_20_gpi,99.82%,100.00%;KL15_21_gne1,100.00%,100.00%;KL15_22_pgm,100.00%,100.00%",
+      "Missing expected genes": "",
+      "Other genes in locus": "0",
+      "Other genes in locus, details": "",
+      "Expected genes outside locus": "0 / 22 (0.00%)",
+      "Expected genes outside locus, details": "",
+      "Other genes outside locus": "0",
+      "Other genes outside locus, details": "",
+      "Truncated genes, details": "",
+      "Extra genes, details": "",
+      "Locus Type": "K",
+      "Gene Details Parsed": [
+        {
+          "name": "KL15_01_wzc",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_02_wzb",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_03_wza",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_04_gna3",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_05_dgaA",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_06_dgaB",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_07_dgaC",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_08_gtr34",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_09_wzx_KL15",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_10_wzy_KL15",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_11_gtr35",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_12_gtr36",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_13_itrA1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_14_qhbC",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_15_qhbB",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_16_gdr",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_17_orf_KL15",
+          "identity": "99.80",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_18_galU",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_19_ugd",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_20_gpi",
+          "identity": "99.82",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_21_gne1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "KL15_22_pgm",
+          "identity": "100.00",
+          "coverage": "100.00"
+        }
+      ]
+    },
+    {
+      "Assembly": "GCA_001443265.1",
+      "Best match locus": "OCL5",
+      "Best match type": "unknown (OCL5)",
+      "Match confidence": "Typeable",
+      "Problems": "?2-",
+      "Identity": "100.00%",
+      "Coverage": "81.00%",
+      "Length discrepancy": "n/a",
+      "Expected genes in locus": "8 / 9 (88.89%)",
+      "Expected genes in locus, details": "OCL5_01_gtrOC1,100.00%,100.00%;OCL5_02_pda2a,100.00%,100.00%;OCL5_03_gtrOC13,100.00%,100.00%;OCL5_04_gtrOC14,100.00%,100.00%;OCL5_05_gtrOC15,100.00%,100.00%;OCL5_06_atrOC1,100.00%,79.38%,partial;OCL5_08_gtrOC16,100.00%,42.58%,partial;OCL5_09_gtrOC17,100.00%,100.00%",
+      "Missing expected genes": "OCL5_07_htrL",
+      "Other genes in locus": "0",
+      "Other genes in locus, details": "",
+      "Expected genes outside locus": "0 / 9 (0.00%)",
+      "Expected genes outside locus, details": "",
+      "Other genes outside locus": "0",
+      "Other genes outside locus, details": "",
+      "Truncated genes, details": "",
+      "Extra genes, details": "",
+      "Locus Type": "O",
+      "Gene Details Parsed": [
+        {
+          "name": "OCL5_01_gtrOC1",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL5_02_pda2a",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL5_03_gtrOC13",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL5_04_gtrOC14",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL5_05_gtrOC15",
+          "identity": "100.00",
+          "coverage": "100.00"
+        },
+        {
+          "name": "OCL5_06_atrOC1",
+          "identity": "100.00",
+          "coverage": "79.38"
+        },
+        {
+          "name": "OCL5_08_gtrOC16",
+          "identity": "100.00",
+          "coverage": "42.58"
+        },
+        {
+          "name": "OCL5_09_gtrOC17",
+          "identity": "100.00",
+          "coverage": "100.00"
+        }
+      ]
+    }
+  ]
+}

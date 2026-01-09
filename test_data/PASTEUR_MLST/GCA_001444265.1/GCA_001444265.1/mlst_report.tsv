@@ -1,0 +1,2 @@
+Sample	Original_File	Scheme	MLST_Database	ST	MLST_Status	International_Clone	Clonal_Complex	Classification	Outbreak_Potential	Resistance_Profile	Biofilm_Formation	Survival_on_Surfaces	Confidence	Allele_Profile
+GCA_001444265.1.fna	GCA_001444265.1.fna	pasteur	abaumannii_2	94	Assigned	Regional Clone	CC94	Epidemic Clone	MODERATE	Carbapenem-resistant, MDR	Unknown	Unknown	HIGH	Pas_cpn60(1)-Pas_fusA(2)-Pas_gltA(2)-Pas_pyrG(1)-Pas_recA(5)-Pas_rplB(1)-Pas_rpoB(1)

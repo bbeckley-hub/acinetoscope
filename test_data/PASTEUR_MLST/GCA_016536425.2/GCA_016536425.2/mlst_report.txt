@@ -1,0 +1,41 @@
+ACINETOSCOPE - MLST Analysis Report
+======================================
+
+Sample: GCA_016536425.2.fna
+Original File: GCA_016536425.2.fna
+Analysis Date: 2026-01-09 14:30:47
+MLST Scheme: PASTEUR
+MLST Database: abaumannii_2
+Detected Scheme: abaumannii_2
+
+MLST TYPING RESULTS:
+-------------------
+Sequence Type (ST): 136
+Confidence: HIGH
+MLST Status: Assigned
+
+Allele Profile (PASTEUR scheme):
+Pas_cpn60(3)-Pas_fusA(2)-Pas_gltA(19)-Pas_pyrG(25)-Pas_recA(5)-Pas_rplB(2)-Pas_rpoB(5)
+
+Detailed Alleles:
+- Pas_cpn60: 3
+- Pas_fusA: 2
+- Pas_gltA: 19
+- Pas_pyrG: 25
+- Pas_recA: 5
+- Pas_rplB: 2
+- Pas_rpoB: 5
+
+LINEAGE ANALYSIS:
+-----------------
+International Clone: Regional Clone
+Clonal Complex: CC136
+Classification: Epidemic Clone
+Geographic Distribution: Europe, Mediterranean
+Clinical Significance: Clone associated with OXA-58 production
+Outbreak Potential: MODERATE
+
+Common Resistance: Carbapenem-resistant, MDR
+Typical Resistance Genes: OXA-58, OXA-51-like
+
+PubMLST Link: https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=136

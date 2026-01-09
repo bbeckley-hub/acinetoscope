@@ -1,0 +1,85 @@
+{
+    "metadata": {
+        "database_name": "ecoli_vf",
+        "analysis_type": "ABRicate Antimicrobial Resistance & Virulence",
+        "total_genomes": 4,
+        "total_hits": 6,
+        "analysis_date": "2026-01-09 15:00:42",
+        "tool_version": "1.0.0"
+    },
+    "summary_statistics": {
+        "unique_genes": 1,
+        "unique_genomes": 4,
+        "hits_per_genome": 1.5,
+        "risk_analysis": {
+            "critical_carbapenemase_genes": 0,
+            "critical_esbl_genes": 0,
+            "critical_colistin_genes": 0,
+            "critical_aminoglycoside_genes": 0,
+            "high_risk_resistance_genes": 0,
+            "virulence_factors": 0
+        }
+    },
+    "gene_analysis": {
+        "most_frequent_genes": {
+            "int": 4
+        },
+        "gene_details": {
+            "int": {
+                "product": "integrase / recombinase",
+                "databases": [
+                    "ecoli_vf"
+                ],
+                "avg_coverage": 98.36,
+                "avg_identity": 99.88
+            }
+        }
+    },
+    "genome_analysis": {
+        "GCA_014705885.1": {
+            "total_hits": 1,
+            "unique_genes": 1,
+            "genes": [
+                "int"
+            ]
+        },
+        "GCA_014705825.1": {
+            "total_hits": 2,
+            "unique_genes": 1,
+            "genes": [
+                "int"
+            ]
+        },
+        "GCA_014705785.1": {
+            "total_hits": 1,
+            "unique_genes": 1,
+            "genes": [
+                "int"
+            ]
+        },
+        "GCA_016535705.2": {
+            "total_hits": 2,
+            "unique_genes": 1,
+            "genes": [
+                "int"
+            ]
+        }
+    },
+    "risk_genes": {
+        "critical_carbapenemase": [],
+        "critical_esbl": [],
+        "critical_colistin": [],
+        "critical_aminoglycoside": [],
+        "high_risk_resistance": [],
+        "virulence_factors": []
+    },
+    "raw_hits_summary": {
+        "total_hits": 6,
+        "hits_by_genome": {
+            "GCA_014705885.1": 1,
+            "GCA_014705825.1": 2,
+            "GCA_014705785.1": 1,
+            "GCA_016535705.2": 2
+        }
+    }
+}

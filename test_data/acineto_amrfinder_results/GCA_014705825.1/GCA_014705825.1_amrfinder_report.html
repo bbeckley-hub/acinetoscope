@@ -1,0 +1,4307 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope AMRfinderPlus Analysis Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gene-table, .class-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .gene-table th, .gene-table td, .class-table th, .class-table td { 
+            padding: 15px; 
+            text-align: left; 
+            border-bottom: 1px solid #e0e0e0; 
+        }
+        
+        .gene-table th, .class-table th { 
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        .success { color: #28a745; font-weight: 600; }
+        .warning { color: #ffc107; font-weight: 600; }
+        .error { color: #dc3545; font-weight: 600; }
+        .summary-stats { 
+            display: flex; 
+            justify-content: space-around; 
+            margin: 20px 0; 
+            flex-wrap: wrap;
+        }
+        
+        .stat-card { 
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px; 
+            border-radius: 12px; 
+            text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .critical-stat-card {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 20px; 
+            border-radius: 12px; 
+            text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .resistance-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 0.9em;
+        }
+        
+        .critical-risk-badge {
+            display: inline-block;
+            background: #8b0000;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .warning-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 0.9em;
+        }
+        
+        .success-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 0.9em;
+        }
+        
+        .present { background-color: #d4edda; }
+        .critical-row { background-color: #f8d7da; font-weight: bold; border-left: 4px solid #dc3545; }
+        .high-risk-row { background-color: #fff3cd; border-left: 4px solid #ffc107; }
+        
+        /* Interactive controls */
+        .interactive-controls {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .export-buttons button {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .export-buttons button:hover {
+            background: #2563eb;
+        }
+        
+        .export-buttons button.print {
+            background: #10b981;
+        }
+        
+        .export-buttons button.print:hover {
+            background: #059669;
+        }
+        
+        .result-counter {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .sequence-name {
+            max-width: 300px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        
+        .gene-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .gene-item {
+            display: inline-block;
+            margin: 2px;
+            padding: 3px 8px;
+            background: #e9ecef;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+        
+        .critical-gene {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            font-weight: bold;
+        }
+        
+        .high-risk-gene {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        /* Quick search bar */
+        .quick-search-bar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .quick-search-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #3b82f6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .quick-search-bar button {
+            padding: 8px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        @media print {
+            .no-print, .interactive-controls, .quick-search-bar { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .card { background: white !important; color: black !important; box-shadow: none !important; }
+            .gene-table, .class-table { box-shadow: none !important; }
+        }
+    </style>
+    
+        <script>
+            // Search functionality
+            function searchTable(tableId, searchTerm) {
+                const table = document.getElementById(tableId);
+                const rows = table.getElementsByTagName('tr');
+                let visibleCount = 0;
+                
+                for (let i = 1; i < rows.length; i++) { // Skip header
+                    const row = rows[i];
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm.toLowerCase())) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+                
+                // Update result count
+                const resultCounter = document.getElementById('result-counter-' + tableId);
+                if (resultCounter) {
+                    resultCounter.textContent = visibleCount + ' results found';
+                }
+            }
+            
+            // Export to CSV
+            function exportToCSV(tableId, filename) {
+                const table = document.getElementById(tableId);
+                const rows = table.getElementsByTagName('tr');
+                let csv = [];
+                
+                // Add headers
+                const headerCells = rows[0].getElementsByTagName('th');
+                const headerRow = [];
+                for (let cell of headerCells) {
+                    headerRow.push(cell.textContent);
+                }
+                csv.push(headerRow.join(','));
+                
+                // Add data
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i].style.display !== 'none') {
+                        const cells = rows[i].getElementsByTagName('td');
+                        const row = [];
+                        for (let cell of cells) {
+                            // Clean up text (remove badges, etc.)
+                            let text = cell.textContent.trim();
+                            text = text.replace(/\n/g, ' ').replace(/,/g, ';');
+                            row.push(text);
+                        }
+                        csv.push(row.join(','));
+                    }
+                }
+                
+                // Create download
+                const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+            
+            // Export to JSON
+            function exportToJSON(dataVar, filename) {
+                const data = window[dataVar];
+                const jsonStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+            
+            // Print report
+            function printReport() {
+                const originalStyles = document.querySelectorAll('style, link[rel="stylesheet"]');
+                const printWindow = window.open('', '_blank');
+                
+                printWindow.document.write('<html><head><title>GCA_014705825.1 - AMR Report</title>');
+                printWindow.document.write('<style>');
+                printWindow.document.write(`
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .no-print { display: none !important; }
+                    table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                    .critical-row { background-color: #f8d7da; }
+                    .high-risk-row { background-color: #fff3cd; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                `);
+                printWindow.document.write('</style>');
+                printWindow.document.write('</head><body>');
+                
+                // Add report content
+                const content = document.querySelector('.container').cloneNode(true);
+                const noPrintElements = content.querySelectorAll('.no-print');
+                noPrintElements.forEach(el => el.remove());
+                
+                printWindow.document.write(content.innerHTML);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.print();
+            }
+            
+            // Toggle all mechanisms
+            function toggleAllMechanisms() {
+                const container = document.getElementById('all-mechanisms-container');
+                const button = document.getElementById('toggle-mechanisms-btn');
+                
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                    button.textContent = 'Show Less';
+                } else {
+                    container.style.display = 'none';
+                    button.textContent = 'Show All Mechanisms';
+                }
+            }
+            
+            // Quick search across entire report
+            function quickSearch() {
+                const searchTerm = document.getElementById('quick-search').value.toLowerCase();
+                const sections = document.querySelectorAll('.card');
+                
+                sections.forEach(section => {
+                    const text = section.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        section.style.border = '2px solid #3b82f6';
+                        section.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        section.style.border = '';
+                        section.style.backgroundColor = '';
+                    }
+                });
+            }
+            
+            // Clear search highlights
+            function clearSearch() {
+                document.getElementById('quick-search').value = '';
+                const sections = document.querySelectorAll('.card');
+                sections.forEach(section => {
+                    section.style.border = '';
+                    section.style.backgroundColor = '';
+                });
+            }
+            
+            // Rotating quotes
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Initialize
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+                setInterval(rotateQuote, 10000);
+            });
+        </script>
+        
+    
+        <script>
+            window.reportData = {
+                metadata: {
+                    genome: 'GCA_014705825.1',
+                    date: '2026-01-09 14:32:58',
+                    tool: 'AcinetoScope AMRfinderPlus',
+                    version: '1.0.0'
+                },
+                summary: {
+  "total_genes": 33,
+  "resistance_classes": {
+    "MACROLIDE": [
+      "mph(E)"
+    ],
+    "MACROLIDE/STREPTOGRAMIN": [
+      "msr(E)"
+    ],
+    "SULFONAMIDE": [
+      "sul1",
+      "sul2"
+    ],
+    "QUATERNARY AMMONIUM": [
+      "qacEdelta1"
+    ],
+    "PHENICOL": [
+      "catB3",
+      "cxpE"
+    ],
+    "AMINOGLYCOSIDE": [
+      "ant(2'')-Ia",
+      "aacA16",
+      "aadA1",
+      "aph(3'')-Ib",
+      "aph(6)-Id",
+      "ant(3'')-IIa"
+    ],
+    "TRIMETHOPRIM": [
+      "dfrA19"
+    ],
+    "QUINOLONE": [
+      "gyrA_S81L",
+      "parC_S84L"
+    ],
+    "BETA-LACTAM": [
+      "blaADC-30",
+      "blaOXA-66",
+      "blaTEM-1"
+    ],
+    "EFFLUX": [
+      "amvA",
+      "adeC"
+    ],
+    "FOSFOMYCIN": [
+      "abaF"
+    ],
+    "MERCURY": [
+      "merR",
+      "merT",
+      "merP",
+      "merD"
+    ],
+    "NICKEL": [
+      "nreB"
+    ],
+    "TETRACYCLINE": [
+      "tet(B)"
+    ]
+  },
+  "total_classes": 14,
+  "high_risk_genes": 9,
+  "critical_risk_genes": 1,
+  "high_risk_list": [
+    "sul1",
+    "catB3",
+    "dfrA19",
+    "adeC",
+    "blaOXA-66",
+    "aadA1",
+    "sul2"
+  ],
+  "critical_risk_list": [
+    "blaOXA-66"
+  ],
+  "resistance_mechanisms": {
+    "carbapenemase": [
+      "blaOXA-66"
+    ],
+    "esbl": [
+      "blaTEM-1"
+    ],
+    "colistin_resistance": [],
+    "fluoroquinolone_resistance": [],
+    "aminoglycoside_resistance": [
+      "aadA1",
+      "aph(6)-Id"
+    ],
+    "efflux_pumps": [
+      "adeC"
+    ],
+    "other_amr": [
+      "mph(E)",
+      "msr(E)",
+      "sul1",
+      "qacEdelta1",
+      "catB3",
+      "ant(2'')-Ia",
+      "dfrA19",
+      "sul1",
+      "qacEdelta1",
+      "ant(2'')-Ia",
+      "gyrA_S81L",
+      "cxpE",
+      "blaADC-30",
+      "amvA",
+      "abaF",
+      "aacA16",
+      "qacEdelta1",
+      "sul1",
+      "merR",
+      "merT",
+      "merP",
+      "merD",
+      "nreB",
+      "aph(3'')-Ib",
+      "tet(B)",
+      "sul2",
+      "parC_S84L",
+      "ant(3'')-IIa"
+    ]
+  }
+},
+                hits: [
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "424845",
+    "Stop": "425726",
+    "Strand": "-",
+    "Element symbol": "mph(E)",
+    "Element name": "Mph(E) family macrolide 2'-phosphotransferase",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "MACROLIDE",
+    "Subclass": "ERYTHROMYCIN",
+    "Method": "EXACTX",
+    "Target length": "294",
+    "Reference sequence length": "294",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "294",
+    "Closest reference accession": "WP_000155092.1",
+    "Closest reference name": "Mph(E) family macrolide 2'-phosphotransferase",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "424845",
+    "stop": "425726",
+    "strand": "-",
+    "gene_symbol": "mph(E)",
+    "sequence_name": "Mph(E) family macrolide 2'-phosphotransferase",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "MACROLIDE",
+    "subclass": "ERYTHROMYCIN",
+    "method": "EXACTX",
+    "target_length": "294",
+    "ref_length": "294",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "294",
+    "accession": "WP_000155092.1",
+    "closest_name": "Mph(E) family macrolide 2'-phosphotransferase",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "424845",
+      "425726",
+      "-",
+      "mph(E)",
+      "Mph(E) family macrolide 2'-phosphotransferase",
+      "core",
+      "AMR",
+      "AMR",
+      "MACROLIDE",
+      "ERYTHROMYCIN",
+      "EXACTX",
+      "294",
+      "294",
+      "100.00",
+      "100.00",
+      "294",
+      "WP_000155092.1",
+      "Mph(E) family macrolide 2'-phosphotransferase",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "425785",
+    "Stop": "427257",
+    "Strand": "-",
+    "Element symbol": "msr(E)",
+    "Element name": "ABC-F type ribosomal protection protein Msr(E)",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "MACROLIDE/STREPTOGRAMIN",
+    "Subclass": "AZITHROMYCIN/ERYTHROMYCIN/STREPTOGRAMIN",
+    "Method": "EXACTX",
+    "Target length": "491",
+    "Reference sequence length": "491",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "491",
+    "Closest reference accession": "WP_000052512.1",
+    "Closest reference name": "ABC-F type ribosomal protection protein Msr(E)",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "425785",
+    "stop": "427257",
+    "strand": "-",
+    "gene_symbol": "msr(E)",
+    "sequence_name": "ABC-F type ribosomal protection protein Msr(E)",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "MACROLIDE/STREPTOGRAMIN",
+    "subclass": "AZITHROMYCIN/ERYTHROMYCIN/STREPTOGRAMIN",
+    "method": "EXACTX",
+    "target_length": "491",
+    "ref_length": "491",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "491",
+    "accession": "WP_000052512.1",
+    "closest_name": "ABC-F type ribosomal protection protein Msr(E)",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "425785",
+      "427257",
+      "-",
+      "msr(E)",
+      "ABC-F type ribosomal protection protein Msr(E)",
+      "core",
+      "AMR",
+      "AMR",
+      "MACROLIDE/STREPTOGRAMIN",
+      "AZITHROMYCIN/ERYTHROMYCIN/STREPTOGRAMIN",
+      "EXACTX",
+      "491",
+      "491",
+      "100.00",
+      "100.00",
+      "491",
+      "WP_000052512.1",
+      "ABC-F type ribosomal protection protein Msr(E)",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "429530",
+    "Stop": "430366",
+    "Strand": "-",
+    "Element symbol": "sul1",
+    "Element name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "SULFONAMIDE",
+    "Subclass": "SULFONAMIDE",
+    "Method": "EXACTX",
+    "Target length": "279",
+    "Reference sequence length": "279",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "279",
+    "Closest reference accession": "WP_000259032.1",
+    "Closest reference name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "429530",
+    "stop": "430366",
+    "strand": "-",
+    "gene_symbol": "sul1",
+    "sequence_name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "SULFONAMIDE",
+    "subclass": "SULFONAMIDE",
+    "method": "EXACTX",
+    "target_length": "279",
+    "ref_length": "279",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "279",
+    "accession": "WP_000259032.1",
+    "closest_name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "429530",
+      "430366",
+      "-",
+      "sul1",
+      "sulfonamide-resistant dihydropteroate synthase Sul1",
+      "core",
+      "AMR",
+      "AMR",
+      "SULFONAMIDE",
+      "SULFONAMIDE",
+      "EXACTX",
+      "279",
+      "279",
+      "100.00",
+      "100.00",
+      "279",
+      "WP_000259032.1",
+      "sulfonamide-resistant dihydropteroate synthase Sul1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "430363",
+    "Stop": "430707",
+    "Strand": "-",
+    "Element symbol": "qacEdelta1",
+    "Element name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "Scope": "core",
+    "Type": "STRESS",
+    "Subtype": "BIOCIDE",
+    "Class": "QUATERNARY AMMONIUM",
+    "Subclass": "QUATERNARY AMMONIUM",
+    "Method": "ALLELEX",
+    "Target length": "115",
+    "Reference sequence length": "115",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "115",
+    "Closest reference accession": "WP_000679427.1",
+    "Closest reference name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "430363",
+    "stop": "430707",
+    "strand": "-",
+    "gene_symbol": "qacEdelta1",
+    "sequence_name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "scope": "core",
+    "element_type": "STRESS",
+    "element_subtype": "BIOCIDE",
+    "class": "QUATERNARY AMMONIUM",
+    "subclass": "QUATERNARY AMMONIUM",
+    "method": "ALLELEX",
+    "target_length": "115",
+    "ref_length": "115",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "115",
+    "accession": "WP_000679427.1",
+    "closest_name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "430363",
+      "430707",
+      "-",
+      "qacEdelta1",
+      "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+      "core",
+      "STRESS",
+      "BIOCIDE",
+      "QUATERNARY AMMONIUM",
+      "QUATERNARY AMMONIUM",
+      "ALLELEX",
+      "115",
+      "115",
+      "100.00",
+      "100.00",
+      "115",
+      "WP_000679427.1",
+      "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "430867",
+    "Stop": "431496",
+    "Strand": "-",
+    "Element symbol": "catB3",
+    "Element name": "type B-3 chloramphenicol O-acetyltransferase CatB3",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "PHENICOL",
+    "Subclass": "CHLORAMPHENICOL",
+    "Method": "EXACTX",
+    "Target length": "210",
+    "Reference sequence length": "210",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "210",
+    "Closest reference accession": "WP_000186237.1",
+    "Closest reference name": "type B-3 chloramphenicol O-acetyltransferase CatB3",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "430867",
+    "stop": "431496",
+    "strand": "-",
+    "gene_symbol": "catB3",
+    "sequence_name": "type B-3 chloramphenicol O-acetyltransferase CatB3",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "PHENICOL",
+    "subclass": "CHLORAMPHENICOL",
+    "method": "EXACTX",
+    "target_length": "210",
+    "ref_length": "210",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "210",
+    "accession": "WP_000186237.1",
+    "closest_name": "type B-3 chloramphenicol O-acetyltransferase CatB3",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "430867",
+      "431496",
+      "-",
+      "catB3",
+      "type B-3 chloramphenicol O-acetyltransferase CatB3",
+      "core",
+      "AMR",
+      "AMR",
+      "PHENICOL",
+      "CHLORAMPHENICOL",
+      "EXACTX",
+      "210",
+      "210",
+      "100.00",
+      "100.00",
+      "210",
+      "WP_000186237.1",
+      "type B-3 chloramphenicol O-acetyltransferase CatB3",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "431582",
+    "Stop": "432112",
+    "Strand": "-",
+    "Element symbol": "ant(2'')-Ia",
+    "Element name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "AMINOGLYCOSIDE",
+    "Subclass": "GENTAMICIN/KANAMYCIN/TOBRAMYCIN",
+    "Method": "EXACTX",
+    "Target length": "177",
+    "Reference sequence length": "177",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "177",
+    "Closest reference accession": "WP_000381802.1",
+    "Closest reference name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "431582",
+    "stop": "432112",
+    "strand": "-",
+    "gene_symbol": "ant(2'')-Ia",
+    "sequence_name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "AMINOGLYCOSIDE",
+    "subclass": "GENTAMICIN/KANAMYCIN/TOBRAMYCIN",
+    "method": "EXACTX",
+    "target_length": "177",
+    "ref_length": "177",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "177",
+    "accession": "WP_000381802.1",
+    "closest_name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "431582",
+      "432112",
+      "-",
+      "ant(2'')-Ia",
+      "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+      "core",
+      "AMR",
+      "AMR",
+      "AMINOGLYCOSIDE",
+      "GENTAMICIN/KANAMYCIN/TOBRAMYCIN",
+      "EXACTX",
+      "177",
+      "177",
+      "100.00",
+      "100.00",
+      "177",
+      "WP_000381802.1",
+      "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "433877",
+    "Stop": "434443",
+    "Strand": "-",
+    "Element symbol": "dfrA19",
+    "Element name": "trimethoprim-resistant dihydrofolate reductase DfrA19",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "TRIMETHOPRIM",
+    "Subclass": "TRIMETHOPRIM",
+    "Method": "EXACTX",
+    "Target length": "189",
+    "Reference sequence length": "189",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "189",
+    "Closest reference accession": "WP_000019304.1",
+    "Closest reference name": "trimethoprim-resistant dihydrofolate reductase DfrA19",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "433877",
+    "stop": "434443",
+    "strand": "-",
+    "gene_symbol": "dfrA19",
+    "sequence_name": "trimethoprim-resistant dihydrofolate reductase DfrA19",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "TRIMETHOPRIM",
+    "subclass": "TRIMETHOPRIM",
+    "method": "EXACTX",
+    "target_length": "189",
+    "ref_length": "189",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "189",
+    "accession": "WP_000019304.1",
+    "closest_name": "trimethoprim-resistant dihydrofolate reductase DfrA19",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "433877",
+      "434443",
+      "-",
+      "dfrA19",
+      "trimethoprim-resistant dihydrofolate reductase DfrA19",
+      "core",
+      "AMR",
+      "AMR",
+      "TRIMETHOPRIM",
+      "TRIMETHOPRIM",
+      "EXACTX",
+      "189",
+      "189",
+      "100.00",
+      "100.00",
+      "189",
+      "WP_000019304.1",
+      "trimethoprim-resistant dihydrofolate reductase DfrA19",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "437158",
+    "Stop": "437994",
+    "Strand": "-",
+    "Element symbol": "sul1",
+    "Element name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "SULFONAMIDE",
+    "Subclass": "SULFONAMIDE",
+    "Method": "EXACTX",
+    "Target length": "279",
+    "Reference sequence length": "279",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "279",
+    "Closest reference accession": "WP_000259031.1",
+    "Closest reference name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "437158",
+    "stop": "437994",
+    "strand": "-",
+    "gene_symbol": "sul1",
+    "sequence_name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "SULFONAMIDE",
+    "subclass": "SULFONAMIDE",
+    "method": "EXACTX",
+    "target_length": "279",
+    "ref_length": "279",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "279",
+    "accession": "WP_000259031.1",
+    "closest_name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "437158",
+      "437994",
+      "-",
+      "sul1",
+      "sulfonamide-resistant dihydropteroate synthase Sul1",
+      "core",
+      "AMR",
+      "AMR",
+      "SULFONAMIDE",
+      "SULFONAMIDE",
+      "EXACTX",
+      "279",
+      "279",
+      "100.00",
+      "100.00",
+      "279",
+      "WP_000259031.1",
+      "sulfonamide-resistant dihydropteroate synthase Sul1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "437991",
+    "Stop": "438335",
+    "Strand": "-",
+    "Element symbol": "qacEdelta1",
+    "Element name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "Scope": "core",
+    "Type": "STRESS",
+    "Subtype": "BIOCIDE",
+    "Class": "QUATERNARY AMMONIUM",
+    "Subclass": "QUATERNARY AMMONIUM",
+    "Method": "ALLELEX",
+    "Target length": "115",
+    "Reference sequence length": "115",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "115",
+    "Closest reference accession": "WP_000679427.1",
+    "Closest reference name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "437991",
+    "stop": "438335",
+    "strand": "-",
+    "gene_symbol": "qacEdelta1",
+    "sequence_name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "scope": "core",
+    "element_type": "STRESS",
+    "element_subtype": "BIOCIDE",
+    "class": "QUATERNARY AMMONIUM",
+    "subclass": "QUATERNARY AMMONIUM",
+    "method": "ALLELEX",
+    "target_length": "115",
+    "ref_length": "115",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "115",
+    "accession": "WP_000679427.1",
+    "closest_name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "437991",
+      "438335",
+      "-",
+      "qacEdelta1",
+      "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+      "core",
+      "STRESS",
+      "BIOCIDE",
+      "QUATERNARY AMMONIUM",
+      "QUATERNARY AMMONIUM",
+      "ALLELEX",
+      "115",
+      "115",
+      "100.00",
+      "100.00",
+      "115",
+      "WP_000679427.1",
+      "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "438495",
+    "Stop": "439025",
+    "Strand": "-",
+    "Element symbol": "ant(2'')-Ia",
+    "Element name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "AMINOGLYCOSIDE",
+    "Subclass": "GENTAMICIN/KANAMYCIN/TOBRAMYCIN",
+    "Method": "EXACTX",
+    "Target length": "177",
+    "Reference sequence length": "177",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "177",
+    "Closest reference accession": "WP_000381802.1",
+    "Closest reference name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "438495",
+    "stop": "439025",
+    "strand": "-",
+    "gene_symbol": "ant(2'')-Ia",
+    "sequence_name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "AMINOGLYCOSIDE",
+    "subclass": "GENTAMICIN/KANAMYCIN/TOBRAMYCIN",
+    "method": "EXACTX",
+    "target_length": "177",
+    "ref_length": "177",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "177",
+    "accession": "WP_000381802.1",
+    "closest_name": "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "438495",
+      "439025",
+      "-",
+      "ant(2'')-Ia",
+      "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+      "core",
+      "AMR",
+      "AMR",
+      "AMINOGLYCOSIDE",
+      "GENTAMICIN/KANAMYCIN/TOBRAMYCIN",
+      "EXACTX",
+      "177",
+      "177",
+      "100.00",
+      "100.00",
+      "177",
+      "WP_000381802.1",
+      "aminoglycoside nucleotidyltransferase ANT(2'')-Ia",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "960175",
+    "Stop": "962886",
+    "Strand": "+",
+    "Element symbol": "gyrA_S81L",
+    "Element name": "Acinetobacter baumannii quinolone resistant GyrA",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "POINT",
+    "Class": "QUINOLONE",
+    "Subclass": "QUINOLONE",
+    "Method": "POINTX",
+    "Target length": "904",
+    "Reference sequence length": "904",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "99.78",
+    "Alignment length": "904",
+    "Closest reference accession": "WP_000116450.1",
+    "Closest reference name": "DNA gyrase subunit A GyrA",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "960175",
+    "stop": "962886",
+    "strand": "+",
+    "gene_symbol": "gyrA_S81L",
+    "sequence_name": "Acinetobacter baumannii quinolone resistant GyrA",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "POINT",
+    "class": "QUINOLONE",
+    "subclass": "QUINOLONE",
+    "method": "POINTX",
+    "target_length": "904",
+    "ref_length": "904",
+    "coverage": "100.00",
+    "identity": "99.78",
+    "alignment_length": "904",
+    "accession": "WP_000116450.1",
+    "closest_name": "DNA gyrase subunit A GyrA",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "960175",
+      "962886",
+      "+",
+      "gyrA_S81L",
+      "Acinetobacter baumannii quinolone resistant GyrA",
+      "core",
+      "AMR",
+      "POINT",
+      "QUINOLONE",
+      "QUINOLONE",
+      "POINTX",
+      "904",
+      "904",
+      "100.00",
+      "99.78",
+      "904",
+      "WP_000116450.1",
+      "DNA gyrase subunit A GyrA",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "985648",
+    "Stop": "986838",
+    "Strand": "+",
+    "Element symbol": "cxpE",
+    "Element name": "chloramphenicol efflux transporter CxpE",
+    "Scope": "plus",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "PHENICOL",
+    "Subclass": "CHLORAMPHENICOL",
+    "Method": "EXACTX",
+    "Target length": "397",
+    "Reference sequence length": "397",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "397",
+    "Closest reference accession": "AKA30736.1",
+    "Closest reference name": "chloramphenicol efflux transporter CxpE",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "985648",
+    "stop": "986838",
+    "strand": "+",
+    "gene_symbol": "cxpE",
+    "sequence_name": "chloramphenicol efflux transporter CxpE",
+    "scope": "plus",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "PHENICOL",
+    "subclass": "CHLORAMPHENICOL",
+    "method": "EXACTX",
+    "target_length": "397",
+    "ref_length": "397",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "397",
+    "accession": "AKA30736.1",
+    "closest_name": "chloramphenicol efflux transporter CxpE",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "985648",
+      "986838",
+      "+",
+      "cxpE",
+      "chloramphenicol efflux transporter CxpE",
+      "plus",
+      "AMR",
+      "AMR",
+      "PHENICOL",
+      "CHLORAMPHENICOL",
+      "EXACTX",
+      "397",
+      "397",
+      "100.00",
+      "100.00",
+      "397",
+      "AKA30736.1",
+      "chloramphenicol efflux transporter CxpE",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "1274720",
+    "Stop": "1275868",
+    "Strand": "-",
+    "Element symbol": "blaADC-30",
+    "Element name": "extended-spectrum class C beta-lactamase ADC-30",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "BETA-LACTAM",
+    "Subclass": "CEPHALOSPORIN",
+    "Method": "ALLELEX",
+    "Target length": "383",
+    "Reference sequence length": "383",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "383",
+    "Closest reference accession": "WP_001211218.1",
+    "Closest reference name": "extended-spectrum class C beta-lactamase ADC-30",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "1274720",
+    "stop": "1275868",
+    "strand": "-",
+    "gene_symbol": "blaADC-30",
+    "sequence_name": "extended-spectrum class C beta-lactamase ADC-30",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "BETA-LACTAM",
+    "subclass": "CEPHALOSPORIN",
+    "method": "ALLELEX",
+    "target_length": "383",
+    "ref_length": "383",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "383",
+    "accession": "WP_001211218.1",
+    "closest_name": "extended-spectrum class C beta-lactamase ADC-30",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "1274720",
+      "1275868",
+      "-",
+      "blaADC-30",
+      "extended-spectrum class C beta-lactamase ADC-30",
+      "core",
+      "AMR",
+      "AMR",
+      "BETA-LACTAM",
+      "CEPHALOSPORIN",
+      "ALLELEX",
+      "383",
+      "383",
+      "100.00",
+      "100.00",
+      "383",
+      "WP_001211218.1",
+      "extended-spectrum class C beta-lactamase ADC-30",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "1616312",
+    "Stop": "1617787",
+    "Strand": "+",
+    "Element symbol": "amvA",
+    "Element name": "multidrug efflux MFS transporter AmvA",
+    "Scope": "plus",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "EFFLUX",
+    "Subclass": "EFFLUX",
+    "Method": "BLASTX",
+    "Target length": "492",
+    "Reference sequence length": "492",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "98.98",
+    "Alignment length": "492",
+    "Closest reference accession": "ACQ82816.1",
+    "Closest reference name": "multidrug efflux MFS transporter AmvA",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "1616312",
+    "stop": "1617787",
+    "strand": "+",
+    "gene_symbol": "amvA",
+    "sequence_name": "multidrug efflux MFS transporter AmvA",
+    "scope": "plus",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "EFFLUX",
+    "subclass": "EFFLUX",
+    "method": "BLASTX",
+    "target_length": "492",
+    "ref_length": "492",
+    "coverage": "100.00",
+    "identity": "98.98",
+    "alignment_length": "492",
+    "accession": "ACQ82816.1",
+    "closest_name": "multidrug efflux MFS transporter AmvA",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "1616312",
+      "1617787",
+      "+",
+      "amvA",
+      "multidrug efflux MFS transporter AmvA",
+      "plus",
+      "AMR",
+      "AMR",
+      "EFFLUX",
+      "EFFLUX",
+      "BLASTX",
+      "492",
+      "492",
+      "100.00",
+      "98.98",
+      "492",
+      "ACQ82816.1",
+      "multidrug efflux MFS transporter AmvA",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2045592",
+    "Stop": "2046986",
+    "Strand": "+",
+    "Element symbol": "adeC",
+    "Element name": "multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC",
+    "Scope": "plus",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "EFFLUX",
+    "Subclass": "EFFLUX",
+    "Method": "EXACTX",
+    "Target length": "465",
+    "Reference sequence length": "465",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "465",
+    "Closest reference accession": "AAL14441.1",
+    "Closest reference name": "multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2045592",
+    "stop": "2046986",
+    "strand": "+",
+    "gene_symbol": "adeC",
+    "sequence_name": "multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC",
+    "scope": "plus",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "EFFLUX",
+    "subclass": "EFFLUX",
+    "method": "EXACTX",
+    "target_length": "465",
+    "ref_length": "465",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "465",
+    "accession": "AAL14441.1",
+    "closest_name": "multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2045592",
+      "2046986",
+      "+",
+      "adeC",
+      "multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC",
+      "plus",
+      "AMR",
+      "AMR",
+      "EFFLUX",
+      "EFFLUX",
+      "EXACTX",
+      "465",
+      "465",
+      "100.00",
+      "100.00",
+      "465",
+      "AAL14441.1",
+      "multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2326402",
+    "Stop": "2327223",
+    "Strand": "+",
+    "Element symbol": "blaOXA-66",
+    "Element name": "OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "BETA-LACTAM",
+    "Subclass": "CARBAPENEM",
+    "Method": "ALLELEX",
+    "Target length": "274",
+    "Reference sequence length": "274",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "274",
+    "Closest reference accession": "WP_001021792.1",
+    "Closest reference name": "OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2326402",
+    "stop": "2327223",
+    "strand": "+",
+    "gene_symbol": "blaOXA-66",
+    "sequence_name": "OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "BETA-LACTAM",
+    "subclass": "CARBAPENEM",
+    "method": "ALLELEX",
+    "target_length": "274",
+    "ref_length": "274",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "274",
+    "accession": "WP_001021792.1",
+    "closest_name": "OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2326402",
+      "2327223",
+      "+",
+      "blaOXA-66",
+      "OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66",
+      "core",
+      "AMR",
+      "AMR",
+      "BETA-LACTAM",
+      "CARBAPENEM",
+      "ALLELEX",
+      "274",
+      "274",
+      "100.00",
+      "100.00",
+      "274",
+      "WP_001021792.1",
+      "OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2563721",
+    "Stop": "2565007",
+    "Strand": "+",
+    "Element symbol": "abaF",
+    "Element name": "fosfomycin efflux MFS transporter AbaF",
+    "Scope": "plus",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "FOSFOMYCIN",
+    "Subclass": "FOSFOMYCIN",
+    "Method": "EXACTX",
+    "Target length": "429",
+    "Reference sequence length": "429",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "429",
+    "Closest reference accession": "ABO11759.2",
+    "Closest reference name": "fosfomycin efflux MFS transporter AbaF",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2563721",
+    "stop": "2565007",
+    "strand": "+",
+    "gene_symbol": "abaF",
+    "sequence_name": "fosfomycin efflux MFS transporter AbaF",
+    "scope": "plus",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "FOSFOMYCIN",
+    "subclass": "FOSFOMYCIN",
+    "method": "EXACTX",
+    "target_length": "429",
+    "ref_length": "429",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "429",
+    "accession": "ABO11759.2",
+    "closest_name": "fosfomycin efflux MFS transporter AbaF",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2563721",
+      "2565007",
+      "+",
+      "abaF",
+      "fosfomycin efflux MFS transporter AbaF",
+      "plus",
+      "AMR",
+      "AMR",
+      "FOSFOMYCIN",
+      "FOSFOMYCIN",
+      "EXACTX",
+      "429",
+      "429",
+      "100.00",
+      "100.00",
+      "429",
+      "ABO11759.2",
+      "fosfomycin efflux MFS transporter AbaF",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2808784",
+    "Stop": "2809641",
+    "Strand": "-",
+    "Element symbol": "blaTEM-1",
+    "Element name": "broad-spectrum class A beta-lactamase TEM-1",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "BETA-LACTAM",
+    "Subclass": "BETA-LACTAM",
+    "Method": "ALLELEX",
+    "Target length": "286",
+    "Reference sequence length": "286",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "286",
+    "Closest reference accession": "WP_000027057.1",
+    "Closest reference name": "broad-spectrum class A beta-lactamase TEM-1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2808784",
+    "stop": "2809641",
+    "strand": "-",
+    "gene_symbol": "blaTEM-1",
+    "sequence_name": "broad-spectrum class A beta-lactamase TEM-1",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "BETA-LACTAM",
+    "subclass": "BETA-LACTAM",
+    "method": "ALLELEX",
+    "target_length": "286",
+    "ref_length": "286",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "286",
+    "accession": "WP_000027057.1",
+    "closest_name": "broad-spectrum class A beta-lactamase TEM-1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2808784",
+      "2809641",
+      "-",
+      "blaTEM-1",
+      "broad-spectrum class A beta-lactamase TEM-1",
+      "core",
+      "AMR",
+      "AMR",
+      "BETA-LACTAM",
+      "BETA-LACTAM",
+      "ALLELEX",
+      "286",
+      "286",
+      "100.00",
+      "100.00",
+      "286",
+      "WP_000027057.1",
+      "broad-spectrum class A beta-lactamase TEM-1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2812354",
+    "Stop": "2812902",
+    "Strand": "-",
+    "Element symbol": "aacA16",
+    "Element name": "AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "AMINOGLYCOSIDE",
+    "Subclass": "AMINOGLYCOSIDE",
+    "Method": "ALLELEX",
+    "Target length": "183",
+    "Reference sequence length": "183",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "183",
+    "Closest reference accession": "WP_001109644.1",
+    "Closest reference name": "AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2812354",
+    "stop": "2812902",
+    "strand": "-",
+    "gene_symbol": "aacA16",
+    "sequence_name": "AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "AMINOGLYCOSIDE",
+    "subclass": "AMINOGLYCOSIDE",
+    "method": "ALLELEX",
+    "target_length": "183",
+    "ref_length": "183",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "183",
+    "accession": "WP_001109644.1",
+    "closest_name": "AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2812354",
+      "2812902",
+      "-",
+      "aacA16",
+      "AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16",
+      "core",
+      "AMR",
+      "AMR",
+      "AMINOGLYCOSIDE",
+      "AMINOGLYCOSIDE",
+      "ALLELEX",
+      "183",
+      "183",
+      "100.00",
+      "100.00",
+      "183",
+      "WP_001109644.1",
+      "AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2814697",
+    "Stop": "2815143",
+    "Strand": "+",
+    "Element symbol": "aadA1",
+    "Element name": "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "AMINOGLYCOSIDE",
+    "Subclass": "STREPTOMYCIN",
+    "Method": "PARTIALX",
+    "Target length": "149",
+    "Reference sequence length": "263",
+    "% Coverage of reference": "56.65",
+    "% Identity to reference": "98.66",
+    "Alignment length": "149",
+    "Closest reference accession": "WP_001206316.1",
+    "Closest reference name": "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2814697",
+    "stop": "2815143",
+    "strand": "+",
+    "gene_symbol": "aadA1",
+    "sequence_name": "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "AMINOGLYCOSIDE",
+    "subclass": "STREPTOMYCIN",
+    "method": "PARTIALX",
+    "target_length": "149",
+    "ref_length": "263",
+    "coverage": "56.65",
+    "identity": "98.66",
+    "alignment_length": "149",
+    "accession": "WP_001206316.1",
+    "closest_name": "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2814697",
+      "2815143",
+      "+",
+      "aadA1",
+      "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
+      "core",
+      "AMR",
+      "AMR",
+      "AMINOGLYCOSIDE",
+      "STREPTOMYCIN",
+      "PARTIALX",
+      "149",
+      "263",
+      "56.65",
+      "98.66",
+      "149",
+      "WP_001206316.1",
+      "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2815310",
+    "Stop": "2815654",
+    "Strand": "+",
+    "Element symbol": "qacEdelta1",
+    "Element name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "Scope": "core",
+    "Type": "STRESS",
+    "Subtype": "BIOCIDE",
+    "Class": "QUATERNARY AMMONIUM",
+    "Subclass": "QUATERNARY AMMONIUM",
+    "Method": "ALLELEX",
+    "Target length": "115",
+    "Reference sequence length": "115",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "115",
+    "Closest reference accession": "WP_000679427.1",
+    "Closest reference name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2815310",
+    "stop": "2815654",
+    "strand": "+",
+    "gene_symbol": "qacEdelta1",
+    "sequence_name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "scope": "core",
+    "element_type": "STRESS",
+    "element_subtype": "BIOCIDE",
+    "class": "QUATERNARY AMMONIUM",
+    "subclass": "QUATERNARY AMMONIUM",
+    "method": "ALLELEX",
+    "target_length": "115",
+    "ref_length": "115",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "115",
+    "accession": "WP_000679427.1",
+    "closest_name": "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2815310",
+      "2815654",
+      "+",
+      "qacEdelta1",
+      "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+      "core",
+      "STRESS",
+      "BIOCIDE",
+      "QUATERNARY AMMONIUM",
+      "QUATERNARY AMMONIUM",
+      "ALLELEX",
+      "115",
+      "115",
+      "100.00",
+      "100.00",
+      "115",
+      "WP_000679427.1",
+      "quaternary ammonium compound efflux SMR transporter QacE delta 1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2815651",
+    "Stop": "2816487",
+    "Strand": "+",
+    "Element symbol": "sul1",
+    "Element name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "SULFONAMIDE",
+    "Subclass": "SULFONAMIDE",
+    "Method": "EXACTX",
+    "Target length": "279",
+    "Reference sequence length": "279",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "279",
+    "Closest reference accession": "WP_000259031.1",
+    "Closest reference name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2815651",
+    "stop": "2816487",
+    "strand": "+",
+    "gene_symbol": "sul1",
+    "sequence_name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "SULFONAMIDE",
+    "subclass": "SULFONAMIDE",
+    "method": "EXACTX",
+    "target_length": "279",
+    "ref_length": "279",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "279",
+    "accession": "WP_000259031.1",
+    "closest_name": "sulfonamide-resistant dihydropteroate synthase Sul1",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2815651",
+      "2816487",
+      "+",
+      "sul1",
+      "sulfonamide-resistant dihydropteroate synthase Sul1",
+      "core",
+      "AMR",
+      "AMR",
+      "SULFONAMIDE",
+      "SULFONAMIDE",
+      "EXACTX",
+      "279",
+      "279",
+      "100.00",
+      "100.00",
+      "279",
+      "WP_000259031.1",
+      "sulfonamide-resistant dihydropteroate synthase Sul1",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2819251",
+    "Stop": "2819676",
+    "Strand": "-",
+    "Element symbol": "merR",
+    "Element name": "mercury resistance transcriptional regulator MerR",
+    "Scope": "plus",
+    "Type": "STRESS",
+    "Subtype": "METAL",
+    "Class": "MERCURY",
+    "Subclass": "MERCURY",
+    "Method": "BLASTX",
+    "Target length": "142",
+    "Reference sequence length": "144",
+    "% Coverage of reference": "98.61",
+    "% Identity to reference": "93.66",
+    "Alignment length": "142",
+    "Closest reference accession": "CAA77320.1",
+    "Closest reference name": "mercury resistance transcriptional regulator MerR",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2819251",
+    "stop": "2819676",
+    "strand": "-",
+    "gene_symbol": "merR",
+    "sequence_name": "mercury resistance transcriptional regulator MerR",
+    "scope": "plus",
+    "element_type": "STRESS",
+    "element_subtype": "METAL",
+    "class": "MERCURY",
+    "subclass": "MERCURY",
+    "method": "BLASTX",
+    "target_length": "142",
+    "ref_length": "144",
+    "coverage": "98.61",
+    "identity": "93.66",
+    "alignment_length": "142",
+    "accession": "CAA77320.1",
+    "closest_name": "mercury resistance transcriptional regulator MerR",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2819251",
+      "2819676",
+      "-",
+      "merR",
+      "mercury resistance transcriptional regulator MerR",
+      "plus",
+      "STRESS",
+      "METAL",
+      "MERCURY",
+      "MERCURY",
+      "BLASTX",
+      "142",
+      "144",
+      "98.61",
+      "93.66",
+      "142",
+      "CAA77320.1",
+      "mercury resistance transcriptional regulator MerR",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2819748",
+    "Stop": "2820095",
+    "Strand": "+",
+    "Element symbol": "merT",
+    "Element name": "mercuric transport protein MerT",
+    "Scope": "plus",
+    "Type": "STRESS",
+    "Subtype": "METAL",
+    "Class": "MERCURY",
+    "Subclass": "MERCURY",
+    "Method": "BLASTX",
+    "Target length": "116",
+    "Reference sequence length": "116",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "96.55",
+    "Alignment length": "116",
+    "Closest reference accession": "AAA98222.1",
+    "Closest reference name": "mercuric transport protein MerT",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2819748",
+    "stop": "2820095",
+    "strand": "+",
+    "gene_symbol": "merT",
+    "sequence_name": "mercuric transport protein MerT",
+    "scope": "plus",
+    "element_type": "STRESS",
+    "element_subtype": "METAL",
+    "class": "MERCURY",
+    "subclass": "MERCURY",
+    "method": "BLASTX",
+    "target_length": "116",
+    "ref_length": "116",
+    "coverage": "100.00",
+    "identity": "96.55",
+    "alignment_length": "116",
+    "accession": "AAA98222.1",
+    "closest_name": "mercuric transport protein MerT",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2819748",
+      "2820095",
+      "+",
+      "merT",
+      "mercuric transport protein MerT",
+      "plus",
+      "STRESS",
+      "METAL",
+      "MERCURY",
+      "MERCURY",
+      "BLASTX",
+      "116",
+      "116",
+      "100.00",
+      "96.55",
+      "116",
+      "AAA98222.1",
+      "mercuric transport protein MerT",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2820114",
+    "Stop": "2820392",
+    "Strand": "+",
+    "Element symbol": "merP",
+    "Element name": "mercury resistance system periplasmic binding protein MerP",
+    "Scope": "plus",
+    "Type": "STRESS",
+    "Subtype": "METAL",
+    "Class": "MERCURY",
+    "Subclass": "MERCURY",
+    "Method": "BLASTX",
+    "Target length": "93",
+    "Reference sequence length": "91",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "93.55",
+    "Alignment length": "93",
+    "Closest reference accession": "AAC38219.1",
+    "Closest reference name": "mercury resistance system periplasmic binding protein MerP",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2820114",
+    "stop": "2820392",
+    "strand": "+",
+    "gene_symbol": "merP",
+    "sequence_name": "mercury resistance system periplasmic binding protein MerP",
+    "scope": "plus",
+    "element_type": "STRESS",
+    "element_subtype": "METAL",
+    "class": "MERCURY",
+    "subclass": "MERCURY",
+    "method": "BLASTX",
+    "target_length": "93",
+    "ref_length": "91",
+    "coverage": "100.00",
+    "identity": "93.55",
+    "alignment_length": "93",
+    "accession": "AAC38219.1",
+    "closest_name": "mercury resistance system periplasmic binding protein MerP",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2820114",
+      "2820392",
+      "+",
+      "merP",
+      "mercury resistance system periplasmic binding protein MerP",
+      "plus",
+      "STRESS",
+      "METAL",
+      "MERCURY",
+      "MERCURY",
+      "BLASTX",
+      "93",
+      "91",
+      "100.00",
+      "93.55",
+      "93",
+      "AAC38219.1",
+      "mercury resistance system periplasmic binding protein MerP",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "2822569",
+    "Stop": "2822844",
+    "Strand": "+",
+    "Element symbol": "merD",
+    "Element name": "mercury resistance co-regulator MerD",
+    "Scope": "plus",
+    "Type": "STRESS",
+    "Subtype": "METAL",
+    "Class": "MERCURY",
+    "Subclass": "MERCURY",
+    "Method": "PARTIALX",
+    "Target length": "92",
+    "Reference sequence length": "121",
+    "% Coverage of reference": "76.03",
+    "% Identity to reference": "91.30",
+    "Alignment length": "92",
+    "Closest reference accession": "AAC38221.1",
+    "Closest reference name": "mercury resistance co-regulator MerD",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "2822569",
+    "stop": "2822844",
+    "strand": "+",
+    "gene_symbol": "merD",
+    "sequence_name": "mercury resistance co-regulator MerD",
+    "scope": "plus",
+    "element_type": "STRESS",
+    "element_subtype": "METAL",
+    "class": "MERCURY",
+    "subclass": "MERCURY",
+    "method": "PARTIALX",
+    "target_length": "92",
+    "ref_length": "121",
+    "coverage": "76.03",
+    "identity": "91.30",
+    "alignment_length": "92",
+    "accession": "AAC38221.1",
+    "closest_name": "mercury resistance co-regulator MerD",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "2822569",
+      "2822844",
+      "+",
+      "merD",
+      "mercury resistance co-regulator MerD",
+      "plus",
+      "STRESS",
+      "METAL",
+      "MERCURY",
+      "MERCURY",
+      "PARTIALX",
+      "92",
+      "121",
+      "76.03",
+      "91.30",
+      "92",
+      "AAC38221.1",
+      "mercury resistance co-regulator MerD",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "3370038",
+    "Stop": "3371285",
+    "Strand": "+",
+    "Element symbol": "nreB",
+    "Element name": "nickel resistance MFS transporter NreB",
+    "Scope": "plus",
+    "Type": "STRESS",
+    "Subtype": "METAL",
+    "Class": "NICKEL",
+    "Subclass": "NICKEL",
+    "Method": "BLASTX",
+    "Target length": "416",
+    "Reference sequence length": "416",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "98.32",
+    "Alignment length": "416",
+    "Closest reference accession": "ADY84088.1",
+    "Closest reference name": "nickel resistance MFS transporter NreB",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "3370038",
+    "stop": "3371285",
+    "strand": "+",
+    "gene_symbol": "nreB",
+    "sequence_name": "nickel resistance MFS transporter NreB",
+    "scope": "plus",
+    "element_type": "STRESS",
+    "element_subtype": "METAL",
+    "class": "NICKEL",
+    "subclass": "NICKEL",
+    "method": "BLASTX",
+    "target_length": "416",
+    "ref_length": "416",
+    "coverage": "100.00",
+    "identity": "98.32",
+    "alignment_length": "416",
+    "accession": "ADY84088.1",
+    "closest_name": "nickel resistance MFS transporter NreB",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "3370038",
+      "3371285",
+      "+",
+      "nreB",
+      "nickel resistance MFS transporter NreB",
+      "plus",
+      "STRESS",
+      "METAL",
+      "NICKEL",
+      "NICKEL",
+      "BLASTX",
+      "416",
+      "416",
+      "100.00",
+      "98.32",
+      "416",
+      "ADY84088.1",
+      "nickel resistance MFS transporter NreB",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "3767598",
+    "Stop": "3768398",
+    "Strand": "+",
+    "Element symbol": "aph(3'')-Ib",
+    "Element name": "aminoglycoside O-phosphotransferase APH(3'')-Ib",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "AMINOGLYCOSIDE",
+    "Subclass": "STREPTOMYCIN",
+    "Method": "EXACTX",
+    "Target length": "267",
+    "Reference sequence length": "267",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "267",
+    "Closest reference accession": "WP_001082319.1",
+    "Closest reference name": "aminoglycoside O-phosphotransferase APH(3'')-Ib",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "3767598",
+    "stop": "3768398",
+    "strand": "+",
+    "gene_symbol": "aph(3'')-Ib",
+    "sequence_name": "aminoglycoside O-phosphotransferase APH(3'')-Ib",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "AMINOGLYCOSIDE",
+    "subclass": "STREPTOMYCIN",
+    "method": "EXACTX",
+    "target_length": "267",
+    "ref_length": "267",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "267",
+    "accession": "WP_001082319.1",
+    "closest_name": "aminoglycoside O-phosphotransferase APH(3'')-Ib",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "3767598",
+      "3768398",
+      "+",
+      "aph(3'')-Ib",
+      "aminoglycoside O-phosphotransferase APH(3'')-Ib",
+      "core",
+      "AMR",
+      "AMR",
+      "AMINOGLYCOSIDE",
+      "STREPTOMYCIN",
+      "EXACTX",
+      "267",
+      "267",
+      "100.00",
+      "100.00",
+      "267",
+      "WP_001082319.1",
+      "aminoglycoside O-phosphotransferase APH(3'')-Ib",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "3768401",
+    "Stop": "3769234",
+    "Strand": "+",
+    "Element symbol": "aph(6)-Id",
+    "Element name": "aminoglycoside O-phosphotransferase APH(6)-Id",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "AMINOGLYCOSIDE",
+    "Subclass": "STREPTOMYCIN",
+    "Method": "EXACTX",
+    "Target length": "278",
+    "Reference sequence length": "278",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "278",
+    "Closest reference accession": "WP_000480968.1",
+    "Closest reference name": "aminoglycoside O-phosphotransferase APH(6)-Id",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "3768401",
+    "stop": "3769234",
+    "strand": "+",
+    "gene_symbol": "aph(6)-Id",
+    "sequence_name": "aminoglycoside O-phosphotransferase APH(6)-Id",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "AMINOGLYCOSIDE",
+    "subclass": "STREPTOMYCIN",
+    "method": "EXACTX",
+    "target_length": "278",
+    "ref_length": "278",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "278",
+    "accession": "WP_000480968.1",
+    "closest_name": "aminoglycoside O-phosphotransferase APH(6)-Id",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "3768401",
+      "3769234",
+      "+",
+      "aph(6)-Id",
+      "aminoglycoside O-phosphotransferase APH(6)-Id",
+      "core",
+      "AMR",
+      "AMR",
+      "AMINOGLYCOSIDE",
+      "STREPTOMYCIN",
+      "EXACTX",
+      "278",
+      "278",
+      "100.00",
+      "100.00",
+      "278",
+      "WP_000480968.1",
+      "aminoglycoside O-phosphotransferase APH(6)-Id",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "3772610",
+    "Stop": "3773809",
+    "Strand": "+",
+    "Element symbol": "tet(B)",
+    "Element name": "tetracycline efflux MFS transporter Tet(B)",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "TETRACYCLINE",
+    "Subclass": "TETRACYCLINE",
+    "Method": "BLASTX",
+    "Target length": "400",
+    "Reference sequence length": "401",
+    "% Coverage of reference": "99.75",
+    "% Identity to reference": "100.00",
+    "Alignment length": "400",
+    "Closest reference accession": "WP_001089072.1",
+    "Closest reference name": "tetracycline efflux MFS transporter Tet(B)",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "3772610",
+    "stop": "3773809",
+    "strand": "+",
+    "gene_symbol": "tet(B)",
+    "sequence_name": "tetracycline efflux MFS transporter Tet(B)",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "TETRACYCLINE",
+    "subclass": "TETRACYCLINE",
+    "method": "BLASTX",
+    "target_length": "400",
+    "ref_length": "401",
+    "coverage": "99.75",
+    "identity": "100.00",
+    "alignment_length": "400",
+    "accession": "WP_001089072.1",
+    "closest_name": "tetracycline efflux MFS transporter Tet(B)",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "3772610",
+      "3773809",
+      "+",
+      "tet(B)",
+      "tetracycline efflux MFS transporter Tet(B)",
+      "core",
+      "AMR",
+      "AMR",
+      "TETRACYCLINE",
+      "TETRACYCLINE",
+      "BLASTX",
+      "400",
+      "401",
+      "99.75",
+      "100.00",
+      "400",
+      "WP_001089072.1",
+      "tetracycline efflux MFS transporter Tet(B)",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "3786436",
+    "Stop": "3787248",
+    "Strand": "-",
+    "Element symbol": "sul2",
+    "Element name": "sulfonamide-resistant dihydropteroate synthase Sul2",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "SULFONAMIDE",
+    "Subclass": "SULFONAMIDE",
+    "Method": "EXACTX",
+    "Target length": "271",
+    "Reference sequence length": "271",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "100.00",
+    "Alignment length": "271",
+    "Closest reference accession": "WP_001043260.1",
+    "Closest reference name": "sulfonamide-resistant dihydropteroate synthase Sul2",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "3786436",
+    "stop": "3787248",
+    "strand": "-",
+    "gene_symbol": "sul2",
+    "sequence_name": "sulfonamide-resistant dihydropteroate synthase Sul2",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "SULFONAMIDE",
+    "subclass": "SULFONAMIDE",
+    "method": "EXACTX",
+    "target_length": "271",
+    "ref_length": "271",
+    "coverage": "100.00",
+    "identity": "100.00",
+    "alignment_length": "271",
+    "accession": "WP_001043260.1",
+    "closest_name": "sulfonamide-resistant dihydropteroate synthase Sul2",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "3786436",
+      "3787248",
+      "-",
+      "sul2",
+      "sulfonamide-resistant dihydropteroate synthase Sul2",
+      "core",
+      "AMR",
+      "AMR",
+      "SULFONAMIDE",
+      "SULFONAMIDE",
+      "EXACTX",
+      "271",
+      "271",
+      "100.00",
+      "100.00",
+      "271",
+      "WP_001043260.1",
+      "sulfonamide-resistant dihydropteroate synthase Sul2",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "3802277",
+    "Stop": "3804493",
+    "Strand": "-",
+    "Element symbol": "parC_S84L",
+    "Element name": "Acinetobacter baumannii quinolone resistant ParC",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "POINT",
+    "Class": "QUINOLONE",
+    "Subclass": "QUINOLONE",
+    "Method": "POINTX",
+    "Target length": "739",
+    "Reference sequence length": "739",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "99.86",
+    "Alignment length": "739",
+    "Closest reference accession": "WP_000202259.1",
+    "Closest reference name": "DNA topoisomerase IV subunit A ParC",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "3802277",
+    "stop": "3804493",
+    "strand": "-",
+    "gene_symbol": "parC_S84L",
+    "sequence_name": "Acinetobacter baumannii quinolone resistant ParC",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "POINT",
+    "class": "QUINOLONE",
+    "subclass": "QUINOLONE",
+    "method": "POINTX",
+    "target_length": "739",
+    "ref_length": "739",
+    "coverage": "100.00",
+    "identity": "99.86",
+    "alignment_length": "739",
+    "accession": "WP_000202259.1",
+    "closest_name": "DNA topoisomerase IV subunit A ParC",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "3802277",
+      "3804493",
+      "-",
+      "parC_S84L",
+      "Acinetobacter baumannii quinolone resistant ParC",
+      "core",
+      "AMR",
+      "POINT",
+      "QUINOLONE",
+      "QUINOLONE",
+      "POINTX",
+      "739",
+      "739",
+      "100.00",
+      "99.86",
+      "739",
+      "WP_000202259.1",
+      "DNA topoisomerase IV subunit A ParC",
+      "NA",
+      "NA"
+    ]
+  },
+  {
+    "Protein id": "NA",
+    "Contig id": "CP061525.1",
+    "Start": "3864483",
+    "Stop": "3865268",
+    "Strand": "-",
+    "Element symbol": "ant(3'')-IIa",
+    "Element name": "aminoglycoside nucleotidyltransferase ANT(3'')-IIa",
+    "Scope": "core",
+    "Type": "AMR",
+    "Subtype": "AMR",
+    "Class": "AMINOGLYCOSIDE",
+    "Subclass": "SPECTINOMYCIN/STREPTOMYCIN",
+    "Method": "BLASTX",
+    "Target length": "262",
+    "Reference sequence length": "262",
+    "% Coverage of reference": "100.00",
+    "% Identity to reference": "98.85",
+    "Alignment length": "262",
+    "Closest reference accession": "WP_001279062.1",
+    "Closest reference name": "aminoglycoside nucleotidyltransferase ANT(3'')-IIa",
+    "HMM accession": "NA",
+    "HMM description": "NA",
+    "protein_id": "NA",
+    "contig_id": "CP061525.1",
+    "start": "3864483",
+    "stop": "3865268",
+    "strand": "-",
+    "gene_symbol": "ant(3'')-IIa",
+    "sequence_name": "aminoglycoside nucleotidyltransferase ANT(3'')-IIa",
+    "scope": "core",
+    "element_type": "AMR",
+    "element_subtype": "AMR",
+    "class": "AMINOGLYCOSIDE",
+    "subclass": "SPECTINOMYCIN/STREPTOMYCIN",
+    "method": "BLASTX",
+    "target_length": "262",
+    "ref_length": "262",
+    "coverage": "100.00",
+    "identity": "98.85",
+    "alignment_length": "262",
+    "accession": "WP_001279062.1",
+    "closest_name": "aminoglycoside nucleotidyltransferase ANT(3'')-IIa",
+    "hmm_id": "NA",
+    "hmm_description": "NA",
+    "_original_headers": [
+      "Protein id",
+      "Contig id",
+      "Start",
+      "Stop",
+      "Strand",
+      "Element symbol",
+      "Element name",
+      "Scope",
+      "Type",
+      "Subtype",
+      "Class",
+      "Subclass",
+      "Method",
+      "Target length",
+      "Reference sequence length",
+      "% Coverage of reference",
+      "% Identity to reference",
+      "Alignment length",
+      "Closest reference accession",
+      "Closest reference name",
+      "HMM accession",
+      "HMM description"
+    ],
+    "_original_values": [
+      "NA",
+      "CP061525.1",
+      "3864483",
+      "3865268",
+      "-",
+      "ant(3'')-IIa",
+      "aminoglycoside nucleotidyltransferase ANT(3'')-IIa",
+      "core",
+      "AMR",
+      "AMR",
+      "AMINOGLYCOSIDE",
+      "SPECTINOMYCIN/STREPTOMYCIN",
+      "BLASTX",
+      "262",
+      "262",
+      "100.00",
+      "98.85",
+      "262",
+      "WP_001279062.1",
+      "aminoglycoside nucleotidyltransferase ANT(3'')-IIa",
+      "NA",
+      "NA"
+    ]
+  }
+]
+            };
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope AMRfinderPlus Analysis Report</h1>
+                <p style="color: #666; font-size: 1.2em;">Comprehensive A. baumannii Antimicrobial Resistance Analysis</p>
+                
+                <div class="quick-search-bar no-print">
+                    <input type="text" id="quick-search" placeholder="🔍 Quick search across entire report...">
+                    <button onclick="quickSearch()">Search</button>
+                    <button onclick="clearSearch()" style="background: #6c757d;">Clear</button>
+                </div>
+                
+                <div class="export-buttons no-print" style="margin-top: 15px;">
+                    <button onclick="exportToJSON('reportData', 'GCA_014705825.1_amr_report.json')">📥 Export JSON</button>
+                    <button onclick="printReport()" class="print">🖨️ Print Report</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+
+        <div class="card" style="border-left: 4px solid #dc3545; background: #f8d7da;">
+            <h2 style="color: #dc3545;">🚨 CRITICAL RISK AMR GENES DETECTED</h2>
+            <p><strong>1 CRITICAL RISK antimicrobial resistance genes found:</strong></p>
+            <div style="margin: 10px 0;">
+                <p style="color: #721c24; font-weight: bold;">
+                    ⚠️ These genes confer resistance to last-resort antibiotics and represent 
+                    a serious public health concern requiring immediate attention.
+                </p>
+<span class="critical-risk-badge" style="font-size: 1.1em;">🚨 blaOXA-66</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 A. baumannii AMR Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total AMR Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">33</p>
+                </div>
+                <div class="stat-card">
+                    <h3>High Risk Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">9</p>
+                </div>
+                <div class="critical-stat-card">
+                    <h3>Critical Risk</h3>
+                    <p style="font-size: 2em; margin: 0;">1</p>
+                </div>
+            </div>
+            <p><strong>Genome:</strong> GCA_014705825.1</p>
+            <p><strong>Date:</strong> 2026-01-09 14:32:58</p>
+            <p><strong>Tool Version:</strong> 1.0.0</p>
+            <p><strong>AMRfinderPlus Version:</strong> 4.2.5</p>
+            <p><strong>Database Version:</strong> 2025-12-03.1</p>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔬 Resistance Mechanism Breakdown</h2>
+
+            <div style="margin: 10px 0; padding: 10px; background: #f8d7da; border-radius: 5px;">
+                <strong>Carbapenemase Genes (CRITICAL):</strong> blaOXA-66
+            </div>
+
+            <div style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                <strong>ESBL Genes:</strong> blaTEM-1
+            </div>
+
+            <div style="margin: 10px 0; padding: 10px; background: #d1ecf1; border-radius: 5px;">
+                <strong>Aminoglycoside Resistance:</strong> aadA1, aph(6)-Id
+            </div>
+
+            <div style="margin: 10px 0; padding: 10px; background: #e2e3e5; border-radius: 5px;">
+                <strong>Efflux Pumps:</strong> adeC
+            </div>
+
+            <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                <strong>Other AMR Genes:</strong> mph(E), msr(E), sul1, qacEdelta1, catB3, ant(2'')-Ia, dfrA19, sul1, qacEdelta1, ant(2'')-Ia, gyrA_S81L, cxpE, blaADC-30, amvA, abaF, aacA16, qacEdelta1, sul1, merR, merT, merP, merD, nreB, aph(3'')-Ib, tet(B), sul2, parC_S84L, ant(3'')-IIa
+            </div>
+
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧪 Resistance Classes Detected</h2>
+            <table class="class-table" id="resistance-classes-table">
+                <thead>
+                    <tr>
+                        <th>Resistance Class</th>
+                        <th>Gene Count</th>
+                        <th>Genes</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td><strong>MACROLIDE</strong></td>
+                        <td>1</td>
+                        <td>mph(E)</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>MACROLIDE/STREPTOGRAMIN</strong></td>
+                        <td>1</td>
+                        <td>msr(E)</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>SULFONAMIDE</strong></td>
+                        <td>2</td>
+                        <td>sul1, sul2</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>QUATERNARY AMMONIUM</strong></td>
+                        <td>1</td>
+                        <td>qacEdelta1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>PHENICOL</strong></td>
+                        <td>2</td>
+                        <td>catB3, cxpE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>AMINOGLYCOSIDE</strong></td>
+                        <td>6</td>
+                        <td>ant(2'')-Ia, aacA16, aadA1, aph(3'')-Ib, aph(6)-Id, ant(3'')-IIa</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>TRIMETHOPRIM</strong></td>
+                        <td>1</td>
+                        <td>dfrA19</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>QUINOLONE</strong></td>
+                        <td>2</td>
+                        <td>gyrA_S81L, parC_S84L</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>BETA-LACTAM</strong></td>
+                        <td>3</td>
+                        <td>blaADC-30, blaOXA-66, blaTEM-1</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>EFFLUX</strong></td>
+                        <td>2</td>
+                        <td>amvA, adeC</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>FOSFOMYCIN</strong></td>
+                        <td>1</td>
+                        <td>abaF</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>MERCURY</strong></td>
+                        <td>4</td>
+                        <td>merR, merT, merP, merD</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>NICKEL</strong></td>
+                        <td>1</td>
+                        <td>nreB</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>TETRACYCLINE</strong></td>
+                        <td>1</td>
+                        <td>tet(B)</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔬 Detailed AMR Genes Detected</h2>
+            
+            <div class="interactive-controls no-print">
+                <div class="search-box">
+                    <input type="text" id="search-detailed-amr" 
+                           placeholder="Search genes, classes, or sequence names..." 
+                           onkeyup="searchTable('detailed-amr-table', this.value)">
+                </div>
+                <div class="export-buttons">
+                    <button onclick="exportToCSV('detailed-amr-table', 'GCA_014705825.1_amr_genes.csv')">📥 Export CSV</button>
+                </div>
+                <div class="result-counter" id="result-counter-detailed-amr-table">
+                    33 results found
+                </div>
+            </div>
+            
+            <table class="gene-table" id="detailed-amr-table">
+                <thead>
+                    <tr>
+                        <th>Gene Symbol</th>
+                        <th>Sequence Name</th>
+                        <th>Class</th>
+                        <th>Subclass</th>
+                        <th>Coverage</th>
+                        <th>Identity</th>
+                        <th>Scope</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="present">
+                        <td><strong>mph(E)</strong></td>
+                        <td class="sequence-name" title="Mph(E) family macrolide 2'-phosphotransferase">Mph(E) family macrolide 2'-phosphotransferase</td>
+                        <td>MACROLIDE</td>
+                        <td>ERYTHROMYCIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>msr(E)</strong></td>
+                        <td class="sequence-name" title="ABC-F type ribosomal protection protein Msr(E)">ABC-F type ribosomal protection protein Msr(E)</td>
+                        <td>MACROLIDE/STREPTOGRAMIN</td>
+                        <td>AZITHROMYCIN/ERYTHROMYCIN/STREPTOGRAMIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>sul1</strong></td>
+                        <td class="sequence-name" title="sulfonamide-resistant dihydropteroate synthase Sul1">sulfonamide-resistant dihydropteroate synthase Sul1</td>
+                        <td>SULFONAMIDE</td>
+                        <td>SULFONAMIDE</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>qacEdelta1</strong></td>
+                        <td class="sequence-name" title="quaternary ammonium compound efflux SMR transporter QacE delta 1">quaternary ammonium compound efflux SMR transporter QacE delta 1</td>
+                        <td>QUATERNARY AMMONIUM</td>
+                        <td>QUATERNARY AMMONIUM</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>catB3</strong></td>
+                        <td class="sequence-name" title="type B-3 chloramphenicol O-acetyltransferase CatB3">type B-3 chloramphenicol O-acetyltransferase CatB3</td>
+                        <td>PHENICOL</td>
+                        <td>CHLORAMPHENICOL</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ant(2'')-Ia</strong></td>
+                        <td class="sequence-name" title="aminoglycoside nucleotidyltransferase ANT(2'')-Ia">aminoglycoside nucleotidyltransferase ANT(2'')-Ia</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>GENTAMICIN/KANAMYCIN/TOBRAMYCIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>dfrA19</strong></td>
+                        <td class="sequence-name" title="trimethoprim-resistant dihydrofolate reductase DfrA19">trimethoprim-resistant dihydrofolate reductase DfrA19</td>
+                        <td>TRIMETHOPRIM</td>
+                        <td>TRIMETHOPRIM</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>sul1</strong></td>
+                        <td class="sequence-name" title="sulfonamide-resistant dihydropteroate synthase Sul1">sulfonamide-resistant dihydropteroate synthase Sul1</td>
+                        <td>SULFONAMIDE</td>
+                        <td>SULFONAMIDE</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>qacEdelta1</strong></td>
+                        <td class="sequence-name" title="quaternary ammonium compound efflux SMR transporter QacE delta 1">quaternary ammonium compound efflux SMR transporter QacE delta 1</td>
+                        <td>QUATERNARY AMMONIUM</td>
+                        <td>QUATERNARY AMMONIUM</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ant(2'')-Ia</strong></td>
+                        <td class="sequence-name" title="aminoglycoside nucleotidyltransferase ANT(2'')-Ia">aminoglycoside nucleotidyltransferase ANT(2'')-Ia</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>GENTAMICIN/KANAMYCIN/TOBRAMYCIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>gyrA_S81L</strong></td>
+                        <td class="sequence-name" title="Acinetobacter baumannii quinolone resistant GyrA">Acinetobacter baumannii quinolone resistant GyrA</td>
+                        <td>QUINOLONE</td>
+                        <td>QUINOLONE</td>
+                        <td>100.00%</td>
+                        <td>99.78%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>cxpE</strong></td>
+                        <td class="sequence-name" title="chloramphenicol efflux transporter CxpE">chloramphenicol efflux transporter CxpE</td>
+                        <td>PHENICOL</td>
+                        <td>CHLORAMPHENICOL</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>blaADC-30</strong></td>
+                        <td class="sequence-name" title="extended-spectrum class C beta-lactamase ADC-30">extended-spectrum class C beta-lactamase ADC-30</td>
+                        <td>BETA-LACTAM</td>
+                        <td>CEPHALOSPORIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>amvA</strong></td>
+                        <td class="sequence-name" title="multidrug efflux MFS transporter AmvA">multidrug efflux MFS transporter AmvA</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                        <td>100.00%</td>
+                        <td>98.98%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>adeC</strong></td>
+                        <td class="sequence-name" title="multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC">multidrug efflux RND transporter AdeABC outer membrane channel subunit AdeC</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="critical-row">
+                        <td><strong>blaOXA-66</strong></td>
+                        <td class="sequence-name" title="OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66">OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66</td>
+                        <td>BETA-LACTAM</td>
+                        <td>CARBAPENEM</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>abaF</strong></td>
+                        <td class="sequence-name" title="fosfomycin efflux MFS transporter AbaF">fosfomycin efflux MFS transporter AbaF</td>
+                        <td>FOSFOMYCIN</td>
+                        <td>FOSFOMYCIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>blaTEM-1</strong></td>
+                        <td class="sequence-name" title="broad-spectrum class A beta-lactamase TEM-1">broad-spectrum class A beta-lactamase TEM-1</td>
+                        <td>BETA-LACTAM</td>
+                        <td>BETA-LACTAM</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>aacA16</strong></td>
+                        <td class="sequence-name" title="AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16">AAC(6')-Ia family aminoglycoside 6'-N-acetyltransferase AacA16</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>aadA1</strong></td>
+                        <td class="sequence-name" title="ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1">ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>STREPTOMYCIN</td>
+                        <td>56.65%</td>
+                        <td>98.66%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>qacEdelta1</strong></td>
+                        <td class="sequence-name" title="quaternary ammonium compound efflux SMR transporter QacE delta 1">quaternary ammonium compound efflux SMR transporter QacE delta 1</td>
+                        <td>QUATERNARY AMMONIUM</td>
+                        <td>QUATERNARY AMMONIUM</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>sul1</strong></td>
+                        <td class="sequence-name" title="sulfonamide-resistant dihydropteroate synthase Sul1">sulfonamide-resistant dihydropteroate synthase Sul1</td>
+                        <td>SULFONAMIDE</td>
+                        <td>SULFONAMIDE</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>merR</strong></td>
+                        <td class="sequence-name" title="mercury resistance transcriptional regulator MerR">mercury resistance transcriptional regulator MerR</td>
+                        <td>MERCURY</td>
+                        <td>MERCURY</td>
+                        <td>98.61%</td>
+                        <td>93.66%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>merT</strong></td>
+                        <td class="sequence-name" title="mercuric transport protein MerT">mercuric transport protein MerT</td>
+                        <td>MERCURY</td>
+                        <td>MERCURY</td>
+                        <td>100.00%</td>
+                        <td>96.55%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>merP</strong></td>
+                        <td class="sequence-name" title="mercury resistance system periplasmic binding protein MerP">mercury resistance system periplasmic binding protein MerP</td>
+                        <td>MERCURY</td>
+                        <td>MERCURY</td>
+                        <td>100.00%</td>
+                        <td>93.55%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>merD</strong></td>
+                        <td class="sequence-name" title="mercury resistance co-regulator MerD">mercury resistance co-regulator MerD</td>
+                        <td>MERCURY</td>
+                        <td>MERCURY</td>
+                        <td>76.03%</td>
+                        <td>91.30%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>nreB</strong></td>
+                        <td class="sequence-name" title="nickel resistance MFS transporter NreB">nickel resistance MFS transporter NreB</td>
+                        <td>NICKEL</td>
+                        <td>NICKEL</td>
+                        <td>100.00%</td>
+                        <td>98.32%</td>
+                        <td>plus</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>aph(3'')-Ib</strong></td>
+                        <td class="sequence-name" title="aminoglycoside O-phosphotransferase APH(3'')-Ib">aminoglycoside O-phosphotransferase APH(3'')-Ib</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>STREPTOMYCIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>aph(6)-Id</strong></td>
+                        <td class="sequence-name" title="aminoglycoside O-phosphotransferase APH(6)-Id">aminoglycoside O-phosphotransferase APH(6)-Id</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>STREPTOMYCIN</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>tet(B)</strong></td>
+                        <td class="sequence-name" title="tetracycline efflux MFS transporter Tet(B)">tetracycline efflux MFS transporter Tet(B)</td>
+                        <td>TETRACYCLINE</td>
+                        <td>TETRACYCLINE</td>
+                        <td>99.75%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="high-risk-row">
+                        <td><strong>sul2</strong></td>
+                        <td class="sequence-name" title="sulfonamide-resistant dihydropteroate synthase Sul2">sulfonamide-resistant dihydropteroate synthase Sul2</td>
+                        <td>SULFONAMIDE</td>
+                        <td>SULFONAMIDE</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>parC_S84L</strong></td>
+                        <td class="sequence-name" title="Acinetobacter baumannii quinolone resistant ParC">Acinetobacter baumannii quinolone resistant ParC</td>
+                        <td>QUINOLONE</td>
+                        <td>QUINOLONE</td>
+                        <td>100.00%</td>
+                        <td>99.86%</td>
+                        <td>core</td>
+                    </tr>
+
+                    <tr class="present">
+                        <td><strong>ant(3'')-IIa</strong></td>
+                        <td class="sequence-name" title="aminoglycoside nucleotidyltransferase ANT(3'')-IIa">aminoglycoside nucleotidyltransferase ANT(3'')-IIa</td>
+                        <td>AMINOGLYCOSIDE</td>
+                        <td>SPECTINOMYCIN/STREPTOMYCIN</td>
+                        <td>100.00%</td>
+                        <td>98.85%</td>
+                        <td>core</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+                Analysis performed using AcinetoScope AMRfinderPlus v4.2.5
+                with bundled AMRfinderPlus 2025-12-03.1
+            </p>
+        </div>
+    </div>
+</body>
+</html>
