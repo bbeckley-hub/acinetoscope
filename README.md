@@ -333,4 +333,4 @@ AcinetoScope is released under the MIT License. See [LICENSE](LICENSE) for detai
 ---
 
 </div>
-*"Every microbe has its story. We provide the translation."*
+"Every microbe has its story. We provide the translation."
