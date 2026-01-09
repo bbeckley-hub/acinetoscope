@@ -1,1 +1,18 @@
 acinetoscope/modules/*/data/
+
+# Build and distribution directories
+build/
+dist/
+*.egg-info/
+acinetoscope.egg-info/
+
+# Database files (only exclude AMRfinder, keep MLST)
+acinetoscope/modules/amr_module/data/amrfinder_db/
+!acinetoscope/modules/mlst_module/data/  # Keep MLST data (it's small)
+
+# Large files
+*.LIB
+*.fasta
+*.fna
+*.fa
+*.gbk
