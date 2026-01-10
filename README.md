@@ -16,12 +16,13 @@
 
 # 🦠 AcinetoScope
 
-![Conda Version](https://img.shields.io/conda/v/bioconda/acinetoscope)
+![Conda Version](https://anaconda.org/bbeckley-hub/acinetoscope/badges/version.svg)
 ![Conda Downloads](https://img.shields.io/conda/dn/bioconda/acinetoscope)
-![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20WSL-lightgrey)
+![Platform](https://anaconda.org/bbeckley-hub/acinetoscope/badges/platforms.svg)
 ![License](https://img.shields.io/github/license/bbeckley-hub/acinetoscope)
 ![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)
 ![Bioconda](https://img.shields.io/badge/bioconda-✓-44A833.svg?logo=conda)
+![Last updated](https://anaconda.org/bbeckley-hub/acinetoscope/badges/latest_release_date.svg)
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/bbeckleyhub/acinetoscope)
 ![GitHub Stars](https://img.shields.io/github/stars/bbeckley-hub/acinetoscope)
