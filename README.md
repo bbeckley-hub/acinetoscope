@@ -15,8 +15,8 @@
 <div align="center">
 
 # 🦠 AcinetoScope
-
-![Conda Downloads](https://img.shields.io/conda/dn/bioconda/acinetoscope)
+![Conda Version](https://anaconda.org/bbeckley-hub/acinetoscope/badges/version.svg)
+![Conda Downloads](https://anaconda.org/bbeckley-hub/acinetoscope/badges/downloads.svg)
 ![Platform](https://anaconda.org/bbeckley-hub/acinetoscope/badges/platforms.svg)
 ![License](https://img.shields.io/github/license/bbeckley-hub/acinetoscope)
 ![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)
