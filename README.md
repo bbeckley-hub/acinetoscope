@@ -37,14 +37,14 @@
 ```
 📊 BEFORE: 6 separate tools, manual integration, hours of work
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  FASTQC → MLST → Kaptive → AMRFinder → ABRicate → Summary Reports           ║
-║  │         │        │          │           │              │                 ║
-║  │         │        │          │           │              │                 ║
-║  │         │        │          │           │              │                 ║
-║  └─────┬───┴───┬────┴────┬─────┴─────┬─────┴──────┬───────┘                 ║
-║        │       │         │           │            │                         ║
-║  6 HOURS     MANUAL    ERROR     INCONSISTENT  FRAGMENTED                   ║
-║              MERGE     PRONE       OUTPUTS       RESULTS                    ║
+║  FASTQC → MLST → Kaptive → AMRFinder → ABRicate → Summary Reports            ║
+║  │         │        │          │           │              │                  ║
+║  │         │        │          │           │              │                  ║
+║  │         │        │          │           │              │                  ║
+║  └─────┬───┴───┬────┴────┬─────┴─────┬─────┴──────┬───────┘                  ║
+║        │       │         │           │            │                          ║
+║  6 HOURS     MANUAL    ERROR     INCONSISTENT  FRAGMENTED                    ║
+║              MERGE     PRONE       OUTPUTS       RESULTS                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 📊 AFTER: 1 command, automated integration, parallel execution
@@ -108,10 +108,10 @@ AcinetoScope tracks **300+ scientifically curated critical genes** across multip
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                   LAST LINE OF DEFENSE - TRACKING GENES                      ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║  🚨 COLISTIN: mcr-1 to mcr-10, pmrABC, lpxACD, eptA, arnA-F, phoPQ          ║
-║  🚨 TIGECYCLINE: tet(X1-6), tet(39), adeRSABC, adeJKNT                      ║
-║  🏥 BIOFILM: ompA, csuABCDE, bfmRS, pgaABCD, bap, pilABCDEF                 ║
-║  🧬 EFFLUX PUMPS: adeA-N, abeMS, amvA, craA, mexJKT, mdeA, mdfA/cmr         ║
+║  🚨 COLISTIN: mcr-1 to mcr-10, pmrABC, lpxACD, eptA, arnA-F, phoPQ           ║
+║  🚨 TIGECYCLINE: tet(X1-6), tet(39), adeRSABC, adeJKNT                       ║
+║  🏥 BIOFILM: ompA, csuABCDE, bfmRS, pgaABCD, bap, pilABCDEF                  ║
+║  🧬 EFFLUX PUMPS: adeA-N, abeMS, amvA, craA, mexJKT, mdeA, mdfA/cmr          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -132,10 +132,10 @@ AcinetoScope tracks **300+ scientifically curated critical genes** across multip
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                    COMPREHENSIVE DATABASE COVERAGE                           ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║  🎯 AMR: AMRFinder, CARD, ResFinder, NCBI, MEGARes                          ║
+║  🎯 AMR: AMRFinder, CARD, ResFinder, NCBI, MEGARes                           ║
 ║  🦠 Virulence: VFDB, Victors, BacMet2, EcoH_VF                               ║
 ║  🧬 Typing: MLST (Oxford & Pasteur), Kaptive K/O Locus                       ║
-║  📊 Quality: Comprehensive FASTA QC with multi-metric scoring               ║
+║  📊 Quality: Comprehensive FASTA QC with multi-metric scoring                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -261,11 +261,11 @@ results/
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                    OUTBREAK DETECTION WORKFLOW                               ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║  1. 📥 Upload patient isolates (n=50)                                       ║
-║  2. 🚀 Run: acinetoscope -i "*.fna" -o outbreak/ --threads 8                ║
-║  3. 🔬 Detect: ST2/OXA-23 cluster in 12/50 samples                          ║
-║  4. 🎯 Identify: mcr-1 in 3/50 → immediate infection control measures       ║
-║  5. 📊 Report: Interactive dashboard for hospital epidemiology team         ║
+║  1. 📥 Upload patient isolates (n=50)                                        ║
+║  2. 🚀 Run: acinetoscope -i "*.fna" -o outbreak/ --threads 8                 ║
+║  3. 🔬 Detect: ST2/OXA-23 cluster in 12/50 samples                           ║
+║  4. 🎯 Identify: mcr-1 in 3/50 → immediate infection control measures        ║
+║  5. 📊 Report: Interactive dashboard for hospital epidemiology team          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
