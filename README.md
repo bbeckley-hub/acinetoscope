@@ -23,7 +23,6 @@
 ![Bioconda](https://img.shields.io/badge/bioconda-✓-44A833.svg?logo=conda)
 ![Last updated](https://anaconda.org/bbeckley-hub/acinetoscope/badges/latest_release_date.svg)
 
-![Docker Pulls](https://img.shields.io/docker/pulls/bbeckleyhub/acinetoscope)
 ![GitHub Stars](https://img.shields.io/github/stars/bbeckley-hub/acinetoscope)
 ![GitHub Issues](https://img.shields.io/github/issues/bbeckley-hub/acinetoscope)
 ![Research Use](https://img.shields.io/badge/research%20use-✓-purple)
