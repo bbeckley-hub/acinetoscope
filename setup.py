@@ -14,7 +14,7 @@ setup(
     python_requires=">=3.9",
     install_requires=[
         "pandas>=1.5.0",
-        "biopython>=1.80",  
+        "biopython>=1.85",  
         "psutil>=5.9.0",
         "requests>=2.28.0",
         "tqdm>=4.64.0",

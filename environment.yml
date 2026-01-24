@@ -1,4 +1,4 @@
-name: staphscope
+name:acinetoscope
 channels:
   - conda-forge
   - bioconda
@@ -6,7 +6,7 @@ channels:
 dependencies:
   - python>=3.9
   - pandas>=1.5.0
-  - biopython>=1.80
+  - biopython>=1.85
   - psutil>=5.9.0
   - requests>=2.28.0  
   - tqdm>=4.64.0

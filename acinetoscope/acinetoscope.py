@@ -95,7 +95,8 @@ class AcinetoScopeOrchestrator:
             'acineto_bacmet2_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
             'acineto_plasmidfinder_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
             'acineto_ecoh_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
-            'acineto_victors_summary_report.html': 'acineto_abricate_results/acineto_victors_summary_report.html'
+            'acineto_victors_summary_report.html': 'acineto_abricate_results/acineto_victors_summary_report.html',
+            'acineto_plasmidfinder_summary_report.html': 'acineto_abricate_results/acineto_plasmidfinder_summary_report.html'
         }
     
     def _get_scientific_quotes(self):
@@ -1284,6 +1285,8 @@ def main():
         print(f"  {Color.GREEN}•{Color.RESET} Ultimate Reporter (Gene-centric integrated analysis)")
         print(f"  {Color.GREEN}•{Color.RESET} Critical Genes Tracked: Carbapenemases • ESBLs • Colistin Resistance • Tigecycline Resistance • Biofilm Formation • Efflux Pumps • Environmental Co-Selection")
         
+        print(f"\n{Color.BRIGHT_YELLOW}Run this command prior analysis:{Color.RESET} {Color.CYAN} abricate --setupdb{Color.RESET}")
+
         print(f"\n{Color.BRIGHT_YELLOW}Output:{Color.RESET} Comprehensive results for all analyses in organized directories")
         print(f"{Color.CYAN}⭐ Star us on GitHub if you find this tool useful!{Color.RESET}")
         sys.exit(0)

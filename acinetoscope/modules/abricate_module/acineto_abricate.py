@@ -229,7 +229,7 @@ class AcinetoAbricateExecutor:
             elif total_physical_cores <= 32:
                 optimal_cpus = max(16, total_physical_cores - 2)  # Use 30/32, 29/31, etc.
             else:
-                optimal_cpus = min(32, int(total_physical_cores * 0.85))  # Use 85% on huge systems
+                optimal_cpus = min(32, int(total_physical_cores * 0.95))  # Use 95% on huge systems
             
             # Ensure at least 1 CPU and not more than available cores
             optimal_cpus = max(1, min(optimal_cpus, total_physical_cores))

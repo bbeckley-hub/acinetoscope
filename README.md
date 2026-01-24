@@ -120,7 +120,7 @@ AcinetoScope tracks **300+ scientifically curated critical genes** across multip
 ║            ENVIRONMENTAL CO-SELECTION & HOSPITAL PERSISTENCE                 ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
 ║  🧪 Biocide Resistance: qacA-J, qacEA1, cepA, formABC, oqxAB                 ║
-║  ⚙️ Metal Resistance: czcABCD, merA-J, arsA-J, copA-J, zntA-J                ║
+║  ⚙️ Metal Resistance: czcABCD, merA-J, arsA-J, copA-J, zntA-J                 ║
 ║  🧬 Stress Response: soxRS, marABC, robA, rpoS, phoBR                        ║
 ║  🔄 Mobile Elements: traA-X, mobA-H, intI1-3, tnpA-F, istAB                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -148,7 +148,7 @@ AcinetoScope tracks **300+ scientifically curated critical genes** across multip
 ║  📈 Interactive HTML reports   🔬 Cross-genome pattern discovery             ║
 ║  🎯 Risk Stratification        📊 Multi-Sample Comparisons                   ║
 ║  🧬 Phylogenetic Context       🏥 Clinical Relevance Scoring                 ║
-║  📋 Export to CSV/JSON         🖨️ Statistical analysis                       ║
+║  📋 Export to CSV/JSON         🖨️ Statistical analysis                        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 

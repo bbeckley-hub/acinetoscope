@@ -608,6 +608,179 @@ class UltimateHTMLParser:
             traceback.print_exc()
             return {}, {}
 
+    def parse_plasmidfinder_report(self, file_path: Path, total_samples: int = 0) -> Tuple[Dict[str, List], Dict[str, Dict]]:
+        """Parse PlasmidFinder HTML report - SPECIALIZED for plasmid analysis"""
+        print(f"  🧬 Parsing PlasmidFinder: {file_path.name}")
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            
+            soup = BeautifulSoup(html_content, 'html.parser')
+            tables = soup.find_all('table')
+            
+            if len(tables) < 2:
+                return {}, {}
+            
+            # Parse Gene Frequency table (second table)
+            plasmid_frequencies = {}
+            df_freq = self.parse_html_table(str(tables[1]), 0)
+            
+            if not df_freq.empty and 'Gene' in df_freq.columns:
+                for _, row in df_freq.iterrows():
+                    gene_full = str(row['Gene']).strip()
+                    if not gene_full:
+                        continue
+                    
+                    # Clean gene name for PlasmidFinder specific patterns
+                    gene = self._clean_plasmid_gene_name(gene_full)
+                    
+                    # Get count
+                    count = 0
+                    frequency_str = str(row.get('Frequency', '0')).strip()
+                    
+                    # Extract count
+                    match = re.search(r'(\d+)', frequency_str)
+                    if match:
+                        count = int(match.group(1))
+                    
+                    # Calculate percentage
+                    percentage = 0
+                    if total_samples > 0:
+                        percentage = (count / total_samples) * 100
+                    
+                    # Get genomes list
+                    genomes = []
+                    if 'Genomes' in df_freq.columns and pd.notna(row.get('Genomes')):
+                        genomes_str = str(row['Genomes'])
+                        genomes = [self.normalize_sample_id(g.strip()) 
+                                for g in genomes_str.split(',') if g.strip()]
+                    
+                    # Categorize plasmid type
+                    plasmid_type = self._categorize_plasmid(gene)
+                    
+                    plasmid_frequencies[gene] = {
+                        'count': count,
+                        'percentage': round(percentage, 2),
+                        'frequency_display': f"{count} ({percentage:.1f}%)",
+                        'genomes': genomes,
+                        'full_name': gene_full,
+                        'plasmid_type': plasmid_type,
+                        'database': 'plasmidfinder'
+                    }
+            
+            # Parse Genes by Genome table (first table)
+            plasmids_by_genome = {}
+            df_genomes = self.parse_html_table(str(tables[0]), 0)
+            
+            if not df_genomes.empty:
+                # Find sample column
+                sample_col = None
+                for col in df_genomes.columns:
+                    col_lower = col.lower()
+                    if any(keyword in col_lower for keyword in ['genome', 'sample', 'id']):
+                        sample_col = col
+                        break
+                
+                if sample_col:
+                    for _, row in df_genomes.iterrows():
+                        sample = self.normalize_sample_id(row[sample_col])
+                        if not sample:
+                            continue
+                        
+                        plasmids = []
+                        
+                        # Find genes column
+                        genes_col = None
+                        for col in df_genomes.columns:
+                            col_lower = col.lower()
+                            if any(keyword in col_lower for keyword in ['genes', 'detected']):
+                                genes_col = col
+                                break
+                        
+                        if genes_col and pd.notna(row.get(genes_col)):
+                            gene_str = str(row[genes_col])
+                            # Clean and split plasmids
+                            plasmids = [self._clean_plasmid_gene_name(g.strip()) 
+                                    for g in gene_str.split(',') if g.strip()]
+                        
+                        plasmids_by_genome[sample] = plasmids
+            
+            print(f"    ✓ PlasmidFinder: {len(plasmids_by_genome)} samples, {len(plasmid_frequencies)} plasmid markers")
+            return plasmids_by_genome, plasmid_frequencies
+            
+        except Exception as e:
+            print(f"    ❌ Error parsing PlasmidFinder: {e}")
+            import traceback
+            traceback.print_exc()
+            return {}, {}
+
+    def _clean_plasmid_gene_name(self, gene_name: str) -> str:
+        """Clean plasmid gene names - special handling for PlasmidFinder patterns"""
+        # Remove trailing _1, _2, etc. (common in PlasmidFinder)
+        gene = re.sub(r'_(\d+)$', '', gene_name)
+        
+        # Extract plasmid name in parentheses if present
+        plasmid_match = re.search(r'\((.*?)\)', gene)
+        if plasmid_match:
+            plasmid_name = plasmid_match.group(1)
+            # Keep the main gene name + plasmid in parentheses
+            base_gene = re.sub(r'\(.*?\)', '', gene).strip()
+            if base_gene:
+                gene = f"{base_gene}({plasmid_name})"
+            else:
+                gene = plasmid_name
+        
+        return gene.strip()
+
+    def _categorize_plasmid(self, gene_name: str) -> str:
+        """Categorize plasmid markers"""
+        gene_lower = gene_name.lower()
+        
+        # Plasmid replication genes
+        if any(rep in gene_lower for rep in ['rep', 'inc', 'rep_']):
+            if 'coli' in gene_lower or 'col' in gene_lower:
+                return 'Colicin plasmid'
+            elif 'broad' in gene_lower or 'multihost' in gene_lower:
+                return 'Broad-host-range plasmid'
+            else:
+                return 'Replication protein'
+        
+        # Mobility genes
+        elif any(mob in gene_lower for mob in ['mob', 'tra', 'conj']):
+            return 'Mobility/conjugation'
+        
+        # Colicin plasmids
+        elif 'col' in gene_lower and 'coli' not in gene_lower:
+            if gene_lower.startswith('col'):
+                return 'Colicin plasmid'
+            else:
+                return 'Other plasmid'
+        
+        # Incompatibility groups
+        elif 'inc' in gene_lower and gene_lower.startswith('inc'):
+            inc_match = re.search(r'inc([a-z0-9]+)', gene_lower)
+            if inc_match:
+                inc_type = inc_match.group(1).upper()
+                return f'Incompatibility group {inc_type}'
+            return 'Incompatibility group'
+        
+        # Specific plasmid families
+        elif any(fam in gene_lower for fam in ['pneumoniae', 'salmonella', 'enterobacter', 'klebsiella']):
+            return 'Enterobacteriales plasmid'
+        
+        elif any(fam in gene_lower for fam in ['pseudomonas', 'aeruginosa']):
+            return 'Pseudomonas plasmid'
+        
+        elif any(fam in gene_lower for fam in ['acinetobacter', 'baumannii']):
+            return 'Acinetobacter plasmid'
+        
+        elif any(fam in gene_lower for fam in ['staphylococcus', 'aureus', 'mrsa']):
+            return 'Staphylococcus plasmid'
+        
+        else:
+            return 'Other plasmid'
+
 
 class UltimateDataAnalyzer:
     """Analyzes data for ultimate gene-centric reporting for A. baumannii"""
@@ -628,17 +801,76 @@ class UltimateDataAnalyzer:
             'blaGES', 'blaGES-1', 'blaGES-2', 'blaGES-5', 'blaGES-14',
             'blaSIM', 'blaSPM', 'blaAIM'
         }
-        
+
         self.critical_esbls = {
-            'blaCTX-M', 'blaCTX-M-1', 'blaCTX-M-2', 'blaCTX-M-3', 'blaCTX-M-9',
-            'blaCTX-M-14', 'blaCTX-M-15', 'blaCTX-M-27', 'blaCTX-M-55',
-            'blaSHV', 'blaSHV-1', 'blaSHV-2', 'blaSHV-5', 'blaSHV-11', 'blaSHV-12',
-            'blaTEM', 'blaTEM-1', 'blaTEM-2', 'blaTEM-10', 'blaTEM-52',
-            'blaPER', 'blaPER-1', 'blaPER-2', 'blaPER-3',
-            'blaVEB', 'blaVEB-1', 'blaVEB-2',
-            'blaBEL', 'blaGES'
-        }
-        
+            # CTX-M family (ALL are ESBLs)
+            'blaCTX-M', 'blaCTX-M-1', 'blaCTX-M-2', 'blaCTX-M-3', 'blaCTX-M-4', 'blaCTX-M-5',
+            'blaCTX-M-6', 'blaCTX-M-7', 'blaCTX-M-8', 'blaCTX-M-9', 'blaCTX-M-10', 'blaCTX-M-11',
+            'blaCTX-M-12', 'blaCTX-M-13', 'blaCTX-M-14', 'blaCTX-M-15', 'blaCTX-M-16', 'blaCTX-M-17',
+            'blaCTX-M-18', 'blaCTX-M-19', 'blaCTX-M-20', 'blaCTX-M-21', 'blaCTX-M-22', 'blaCTX-M-23',
+            'blaCTX-M-24', 'blaCTX-M-25', 'blaCTX-M-26', 'blaCTX-M-27', 'blaCTX-M-28', 'blaCTX-M-29',
+            'blaCTX-M-30', 'blaCTX-M-31', 'blaCTX-M-32', 'blaCTX-M-33', 'blaCTX-M-34', 'blaCTX-M-35',
+            'blaCTX-M-36', 'blaCTX-M-37', 'blaCTX-M-38', 'blaCTX-M-39', 'blaCTX-M-40', 'blaCTX-M-41',
+            'blaCTX-M-42', 'blaCTX-M-43', 'blaCTX-M-44', 'blaCTX-M-45', 'blaCTX-M-46', 'blaCTX-M-47',
+            'blaCTX-M-48', 'blaCTX-M-49', 'blaCTX-M-50', 'blaCTX-M-51', 'blaCTX-M-52', 'blaCTX-M-53',
+            'blaCTX-M-54', 'blaCTX-M-55', 'blaCTX-M-56', 'blaCTX-M-57', 'blaCTX-M-58', 'blaCTX-M-59',
+            'blaCTX-M-60', 'blaCTX-M-61', 'blaCTX-M-62', 'blaCTX-M-63', 'blaCTX-M-64', 'blaCTX-M-65',
+            'blaCTX-M-66', 'blaCTX-M-67', 'blaCTX-M-68', 'blaCTX-M-69', 'blaCTX-M-70', 'blaCTX-M-71',
+            'blaCTX-M-72', 'blaCTX-M-73', 'blaCTX-M-74', 'blaCTX-M-75', 'blaCTX-M-76', 'blaCTX-M-77',
+            'blaCTX-M-78', 'blaCTX-M-79', 'blaCTX-M-80', 'blaCTX-M-81', 'blaCTX-M-82', 'blaCTX-M-83',
+            'blaCTX-M-84', 'blaCTX-M-85', 'blaCTX-M-86', 'blaCTX-M-87', 'blaCTX-M-88', 'blaCTX-M-89',
+            'blaCTX-M-90', 'blaCTX-M-91', 'blaCTX-M-92', 'blaCTX-M-93', 'blaCTX-M-94', 'blaCTX-M-95',
+            'blaCTX-M-96', 'blaCTX-M-97', 'blaCTX-M-98', 'blaCTX-M-99', 'blaCTX-M-100', 'blaCTX-M-101',
+            'blaCTX-M-102', 'blaCTX-M-103', 'blaCTX-M-104', 'blaCTX-M-105', 'blaCTX-M-106',
+            
+            # SHV family (ONLY ESBL variants)
+            'blaSHV-2', 'blaSHV-3', 'blaSHV-4', 'blaSHV-5', 'blaSHV-7', 'blaSHV-8', 'blaSHV-9',
+            'blaSHV-10', 'blaSHV-12', 'blaSHV-13', 'blaSHV-14', 'blaSHV-15', 'blaSHV-16', 'blaSHV-17',
+            'blaSHV-18', 'blaSHV-19', 'blaSHV-20', 'blaSHV-21', 'blaSHV-22', 'blaSHV-23', 'blaSHV-24',
+            'blaSHV-25', 'blaSHV-26', 'blaSHV-27', 'blaSHV-28', 'blaSHV-29', 'blaSHV-30', 'blaSHV-31',
+            'blaSHV-32', 'blaSHV-33', 'blaSHV-34', 'blaSHV-35', 'blaSHV-36', 'blaSHV-37', 'blaSHV-38',
+            'blaSHV-39', 'blaSHV-40', 'blaSHV-41', 'blaSHV-42', 'blaSHV-43', 'blaSHV-44', 'blaSHV-45',
+            'blaSHV-46', 'blaSHV-47', 'blaSHV-48', 'blaSHV-49', 'blaSHV-50', 'blaSHV-51', 'blaSHV-52',
+            'blaSHV-53', 'blaSHV-54', 'blaSHV-55', 'blaSHV-56', 'blaSHV-57', 'blaSHV-58', 'blaSHV-59',
+            'blaSHV-60', 'blaSHV-61', 'blaSHV-62', 'blaSHV-63', 'blaSHV-64', 'blaSHV-65', 'blaSHV-66',
+            'blaSHV-67', 'blaSHV-68', 'blaSHV-69', 'blaSHV-70', 'blaSHV-71', 'blaSHV-72', 'blaSHV-73',
+            'blaSHV-74', 'blaSHV-75', 'blaSHV-76', 'blaSHV-77', 'blaSHV-78', 'blaSHV-79', 'blaSHV-80',
+            'blaSHV-81', 'blaSHV-82', 'blaSHV-83', 'blaSHV-84', 'blaSHV-85', 'blaSHV-86', 'blaSHV-87',
+            'blaSHV-88', 'blaSHV-89', 'blaSHV-90', 'blaSHV-91', 'blaSHV-92', 'blaSHV-93', 'blaSHV-94',
+            'blaSHV-95', 'blaSHV-96', 'blaSHV-97', 'blaSHV-98', 'blaSHV-99', 'blaSHV-100', 'blaSHV-101',
+            'blaSHV-102', 'blaSHV-103', 'blaSHV-104', 'blaSHV-105', 'blaSHV-106', 'blaSHV-107',
+            
+            # TEM family (ONLY ESBL variants)
+            'blaTEM-3', 'blaTEM-4', 'blaTEM-5', 'blaTEM-6', 'blaTEM-7', 'blaTEM-8', 'blaTEM-9',
+            'blaTEM-10', 'blaTEM-12', 'blaTEM-16', 'blaTEM-19', 'blaTEM-20', 'blaTEM-24', 'blaTEM-26',
+            'blaTEM-29', 'blaTEM-30', 'blaTEM-32', 'blaTEM-34', 'blaTEM-36', 'blaTEM-39', 'blaTEM-40',
+            'blaTEM-41', 'blaTEM-43', 'blaTEM-44', 'blaTEM-45', 'blaTEM-46', 'blaTEM-47', 'blaTEM-49',
+            'blaTEM-50', 'blaTEM-51', 'blaTEM-52', 'blaTEM-55', 'blaTEM-56', 'blaTEM-59', 'blaTEM-63',
+            'blaTEM-64', 'blaTEM-65', 'blaTEM-68', 'blaTEM-70', 'blaTEM-72', 'blaTEM-74', 'blaTEM-76',
+            'blaTEM-78', 'blaTEM-79', 'blaTEM-80', 'blaTEM-81', 'blaTEM-83', 'blaTEM-84', 'blaTEM-85',
+            'blaTEM-86', 'blaTEM-87', 'blaTEM-88', 'blaTEM-89', 'blaTEM-90', 'blaTEM-91', 'blaTEM-92',
+            'blaTEM-93', 'blaTEM-94', 'blaTEM-95', 'blaTEM-96', 'blaTEM-97', 'blaTEM-98', 'blaTEM-99',
+            'blaTEM-100', 'blaTEM-101', 'blaTEM-102', 'blaTEM-103', 'blaTEM-104', 'blaTEM-105',
+            'blaTEM-106', 'blaTEM-107', 'blaTEM-108',
+            
+            # Other ESBL families
+            'blaPER', 'blaPER-1', 'blaPER-2', 'blaPER-3', 'blaPER-4', 'blaPER-5', 'blaPER-6',
+            'blaPER-7', 'blaPER-8', 'blaPER-9', 'blaPER-10', 'blaPER-11', 'blaPER-12', 'blaPER-13',
+            'blaPER-14', 'blaPER-15', 'blaPER-16', 'blaPER-17', 'blaPER-18', 'blaPER-19', 'blaPER-20',
+            
+            'blaVEB', 'blaVEB-1', 'blaVEB-2', 'blaVEB-3', 'blaVEB-4', 'blaVEB-5', 'blaVEB-6',
+            'blaVEB-7', 'blaVEB-8', 'blaVEB-9', 'blaVEB-10', 'blaVEB-11', 'blaVEB-12', 'blaVEB-13',
+            
+            'blaBEL', 'blaBEL-1', 'blaBEL-2', 'blaBEL-3', 'blaBEL-4', 'blaBEL-5', 'blaBEL-6',
+            
+            'blaGES', 'blaGES-1', 'blaGES-2', 'blaGES-3', 'blaGES-4', 'blaGES-5', 'blaGES-6',
+            'blaGES-7', 'blaGES-8', 'blaGES-9', 'blaGES-10', 'blaGES-11', 'blaGES-12', 'blaGES-13',
+            'blaGES-14', 'blaGES-15', 'blaGES-16', 'blaGES-17', 'blaGES-18', 'blaGES-19', 'blaGES-20',
+            
+            # Additional ESBL families
+            'blaSFO', 'blaTLA', 'blaBES', 'blaSCO'
+        }  
+              
         self.critical_ampc = {
             'blaADC', 'blaADC-1', 'blaADC-2', 'blaADC-5', 'blaADC-7', 'blaADC-10',
             'blaADC-11', 'blaADC-30', 'blaADC-69', 'blaADC-75', 'blaADC-88', 'blaADC-176'
@@ -741,8 +973,8 @@ class UltimateDataAnalyzer:
         
         # 3. ENVIRONMENTAL ANTIBIOTIC RESISTANCE MARKERS (NOT BACMET2)
         # These are antibiotic resistance genes commonly found in environmental reservoirs
-        self.environmental_antibiotic_markers = {
-            # Sulfonamide resistance (commonly found in environmental bacteria)
+        self.common_antibiotic_markers = {
+            # Sulfonamide resistance 
             'sul1', 'sul2', 'sul3',
             # Trimethoprim resistance
             'dfrA1', 'dfrA5', 'dfrA7', 'dfrA12', 'dfrA14', 'dfrA17', 'dfrA19', 'dfrA21',
@@ -796,8 +1028,59 @@ class UltimateDataAnalyzer:
             'sigA',  # IgA protease-like protein
             'tia',  # Invasion adhesion
         }
-        
-        # 5. OTHER GENERAL RESISTANCE MARKERS
+      
+        #5. Plasmid-specific categories
+        self.plasmid_categories = {
+            # Common Acinetobacter plasmids
+            'pAB1', 'pAB2', 'pAB3', 'pAB4', 'pAB5', 'pAB6', 'pAB7', 'pAB8',
+            'pACICU', 'pACICU1', 'pACICU2',
+            'pACICU1-like', 'pACICU2-like',
+            'pRAY', 'pRAY-like',
+            'pABVA01', 'pABVA02', 'pABVA03',
+            'pAC30', 'pAC31', 'pAC32',
+            'pAB3-like', 'pAB5-like',
+            'pACICU-A', 'pACICU-B',
+            
+            # Broad-host-range plasmids in A. baumannii
+            'pNDM', 'pNDM-1', 'pNDM-2',
+            'pOXA', 'pOXA-23', 'pOXA-58',
+            'pISAba125', 'pISAba1',
+            'pACICU-1', 'pACICU-2',
+            
+            # Colicin plasmids (common in Gram-negatives)
+            'ColE1', 'ColE2', 'ColE3',
+            'ColA', 'ColB', 'ColD', 'ColE', 'ColF', 'ColH', 'ColI', 'ColK', 'ColM', 'ColN', 'ColV',
+            'ColRNAI', 'ColDF13',
+            'Col(MG828)', 'Col(MP18)', 'Col8282', 'Col(pHAD28)',
+            
+            # Replication proteins
+            'rep', 'repA', 'repB', 'repC', 'repD', 'repE',
+            'rep1', 'rep2', 'rep3', 'rep4', 'rep5', 'rep6', 'rep7', 'rep8', 'rep9', 'rep10',
+            'rep_1', 'rep_2', 'rep_3', 'rep_4', 'rep_5', 'rep_6', 'rep_7', 'rep_8', 'rep_9', 'rep_10',
+            
+            # Incompatibility groups
+            'IncA', 'IncB', 'IncC', 'IncD', 'IncF', 'IncG', 'IncH', 'IncI', 'IncJ', 'IncK', 
+            'IncL', 'IncM', 'IncN', 'IncO', 'IncP', 'IncQ', 'IncR', 'IncS', 'IncT', 'IncU', 
+            'IncV', 'IncW', 'IncX', 'IncY', 'IncZ',
+            'IncFIA', 'IncFIB', 'IncFIC', 'IncFII', 'IncHI1', 'IncHI2', 'IncL/M', 'IncN2',
+            
+            # Mobility genes
+            'mobA', 'mobB', 'mobC', 'mobD', 'mobE',
+            'traA', 'traB', 'traC', 'traD', 'traE', 'traF', 'traG', 'traH', 'traI', 'traJ',
+            'traK', 'traL', 'traM', 'traN', 'traO', 'traP', 'traQ', 'traR', 'traS', 'traT',
+            'traU', 'traV', 'traW', 'traX', 'traY',
+            
+            # Plasmid addiction systems
+            'ccdA', 'ccdB',  # CcdAB toxin-antitoxin
+            'vapB', 'vapC',  # VapBC toxin-antitoxin
+            'relB', 'relE',  # RelBE toxin-antitoxin
+            'hok', 'sok',    # Hok/Sok system
+            'pemI', 'pemK',  # PemIK system
+            'maxE', 'maxF',  # MaxEF system
+            'mazE', 'mazF',  # MazEF system
+        }
+    
+        # 6. OTHER GENERAL RESISTANCE MARKERS
         self.other_resistance_markers = {
             # Fluoroquinolone resistance
             'qnrA', 'qnrB', 'qnrC', 'qnrD', 'qnrS', 'qnrVC',
@@ -823,7 +1106,7 @@ class UltimateDataAnalyzer:
         self.all_environmental_markers = (
             self.bacmet2_markers | 
             self.environmental_co_selection |
-            self.environmental_antibiotic_markers |
+            self.common_antibiotic_markers |
             self.victors_markers |
             self.other_resistance_markers
         )
@@ -871,23 +1154,23 @@ class UltimateDataAnalyzer:
                 return 'Environmental Co-Selection'
         
         # 4. Environmental antibiotic resistance (NOT BACMET2)
-        elif any(env_abx in gene_lower for env_abx in [g.lower() for g in self.environmental_antibiotic_markers]):
+        elif any(env_abx in gene_lower for env_abx in [g.lower() for g in self.common_antibiotic_markers]):
             if 'sul' in gene_lower:
-                return 'Environmental Sulfonamide Resistance'
+                return 'Sulfonamide Resistance'
             elif 'dfr' in gene_lower:
-                return 'Environmental Trimethoprim Resistance'
+                return 'Trimethoprim Resistance'
             elif 'cat' in gene_lower:
-                return 'Environmental Chloramphenicol Resistance'
+                return 'Chloramphenicol Resistance'
             elif any(ag in gene_lower for ag in ['aac', 'aad', 'ant', 'aph']):
-                return 'Environmental Aminoglycoside Resistance'
+                return 'Aminoglycoside Resistance'
             elif 'tet' in gene_lower and 'tet(x)' not in gene_lower:
-                return 'Environmental Tetracycline Resistance'
+                return 'Tetracycline Resistance'
             elif any(ml in gene_lower for ml in ['erm', 'mef', 'msr']):
-                return 'Environmental Macrolide Resistance'
+                return 'Macrolide Resistance'
             elif 'bla' in gene_lower and 'carbapenem' not in gene_lower:
-                return 'Environmental Beta-lactamase'
+                return 'Beta-lactamase'
             else:
-                return 'Environmental Antibiotic Resistance'
+                return 'Antibiotic Resistance'
         
         # 5. VICTORS virulence markers
         elif any(vic in gene_lower for vic in [g.lower() for g in self.victors_markers]):
@@ -1033,7 +1316,7 @@ class UltimateDataAnalyzer:
                         critical_count += 1
                     if any(bac in gene_lower for bac in [g.lower() for g in self.bacmet2_markers]):
                         bacmet2_count += 1
-                    if any(env_abx in gene_lower for env_abx in [g.lower() for g in self.environmental_antibiotic_markers]):
+                    if any(env_abx in gene_lower for env_abx in [g.lower() for g in self.common_antibiotic_markers]):
                         environmental_antibiotic_count += 1
                 
                 gene_centric['database_stats'][db_name] = {
@@ -1266,6 +1549,141 @@ class UltimateDataAnalyzer:
         
         return patterns
 
+    def create_plasmid_analysis(self, integrated_data: Dict[str, Any], total_samples: int) -> Dict[str, Any]:
+        """Create comprehensive plasmid analysis tables"""
+        plasmid_analysis = {
+            'plasmid_databases': {},
+            'plasmid_frequencies': [],
+            'plasmid_categories': defaultdict(list),
+            'plasmid_cooccurrence': defaultdict(Counter),
+            'sample_plasmid_profiles': defaultdict(list),
+            'plasmid_summary_stats': {},
+            'high_frequency_plasmids': [],
+            'unique_plasmid_patterns': defaultdict(list)
+        }
+        
+        # Check if we have plasmid data - FIXED to look in the correct location
+        if 'plasmidfinder' not in integrated_data.get('gene_frequencies', {}):
+            return plasmid_analysis
+        
+        # Process PlasmidFinder data
+        plasmid_genes = integrated_data['gene_frequencies']['plasmidfinder']
+        gene_list = []
+        
+        for gene, data in plasmid_genes.items():
+            # Categorize plasmid
+            plasmid_type = 'Unknown'
+            gene_lower = gene.lower()
+            
+            if any(inc in gene_lower for inc in ['inc']):
+                inc_match = re.search(r'inc([a-z0-9]+)', gene_lower)
+                if inc_match:
+                    plasmid_type = f'Inc{inc_match.group(1).upper()}'
+                else:
+                    plasmid_type = 'Incompatibility group'
+            elif 'col' in gene_lower:
+                plasmid_type = 'Colicin plasmid'
+            elif any(rep in gene_lower for rep in ['rep', 'rep_']):
+                plasmid_type = 'Replication protein'
+            elif any(mob in gene_lower for mob in ['mob', 'tra', 'conj']):
+                plasmid_type = 'Mobility gene'
+            else:
+                plasmid_type = 'Other plasmid marker'
+            
+            gene_list.append({
+                'plasmid_marker': gene,
+                'full_name': data.get('full_name', gene),
+                'category': plasmid_type,
+                'database': 'PlasmidFinder',
+                'count': data.get('count', 0),
+                'percentage': data.get('percentage', 0),
+                'frequency_display': data.get('frequency_display', f"{data.get('count', 0)} ({data.get('percentage', 0):.1f}%)"),
+                'genomes': data.get('genomes', [])
+            })
+        
+        if gene_list:
+            # Sort by count
+            gene_list.sort(key=lambda x: x['count'], reverse=True)
+            plasmid_analysis['plasmid_databases']['plasmidfinder'] = gene_list
+            
+            # Add to plasmid categories
+            for gene_data in gene_list:
+                plasmid_analysis['plasmid_categories'][gene_data['category']].append(gene_data)
+            
+            # Create plasmid frequencies list
+            plasmid_analysis['plasmid_frequencies'] = gene_list
+            
+            # Find high frequency plasmids (present in >30% of samples)
+            high_freq_threshold = total_samples * 0.3
+            plasmid_analysis['high_frequency_plasmids'] = [
+                p for p in gene_list if p['count'] >= high_freq_threshold
+            ]
+        
+        # Rest of the method continues as before...
+        # Create sample plasmid profiles
+        samples_data = integrated_data.get('samples', {})
+        for sample, data in samples_data.items():
+            # Get plasmids from all sources
+            sample_plasmids = []
+            
+            # Check if we have plasmid data in the sample
+            if 'plasmidfinder' in integrated_data.get('gene_frequencies', {}):
+                db_genes = integrated_data['gene_frequencies']['plasmidfinder']
+                for gene, gene_data in db_genes.items():
+                    if sample in gene_data.get('genomes', []):
+                        sample_plasmids.append({
+                            'marker': gene,
+                            'database': 'plasmidfinder',
+                            'category': self._categorize_plasmid_marker(gene)
+                        })
+            
+            if sample_plasmids:
+                plasmid_analysis['sample_plasmid_profiles'][sample] = sample_plasmids
+                
+                # Track unique plasmid patterns
+                pattern_key = tuple(sorted([p['marker'] for p in sample_plasmids]))
+                plasmid_analysis['unique_plasmid_patterns'][pattern_key].append(sample)
+        
+        # Calculate plasmid co-occurrence
+        for sample, plasmids in plasmid_analysis['sample_plasmid_profiles'].items():
+            plasmid_names = [p['marker'] for p in plasmids]
+            for i, p1 in enumerate(plasmid_names):
+                for p2 in plasmid_names[i+1:]:
+                    plasmid_analysis['plasmid_cooccurrence'][p1][p2] += 1
+        
+        # Calculate summary statistics
+        total_plasmid_markers = sum(len(db) for db in plasmid_analysis['plasmid_databases'].values())
+        total_plasmid_occurrences = sum(sum(p['count'] for p in db) for db in plasmid_analysis['plasmid_databases'].values())
+        samples_with_plasmids = len(plasmid_analysis['sample_plasmid_profiles'])
+        
+        plasmid_analysis['plasmid_summary_stats'] = {
+            'total_plasmid_markers': total_plasmid_markers,
+            'total_plasmid_occurrences': total_plasmid_occurrences,
+            'samples_with_plasmids': samples_with_plasmids,
+            'total_samples': total_samples,
+            'plasmid_prevalence': (samples_with_plasmids / total_samples * 100) if total_samples > 0 else 0,
+            'unique_plasmid_patterns': len(plasmid_analysis['unique_plasmid_patterns'])
+        }
+        
+        return plasmid_analysis
+
+    def _categorize_plasmid_marker(self, marker: str) -> str:
+        """Categorize individual plasmid marker"""
+        marker_lower = marker.lower()
+        
+        if any(inc in marker_lower for inc in ['inc']):
+            return 'Incompatibility group'
+        elif 'col' in marker_lower:
+            return 'Colicin plasmid'
+        elif any(rep in marker_lower for rep in ['rep', 'rep_']):
+            return 'Replication protein'
+        elif any(mob in marker_lower for mob in ['mob', 'tra', 'conj']):
+            return 'Mobility gene'
+        elif 'ecoh' in marker_lower or 'e.coli' in marker_lower:
+            return 'E. coli specific'
+        else:
+            return 'Other plasmid marker'
+
 
 class UltimateHTMLGenerator:
     """Generates ultimate HTML reports for A. baumannii"""
@@ -1273,7 +1691,7 @@ class UltimateHTMLGenerator:
     def __init__(self, data_analyzer: UltimateDataAnalyzer):
         self.data_analyzer = data_analyzer
         self.tab_colors = {
-            'summary': '#4CAF50',
+            'summary': "#5FAE62",
             'samples': '#2196F3',
             'mlst': '#FF9800',
             'kaptive': '#9C27B0',
@@ -1283,7 +1701,8 @@ class UltimateHTMLGenerator:
             'categories': '#009688',
             'patterns': '#FF5722',
             'export': '#3F51B5',
-            'databases': '#607D8B'
+            'databases': '#607D8B',
+            'plasmid': '#2196F3'
         }
     
     def generate_main_report(self, integrated_data: Dict[str, Any], output_dir: Path) -> str:
@@ -1295,13 +1714,17 @@ class UltimateHTMLGenerator:
         patterns = integrated_data.get('patterns', {})
         gene_centric = integrated_data.get('gene_centric', {})
         metadata = integrated_data.get('metadata', {})
+        plasmid_analysis = integrated_data.get('plasmid_analysis', {})
         
         # Create HTML
         html = self._create_ultimate_html(
             metadata=metadata,
             samples_data=samples_data,
             patterns=patterns,
-            gene_centric=gene_centric
+            gene_centric=gene_centric,
+            plasmid_analysis=plasmid_analysis,
+            total_samples=len(samples_data)  
+    
         )
         
         # Save HTML file
@@ -1313,7 +1736,7 @@ class UltimateHTMLGenerator:
         return str(output_file)
     
     def _create_ultimate_html(self, **kwargs) -> str:
-        """Create ultimate HTML with all sections - IMPROVED FOR SCROLLABILITY"""
+        """Create ultimate HTML with all sections - FIXED FOR PLASMID TAB"""
         
         # CSS Styles - IMPROVED FOR NO TRUNCATION AND SCROLLABILITY
         css = """
@@ -1330,6 +1753,7 @@ class UltimateHTMLGenerator:
             --patterns-color: #FF5722;
             --export-color: #3F51B5;
             --databases-color: #607D8B;
+            --plasmid-color: #2196F3;
         }
         
         * {
@@ -1501,6 +1925,7 @@ class UltimateHTMLGenerator:
         .tab-button.patterns.active { background: var(--patterns-color); }
         .tab-button.export.active { background: var(--export-color); }
         .tab-button.databases.active { background: var(--databases-color); }
+        .tab-button.plasmid.active { background: #2196F3; }
         
         .tab-content {
             display: none;
@@ -1828,7 +2253,7 @@ class UltimateHTMLGenerator:
         </style>
         """
         
-        # JavaScript
+        # JavaScript - Fixed version without backslash issues in f-string
         js = """
         <script>
         // Tab switching
@@ -1908,7 +2333,9 @@ class UltimateHTMLGenerator:
                 csv.push(row.join(','));
             }
             
-            const csvFile = new Blob([csv.join('\\n')], {type: 'text/csv'});
+            // Use template literal with String.raw to avoid backslash issues
+            const csvContent = csv.join(String.raw`\n`);
+            const csvFile = new Blob([csvContent], {type: 'text/csv'});
             const downloadLink = document.createElement('a');
             downloadLink.download = filename;
             downloadLink.href = window.URL.createObjectURL(csvFile);
@@ -1997,6 +2424,7 @@ class UltimateHTMLGenerator:
         samples_data = kwargs['samples_data']
         patterns = kwargs['patterns']
         gene_centric = kwargs['gene_centric']
+        plasmid_analysis = kwargs.get('plasmid_analysis', {}) 
         
         total_samples = len(samples_data)
         amr_databases = gene_centric.get('amr_databases', {})
@@ -2010,6 +2438,14 @@ class UltimateHTMLGenerator:
         total_environmental_genes = sum(len(db) for db in environmental_databases.values())
         high_risk_count = len(patterns.get('high_risk_combinations', []))
         mdr_count = len(patterns.get('mdr_patterns', []))
+        
+        # Check if we have plasmid data
+        has_plasmid_data = bool(plasmid_analysis.get('plasmid_databases', {}))
+        if has_plasmid_data:
+            plasmid_databases = plasmid_analysis.get('plasmid_databases', {})
+            total_plasmid_genes = sum(len(db) for db in plasmid_databases.values())
+        else:
+            total_plasmid_genes = 0
         
         # Count carbapenemases and environmental markers
         carbapenemase_count = 0
@@ -2025,8 +2461,11 @@ class UltimateHTMLGenerator:
         if 'bacmet2' in environmental_databases:
             environmental_marker_count += len(environmental_databases['bacmet2'])
         
-        # Build HTML
-        html = f"""<!DOCTYPE html>
+        # Build HTML - use string concatenation instead of putting js in f-string
+        html_parts = []
+        
+        # Start building HTML
+        html_parts.append(f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2034,7 +2473,13 @@ class UltimateHTMLGenerator:
     <title>GENIUS Acinetobacter baumannii Ultimate Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {css}
-    {js}
+""")
+        
+        # Add JavaScript directly (not in f-string)
+        html_parts.append(js)
+        
+        # Continue with the rest of the HTML
+        html_parts.append(f"""
 </head>
 <body>
     <div class="container">
@@ -2100,7 +2545,19 @@ class UltimateHTMLGenerator:
                 <div class="card-label">Environmental</div>
                 <i class="fas fa-globe-africa fa-2x" style="color: var(--environmental-color); margin-top: 10px;"></i>
             </div>
-            
+            """)
+        
+        # Add plasmid dashboard card only if we have plasmid data
+        if has_plasmid_data:
+            html_parts.append(f"""
+            <div class="dashboard-card card-plasmid" onclick="switchTab('plasmid')" style="border-left: 5px solid #2196F3;">
+                <div class="card-number">{total_plasmid_genes}</div>
+                <div class="card-label">Plasmid Markers</div>
+                <i class="fas fa-dna fa-2x" style="color: #2196F3; margin-top: 10px;"></i>
+            </div>
+            """)
+        
+        html_parts.append(f"""
             <div class="dashboard-card card-patterns" onclick="switchTab('patterns')">
                 <div class="card-number">{high_risk_count}</div>
                 <div class="card-label">High-Risk</div>
@@ -2140,6 +2597,13 @@ class UltimateHTMLGenerator:
             <button class="tab-button databases" onclick="switchTab('databases')">
                 <i class="fas fa-database"></i> Database Coverage
             </button>
+            """)
+        
+        # Add plasmid button only if we have plasmid data
+        if has_plasmid_data:
+            html_parts.append("""<button class="tab-button plasmid" onclick="switchTab('plasmid')"><i class="fas fa-dna"></i> Plasmids</button>""")
+        
+        html_parts.append(f"""
             <button class="tab-button export" onclick="switchTab('export')">
                 <i class="fas fa-download"></i> Export
             </button>
@@ -2194,7 +2658,25 @@ class UltimateHTMLGenerator:
         <div id="databases-tab" class="tab-content">
             {self._generate_database_coverage_section(kwargs)}
         </div>
+        """)
         
+        # Add Plasmid Tab only if we have plasmid data
+        if has_plasmid_data:
+            html_parts.append(f"""
+        <!-- Plasmid Analysis Tab -->
+        <div id="plasmid-tab" class="tab-content">
+            {self._generate_plasmid_section({
+                'plasmid_analysis': plasmid_analysis,
+                'total_samples': total_samples,
+                'samples_data': samples_data,
+                'patterns': patterns,
+                'gene_centric': gene_centric,
+                'metadata': metadata
+            })}
+        </div>
+            """)
+        
+        html_parts.append(f"""
         <!-- Export Tab -->
         <div id="export-tab" class="tab-content">
             {self._generate_export_section(kwargs)}
@@ -2210,9 +2692,10 @@ class UltimateHTMLGenerator:
     </div>
 </body>
 </html>
-        """
+        """)
         
-        return html
+        # Join all parts
+        return ''.join(html_parts)
     
     def _generate_summary_section(self, kwargs: Dict) -> str:
         """Generate summary section"""
@@ -2467,7 +2950,7 @@ class UltimateHTMLGenerator:
         return html
     
     def _generate_mlst_section(self, kwargs: Dict) -> str:
-        """Generate MLST analysis section - FULLY SCROLLABLE"""
+        """Generate MLST analysis section - FIXED TO SHOW ALL SAMPLES"""
         patterns = kwargs['patterns']
         samples_data = kwargs['samples_data']
         
@@ -2530,13 +3013,14 @@ class UltimateHTMLGenerator:
             
             ic_display = ', '.join(ic_list) if ic_list else 'Unknown'
             
-            # Find samples with this ST
+            # Find samples with this ST - NO TRUNCATION
             samples = []
             for sample, sample_data in samples_data.items():
                 if sample_data.get('pasteur_mlst', {}).get('ST') == st:
                     samples.append(sample)
             
-            sample_display = ', '.join(samples[:10]) + ('...' if len(samples) > 10 else '')
+            # FIX: Show ALL samples, no truncation
+            sample_display = ', '.join(samples)  # REMOVED truncation
             
             html += f"""
                     <tr>
@@ -2579,13 +3063,14 @@ class UltimateHTMLGenerator:
                 count = data
                 frequency = f"{count} ({(count / total_oxford * 100) if total_oxford > 0 else 0:.1f}%)"
             
-            # Find samples with this ST
+            # Find samples with this ST - NO TRUNCATION
             samples = []
             for sample, sample_data in samples_data.items():
                 if sample_data.get('oxford_mlst', {}).get('ST') == st:
                     samples.append(sample)
             
-            sample_display = ', '.join(samples[:10]) + ('...' if len(samples) > 10 else '')
+            # FIX: Show ALL samples, no truncation
+            sample_display = ', '.join(samples)  # REMOVED truncation
             
             html += f"""
                     <tr>
@@ -2629,15 +3114,15 @@ class UltimateHTMLGenerator:
                     if st != 'ND' and st not in sts:
                         sts.append(st)
             
-            st_list = ', '.join([f"ST{s}" for s in sts[:5]]) + ('...' if len(sts) > 5 else '')
+            st_list = ', '.join([f"ST{s}" for s in sts])  # REMOVED truncation
             
-            # Find samples for this IC
+            # Find samples for this IC - NO TRUNCATION
             ic_samples = []
             for sample, data in samples_data.items():
                 if data.get('pasteur_mlst', {}).get('International_Clone') == ic:
                     ic_samples.append(sample)
             
-            sample_list = ', '.join(ic_samples[:10]) + ('...' if len(ic_samples) > 10 else '')
+            sample_list = ', '.join(ic_samples)  # REMOVED truncation
             
             html += f"""
                     <tr>
@@ -2657,7 +3142,7 @@ class UltimateHTMLGenerator:
         return html
     
     def _generate_kaptive_section(self, kwargs: Dict) -> str:
-        """Generate Kaptive capsule typing section - FULLY SCROLLABLE"""
+        """Generate Kaptive capsule typing section - FIXED TO SHOW ALL SAMPLES"""
         patterns = kwargs['patterns']
         samples_data = kwargs['samples_data']
         
@@ -2709,13 +3194,14 @@ class UltimateHTMLGenerator:
                 count = data
                 frequency = f"{count} ({(count / total_k * 100) if total_k > 0 else 0:.1f}%)"
             
-            # Find samples with this K locus
+            # Find samples with this K locus - NO TRUNCATION
             samples = []
             for sample, sample_data in samples_data.items():
                 if sample_data.get('kaptive', {}).get('K_Locus') == k_locus:
                     samples.append(sample)
             
-            sample_display = ', '.join(samples[:10]) + ('...' if len(samples) > 10 else '')
+            # FIX: Show ALL samples, no truncation
+            sample_display = ', '.join(samples)  # REMOVED truncation
             
             html += f"""
                     <tr>
@@ -2756,13 +3242,14 @@ class UltimateHTMLGenerator:
                 count = data
                 frequency = f"{count} ({(count / total_o * 100) if total_o > 0 else 0:.1f}%)"
             
-            # Find samples with this O locus
+            # Find samples with this O locus - NO TRUNCATION
             samples = []
             for sample, sample_data in samples_data.items():
                 if sample_data.get('kaptive', {}).get('O_Locus') == o_locus:
                     samples.append(sample)
             
-            sample_display = ', '.join(samples[:10]) + ('...' if len(samples) > 10 else '')
+            # FIX: Show ALL samples, no truncation
+            sample_display = ', '.join(samples)  # REMOVED truncation
             
             html += f"""
                     <tr>
@@ -2803,13 +3290,14 @@ class UltimateHTMLGenerator:
                 count = data
                 frequency = f"{count} ({(count / total_capsule * 100) if total_capsule > 0 else 0:.1f}%)"
             
-            # Find samples with this capsule type
+            # Find samples with this capsule type - NO TRUNCATION
             samples = []
             for sample, sample_data in samples_data.items():
                 if sample_data.get('kaptive', {}).get('Capsule_Type') == capsule_type:
                     samples.append(sample)
             
-            sample_display = ', '.join(samples[:10]) + ('...' if len(samples) > 10 else '')
+            # FIX: Show ALL samples, no truncation
+            sample_display = ', '.join(samples)  # REMOVED truncation
             
             html += f"""
                     <tr>
@@ -2822,6 +3310,296 @@ class UltimateHTMLGenerator:
         html += """
                 </tbody>
             </table>
+        </div>
+        """
+        
+        return html
+
+    def _generate_plasmid_section(self, kwargs: Dict) -> str:
+        """Generate plasmid analysis section"""
+        plasmid_analysis = kwargs['plasmid_analysis']
+        
+        if not plasmid_analysis.get('plasmid_databases'):
+            return """
+            <h2 class="section-header" style="border-color: #2196F3;">
+                <i class="fas fa-dna"></i> Plasmid Analysis
+                <button class="print-section-btn" onclick="printSection('plasmid-tab')">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </h2>
+            
+            <div class="alert-box alert-warning">
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+                <div>
+                    <h3>No Plasmid Data Available</h3>
+                    <p>No PlasmidFinder or plasmid marker reports were found or successfully parsed.</p>
+                </div>
+            </div>
+            """
+        
+        # Extract data
+        plasmid_stats = plasmid_analysis.get('plasmid_summary_stats', {})
+        plasmid_frequencies = plasmid_analysis.get('plasmid_frequencies', [])
+        plasmid_categories = plasmid_analysis.get('plasmid_categories', {})
+        high_freq_plasmids = plasmid_analysis.get('high_frequency_plasmids', [])
+        unique_patterns = plasmid_analysis.get('unique_plasmid_patterns', {})
+        sample_profiles = plasmid_analysis.get('sample_plasmid_profiles', {})
+        
+        html = f"""
+        <h2 class="section-header" style="border-color: #2196F3;">
+            <i class="fas fa-dna"></i> Plasmid Analysis - Horizontal Gene Transfer Tracking
+            <button class="print-section-btn" onclick="printSection('plasmid-tab')">
+                <i class="fas fa-print"></i> Print
+            </button>
+        </h2>
+        
+        <div class="alert-box alert-info">
+            <i class="fas fa-info-circle fa-2x"></i>
+            <div>
+                <h3>Plasmid and Mobile Genetic Element Analysis</h3>
+                <p>Tracking <strong>{plasmid_stats.get('total_plasmid_markers', 0)} plasmid markers</strong> across 
+                <strong>{plasmid_stats.get('samples_with_plasmids', 0)} samples</strong> ({plasmid_stats.get('plasmid_prevalence', 0):.1f}% prevalence). 
+                Plasmids are key vectors for antibiotic resistance gene transfer in A. baumannii.</p>
+            </div>
+        </div>
+        
+        <h3><i class="fas fa-chart-bar"></i> Plasmid Analysis Summary</h3>
+        <div class="master-scrollable-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="col-gene">Metric</th>
+                        <th class="col-frequency">Value</th>
+                        <th class="col-category">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="col-gene">Total Plasmid Markers</td>
+                        <td class="col-frequency"><strong>{plasmid_stats.get('total_plasmid_markers', 0)}</strong></td>
+                        <td class="col-category">Unique plasmid-associated genes</td>
+                    </tr>
+                    <tr>
+                        <td class="col-gene">Samples with Plasmids</td>
+                        <td class="col-frequency"><strong>{plasmid_stats.get('samples_with_plasmids', 0)}</strong> ({plasmid_stats.get('plasmid_prevalence', 0):.1f}%)</td>
+                        <td class="col-category">Samples containing plasmid markers</td>
+                    </tr>
+                    <tr>
+                        <td class="col-gene">Total Plasmid Occurrences</td>
+                        <td class="col-frequency"><strong>{plasmid_stats.get('total_plasmid_occurrences', 0)}</strong></td>
+                        <td class="col-category">Sum of all plasmid marker detections</td>
+                    </tr>
+                    <tr>
+                        <td class="col-gene">Unique Plasmid Patterns</td>
+                        <td class="col-frequency"><strong>{plasmid_stats.get('unique_plasmid_patterns', 0)}</strong></td>
+                        <td class="col-category">Distinct plasmid marker combinations</td>
+                    </tr>
+                    <tr>
+                        <td class="col-gene">High-Frequency Plasmids</td>
+                        <td class="col-frequency"><span class="badge {'badge-high' if high_freq_plasmids else 'badge-low'}">{len(high_freq_plasmids)}</span></td>
+                        <td class="col-category">Plasmids in >30% of samples</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <h3 style="margin-top: 30px;"><i class="fas fa-dna"></i> Plasmid Marker Frequency</h3>
+        <div class="master-scrollable-container">
+            <table id="plasmid-table" class="data-table">
+                <thead>
+                    <tr>
+                        <th class="col-gene">Plasmid Marker</th>
+                        <th class="col-category">Category</th>
+                        <th class="col-frequency">Frequency</th>
+                        <th class="col-database">Database</th>
+                        <th class="col-genomes">Genomes</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        
+        for plasmid_data in plasmid_frequencies:
+            genomes = plasmid_data.get('genomes', [])
+            genome_tags = ''.join([f'<span class="genome-tag">{g}</span>' for g in genomes])
+            
+            # Highlight high frequency plasmids
+            is_high_freq = plasmid_data['count'] >= (kwargs['total_samples'] * 0.3)
+            marker_display = f"<strong>{plasmid_data['plasmid_marker']}</strong>" + (" 🔥" if is_high_freq else "")
+            
+            html += f"""
+                    <tr>
+                        <td class="col-gene">{marker_display}</td>
+                        <td class="col-category"><span class="badge {'badge-info' if plasmid_data['category'] == 'Colicin plasmid' else 'badge-warning' if plasmid_data['category'] == 'Replication protein' else 'badge-success' if plasmid_data['category'] == 'Mobility gene' else 'badge-secondary'}">{plasmid_data['category']}</span></td>
+                        <td class="col-frequency"><span class="frequency-display">{plasmid_data.get('frequency_display', f"{plasmid_data['count']} ({plasmid_data.get('percentage', 0):.1f}%)")}</span></td>
+                        <td class="col-database">{plasmid_data['database']}</td>
+                        <td class="col-genomes"><div class="genome-list">{genome_tags}</div></td>
+                    </tr>
+            """
+        
+        html += """
+                </tbody>
+            </table>
+        </div>
+        
+        <h3 style="margin-top: 30px;"><i class="fas fa-tags"></i> Plasmid Categories</h3>
+        <div class="master-scrollable-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="col-category">Plasmid Category</th>
+                        <th class="col-frequency">Unique Markers</th>
+                        <th class="col-frequency">Total Occurrences</th>
+                        <th class="col-gene">Top Markers</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        
+        for category, plasmids in plasmid_categories.items():
+            unique_markers = len(set(p['plasmid_marker'] for p in plasmids))
+            total_occurrences = sum(p['count'] for p in plasmids)
+            top_markers = ', '.join([p['plasmid_marker'] for p in plasmids[:3]])
+            
+            html += f"""
+                    <tr>
+                        <td class="col-category"><strong>{category}</strong></td>
+                        <td class="col-frequency">{unique_markers}</td>
+                        <td class="col-frequency">{total_occurrences}</td>
+                        <td class="col-gene">{top_markers}</td>
+                    </tr>
+            """
+        
+        html += """
+                </tbody>
+            </table>
+        </div>
+        """
+        
+        # High frequency plasmids section
+        if high_freq_plasmids:
+            html += f"""
+            <h3 style="margin-top: 30px;"><i class="fas fa-exclamation-triangle"></i> High-Frequency Plasmids ({len(high_freq_plasmids)})</h3>
+            <div class="alert-box alert-warning">
+                <i class="fas fa-radiation fa-2x"></i>
+                <div>
+                    <h3>⚠️ Widespread Plasmids Detected</h3>
+                    <p><strong>{len(high_freq_plasmids)} plasmid markers</strong> are present in >30% of samples, 
+                    indicating potential horizontal transfer and epidemic spread.</p>
+                </div>
+            </div>
+            
+            <div class="master-scrollable-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-gene">Plasmid Marker</th>
+                            <th class="col-category">Category</th>
+                            <th class="col-frequency">Frequency</th>
+                            <th class="col-frequency">Prevalence</th>
+                            <th class="col-genomes">Sample Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """
+            
+            for plasmid_data in high_freq_plasmids:
+                prevalence = (plasmid_data['count'] / kwargs['total_samples']) * 100
+                
+                html += f"""
+                        <tr>
+                            <td class="col-gene"><strong>{plasmid_data['plasmid_marker']}</strong> 🔥</td>
+                            <td class="col-category"><span class="badge badge-warning">{plasmid_data['category']}</span></td>
+                            <td class="col-frequency">{plasmid_data.get('frequency_display', f"{plasmid_data['count']} ({plasmid_data.get('percentage', 0):.1f}%)")}</td>
+                            <td class="col-frequency">{prevalence:.1f}%</td>
+                            <td class="col-genomes">{plasmid_data['count']} samples</td>
+                        </tr>
+                """
+            
+            html += """
+                    </tbody>
+                </table>
+            </div>
+            """
+        
+        # Unique plasmid patterns
+        if unique_patterns:
+            html += f"""
+            <h3 style="margin-top: 30px;"><i class="fas fa-project-diagram"></i> Unique Plasmid Patterns ({len(unique_patterns)})</h3>
+            <p>Distinct combinations of plasmid markers across samples:</p>
+            <div class="master-scrollable-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-gene">Plasmid Pattern</th>
+                            <th class="col-frequency">Frequency</th>
+                            <th class="col-sample">Samples</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """
+            
+            for pattern, samples in sorted(unique_patterns.items(), key=lambda x: len(x[1]), reverse=True)[:20]:
+                pattern_str = ', '.join(pattern)
+                sample_list = ', '.join(samples)  # NO TRUNCATION
+                
+                html += f"""
+                        <tr>
+                            <td class="col-gene"><strong>{pattern_str}</strong></td>
+                            <td class="col-frequency">{len(samples)}</td>
+                            <td class="col-sample">{sample_list}</td>
+                        </tr>
+                """
+            
+            html += """
+                    </tbody>
+                </table>
+            </div>
+            """
+        
+        # Sample plasmid profiles
+        if sample_profiles:
+            html += f"""
+            <h3 style="margin-top: 30px;"><i class="fas fa-vial"></i> Sample Plasmid Profiles ({len(sample_profiles)} samples)</h3>
+            <p>Plasmid marker composition for each sample:</p>
+            <div class="master-scrollable-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-sample">Sample</th>
+                            <th class="col-frequency">Plasmid Count</th>
+                            <th class="col-gene">Plasmid Markers</th>
+                            <th class="col-category">Categories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """
+            
+            for sample, plasmids in sorted(sample_profiles.items()):
+                plasmid_names = [p['marker'] for p in plasmids]
+                plasmid_list = ', '.join(plasmid_names)
+                categories = ', '.join(sorted(set(p['category'] for p in plasmids)))
+                
+                html += f"""
+                        <tr>
+                            <td class="col-sample"><strong>{sample}</strong></td>
+                            <td class="col-frequency">{len(plasmids)}</td>
+                            <td class="col-gene">{plasmid_list}</td>
+                            <td class="col-category">{categories}</td>
+                        </tr>
+                """
+            
+            html += """
+                    </tbody>
+                </table>
+            </div>
+            """
+        
+        # Add export button
+        html += """
+        <div class="action-buttons" style="margin-top: 30px;">
+            <button class="action-btn btn-primary" onclick="exportTableToCSV('plasmid-table', 'acinetobacter_plasmid_analysis.csv')">
+                <i class="fas fa-download"></i> Export Plasmid Analysis
+            </button>
         </div>
         """
         
@@ -3464,14 +4242,14 @@ class UltimateHTMLGenerator:
         return html
     
     def _generate_pattern_discovery_section(self, kwargs: Dict) -> str:
-        """Generate pattern discovery section - FULLY SCROLLABLE"""
+        """Generate pattern discovery section - NO TRUNCATION & NO ENVIRONMENTAL MARKERS"""
         patterns = kwargs['patterns']
         
         high_risk_combinations = patterns.get('high_risk_combinations', [])
         mdr_patterns = patterns.get('mdr_patterns', [])
         carbapenemase_patterns = patterns.get('carbapenemase_patterns', {})
-        environmental_patterns = patterns.get('environmental_patterns', {})
         st_k_combinations = patterns.get('st_k_locus_combinations', {})
+        st_capsule_combinations = patterns.get('st_capsule_combinations', {})
         
         html = """
         <h2 class="section-header patterns-header">
@@ -3491,7 +4269,7 @@ class UltimateHTMLGenerator:
         </div>
         """
         
-        # High-risk combinations
+        # High-risk combinations - UPDATED: Remove Environmental Markers column
         if high_risk_combinations:
             html += f"""
             <h3><i class="fas fa-exclamation-triangle"></i> High-Risk Combinations ({len(high_risk_combinations)})</h3>
@@ -3516,7 +4294,6 @@ class UltimateHTMLGenerator:
                             <th class="col-gene">Carbapenemases</th>
                             <th class="col-gene">Colistin Resistance</th>
                             <th class="col-gene">Tigecycline Resistance</th>
-                            <th class="col-gene">Environmental Markers</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -3526,7 +4303,6 @@ class UltimateHTMLGenerator:
                 carbapenemases = ', '.join(combo['carbapenemases'])
                 colistin_res = ', '.join(combo['colistin_resistance']) if combo['colistin_resistance'] else 'None'
                 tigecycline_res = ', '.join(combo['tigecycline_resistance']) if combo['tigecycline_resistance'] else 'None'
-                environmental_markers = ', '.join(combo['environmental_markers'][:5]) + ('...' if len(combo['environmental_markers']) > 5 else '') if combo['environmental_markers'] else 'None'
                 
                 html += f"""
                         <tr>
@@ -3538,7 +4314,6 @@ class UltimateHTMLGenerator:
                             <td class="col-gene"><span class="badge badge-critical">{carbapenemases}</span></td>
                             <td class="col-gene"><span class="badge badge-high">{colistin_res}</span></td>
                             <td class="col-gene"><span class="badge badge-high">{tigecycline_res}</span></td>
-                            <td class="col-gene"><span class="badge badge-medium">{environmental_markers}</span></td>
                         </tr>
                 """
             
@@ -3558,42 +4333,7 @@ class UltimateHTMLGenerator:
             </div>
             """
         
-        # Environmental patterns
-        if environmental_patterns:
-            html += f"""
-            <h3 style="margin-top: 30px;"><i class="fas fa-globe-africa"></i> Environmental Marker Patterns ({len(environmental_patterns)})</h3>
-            <p>Common co-occurrence patterns of environmental resistance markers:</p>
-            <div class="master-scrollable-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th class="col-gene">Environmental Marker Combination</th>
-                            <th class="col-frequency">Frequency</th>
-                            <th class="col-sample">Samples</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            """
-            
-            for env_combo, samples in sorted(environmental_patterns.items(), key=lambda x: len(x[1]), reverse=True)[:20]:
-                combo_str = ', '.join(env_combo[:5]) + ('...' if len(env_combo) > 5 else '')
-                sample_list = ', '.join(samples[:5]) + ('...' if len(samples) > 5 else '')
-                
-                html += f"""
-                        <tr>
-                            <td class="col-gene"><strong>{combo_str}</strong></td>
-                            <td class="col-frequency">{len(samples)}</td>
-                            <td class="col-sample">{sample_list}</td>
-                        </tr>
-                """
-            
-            html += """
-                    </tbody>
-                </table>
-            </div>
-            """
-        
-        # Carbapenemase patterns
+        # Carbapenemase patterns - NO TRUNCATION
         if carbapenemase_patterns:
             html += f"""
             <h3 style="margin-top: 30px;"><i class="fas fa-skull-crossbones"></i> Carbapenemase Patterns ({len(carbapenemase_patterns)})</h3>
@@ -3612,7 +4352,8 @@ class UltimateHTMLGenerator:
             
             for carb_combo, samples in sorted(carbapenemase_patterns.items(), key=lambda x: len(x[1]), reverse=True):
                 combo_str = ', '.join(carb_combo)
-                sample_list = ', '.join(samples[:5]) + ('...' if len(samples) > 5 else '')
+                # NO TRUNCATION - show all samples
+                sample_list = ', '.join(samples)
                 
                 html += f"""
                         <tr>
@@ -3628,7 +4369,7 @@ class UltimateHTMLGenerator:
             </div>
             """
         
-        # MDR patterns
+        # MDR patterns - UPDATED: Remove Environmental Markers
         if mdr_patterns:
             html += f"""
             <h3 style="margin-top: 30px;"><i class="fas fa-pills"></i> Multidrug Resistance (MDR) Patterns ({len(mdr_patterns)})</h3>
@@ -3680,10 +4421,10 @@ class UltimateHTMLGenerator:
             </div>
             """
         
-        # ST-K Locus combinations
+        # ST-K Locus combinations - NO TRUNCATION
         if st_k_combinations:
             html += f"""
-            <h3 style="margin-top: 30px;"><i class="fas fa-project-diagram"></i> ST-Capsule Associations ({len(st_k_combinations)})</h3>
+            <h3 style="margin-top: 30px;"><i class="fas fa-project-diagram"></i> ST-K Locus Associations ({len(st_k_combinations)})</h3>
             <p>Common associations between sequence types and capsule loci:</p>
             <div class="master-scrollable-container">
                 <table class="data-table">
@@ -3697,8 +4438,9 @@ class UltimateHTMLGenerator:
                     <tbody>
             """
             
-            for combo, samples in sorted(st_k_combinations.items(), key=lambda x: len(x[1]), reverse=True)[:20]:
-                sample_list = ', '.join(samples[:5]) + ('...' if len(samples) > 5 else '')
+            for combo, samples in sorted(st_k_combinations.items(), key=lambda x: len(x[1]), reverse=True):
+                # NO TRUNCATION - show all samples
+                sample_list = ', '.join(samples)
                 
                 html += f"""
                         <tr>
@@ -3713,6 +4455,50 @@ class UltimateHTMLGenerator:
                 </table>
             </div>
             """
+        
+        # ST-Capsule combinations - NO TRUNCATION
+        if st_capsule_combinations:
+            html += f"""
+            <h3 style="margin-top: 30px;"><i class="fas fa-project-diagram"></i> ST-Capsule Type Associations ({len(st_capsule_combinations)})</h3>
+            <p>Common associations between sequence types and capsule types (K:O):</p>
+            <div class="master-scrollable-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-gene">ST-Capsule Type Combination</th>
+                            <th class="col-frequency">Frequency</th>
+                            <th class="col-sample">Samples</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """
+            
+            for combo, samples in sorted(st_capsule_combinations.items(), key=lambda x: len(x[1]), reverse=True):
+                # NO TRUNCATION - show all samples
+                sample_list = ', '.join(samples)
+                
+                html += f"""
+                        <tr>
+                            <td class="col-gene"><strong>{combo}</strong></td>
+                            <td class="col-frequency">{len(samples)}</td>
+                            <td class="col-sample">{sample_list}</td>
+                        </tr>
+                """
+            
+            html += """
+                    </tbody>
+                </table>
+            </div>
+            """
+        
+        # Add export button
+        html += """
+        <div class="action-buttons" style="margin-top: 30px;">
+            <button class="action-btn btn-primary" onclick="exportTableToCSV('high-risk-table', 'high_risk_combinations.csv')">
+                <i class="fas fa-download"></i> Export High-Risk Combinations
+            </button>
+        </div>
+        """
         
         return html
     
@@ -4036,7 +4822,7 @@ class GeniusUltimateReporter:
         }
     
     def find_html_files(self) -> Dict[str, List[Path]]:
-        """Find all HTML report files - GRACEFULLY HANDLES MISSING FILES"""
+        """Find all HTML report files - SPECIFICALLY CHECK FOR PLASMIDFINDER"""
         print("🔍 Searching for AcinetoScope HTML reports...")
         
         html_files = {
@@ -4044,7 +4830,8 @@ class GeniusUltimateReporter:
             'oxford_mlst': [],
             'kaptive': [],
             'amrfinder': [],
-            'abricate': defaultdict(list)
+            'abricate': defaultdict(list),
+            'plasmidfinder': []  # NEW: Separate list for plasmidfinder
         }
         
         # First pass: collect all HTML files
@@ -4074,39 +4861,42 @@ class GeniusUltimateReporter:
             elif 'amrfinder' in filename:
                 html_files['amrfinder'].append(html_file)
             
+            # PLASMIDFINDER files - SPECIFIC CHECK
+            elif 'plasmidfinder' in filename:
+                html_files['plasmidfinder'].append(html_file)
+                print(f"    ✅ Found PlasmidFinder file: {html_file.name}")
+            
             # ABRicate database files
             else:
-                # Try to match with known database names
+                # Try to match with known database names (EXCLUDING plasmidfinder)
                 matched = False
                 for db_key in self.parser.db_name_mapping.keys():
-                    if db_key in filename:
+                    if db_key in filename and 'plasmidfinder' not in db_key:
                         html_files['abricate'][db_key].append(html_file)
                         matched = True
                         break
                 
-                # If no match, check for common patterns
+                # If no match, check for common patterns (excluding plasmidfinder)
                 if not matched:
-                    if 'card' in filename:
+                    if 'card' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_card'].append(html_file)
-                    elif 'resfinder' in filename:
+                    elif 'resfinder' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_resfinder'].append(html_file)
-                    elif 'argannot' in filename:
+                    elif 'argannot' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_argannot'].append(html_file)
-                    elif 'vfdb' in filename:
+                    elif 'vfdb' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_vfdb'].append(html_file)
-                    elif 'victors' in filename:
+                    elif 'victors' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_victors'].append(html_file)
-                    elif 'ecoli_vf' in filename:
+                    elif 'ecoli_vf' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_ecoli_vf'].append(html_file)
-                    elif 'megares' in filename:
+                    elif 'megares' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_megares'].append(html_file)
-                    elif 'bacmet2' in filename:
+                    elif 'bacmet2' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_bacmet2'].append(html_file)
-                    elif 'plasmidfinder' in filename:
-                        html_files['abricate']['acineto_plasmidfinder'].append(html_file)
-                    elif 'ecoh' in filename:
+                    elif 'ecoh' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_ecoh'].append(html_file)
-                    elif 'ncbi' in filename:
+                    elif 'ncbi' in filename and 'plasmidfinder' not in filename:
                         html_files['abricate']['acineto_ncbi'].append(html_file)
         
         # Print findings
@@ -4115,8 +4905,9 @@ class GeniusUltimateReporter:
         print(f"  ✅ Oxford MLST: {len(html_files['oxford_mlst'])} files")
         print(f"  ✅ Kaptive: {len(html_files['kaptive'])} files")
         print(f"  ✅ AMRfinder: {len(html_files['amrfinder'])} files")
+        print(f"  ✅ PlasmidFinder: {len(html_files['plasmidfinder'])} files")
         
-        # Print ABRicate database findings
+        # Print ABRicate database findings (excluding plasmidfinder)
         print(f"\n🔬 ABRicate Databases Found:")
         abricate_count = 0
         for db_key, files in html_files['abricate'].items():
@@ -4128,7 +4919,7 @@ class GeniusUltimateReporter:
         # Check for missing databases
         expected_dbs = ['acineto_card', 'acineto_resfinder', 'acineto_argannot', 
                        'acineto_vfdb', 'acineto_victors', 'acineto_ecoli_vf',
-                       'acineto_megares', 'acineto_bacmet2', 'acineto_plasmidfinder']
+                       'acineto_megares', 'acineto_bacmet2']
         
         missing_dbs = []
         for db in expected_dbs:
@@ -4141,7 +4932,7 @@ class GeniusUltimateReporter:
         return html_files
     
     def integrate_all_data(self, html_files: Dict[str, List[Path]]) -> Dict[str, Any]:
-        """Integrate data from all HTML reports - FIXED FOR CORRECT MATCHING"""
+        """Integrate data from all HTML reports - FIXED FOR PLASMIDFINDER"""
         print("\n🔗 Integrating data from all reports...")
         
         integrated_data = {
@@ -4149,6 +4940,7 @@ class GeniusUltimateReporter:
             'samples': {},
             'patterns': {},
             'gene_centric': {},
+            'plasmid_analysis': {},  # Initialize empty plasmid analysis
             'parsing_summary': {}
         }
         
@@ -4207,7 +4999,7 @@ class GeniusUltimateReporter:
         else:
             print("  ⚠️ No AMRfinder file found")
         
-        # 5. Parse ALL ABRicate databases
+        # 5. Parse ALL ABRicate databases (EXCLUDING plasmidfinder)
         abricate_data = {}
         abricate_gene_freq = {}
         abricate_summary = {}
@@ -4230,6 +5022,25 @@ class GeniusUltimateReporter:
                     for sample in genes_by_sample.keys():
                         all_samples.add(sample)
         
+        # 6. Parse PLASMIDFINDER specifically - ONLY if file exists
+        plasmid_by_sample = {}
+        plasmid_gene_freq = {}
+        if html_files['plasmidfinder']:
+            print("\n🧬 Processing PlasmidFinder report...")
+            plasmid_by_sample, plasmid_gene_freq = self.parser.parse_plasmidfinder_report(
+                html_files['plasmidfinder'][0], total_samples
+            )
+            parsing_summary['plasmidfinder'] = {
+                'samples': len(plasmid_by_sample),
+                'genes': len(plasmid_gene_freq)
+            }
+            # Add plasmidfinder samples
+            for sample in plasmid_by_sample.keys():
+                all_samples.add(sample)
+            print(f"    ✅ PlasmidFinder: {len(plasmid_by_sample)} samples, {len(plasmid_gene_freq)} plasmid markers")
+        else:
+            print("  ⚠️ No PlasmidFinder file found - plasmid section will not be created")
+        
         # Update total samples with all sources
         total_samples = len(all_samples)
         all_samples = sorted(list(all_samples))
@@ -4240,11 +5051,12 @@ class GeniusUltimateReporter:
         
         print(f"\n📊 Final count: {total_samples} unique samples across all data sources")
         
-        # 6. Integrate data for each sample
+        # 7. Integrate data for each sample
         samples_with_typing = 0
         samples_with_amr = 0
         samples_with_virulence = 0
         samples_with_environmental = 0
+        samples_with_plasmids = 0
         
         for sample in all_samples:
             # Get typing data using normalized sample names
@@ -4282,10 +5094,15 @@ class GeniusUltimateReporter:
             if 'bacmet2' in abricate_data:
                 environmental_genes.extend(abricate_data['bacmet2'].get(sample, []))
             
+            # Get plasmid genes from PlasmidFinder (ONLY if file exists)
+            plasmid_genes = []
+            if plasmid_by_sample:  # Only if plasmidfinder file was found and parsed
+                plasmid_genes = plasmid_by_sample.get(sample, [])
+            
             # Get other genes from other databases
             other_genes = []
             for db_name, db_data in abricate_data.items():
-                if db_name not in ['vfdb', 'victors', 'ecoli_vf', 'bacmet2']:
+                if db_name not in ['vfdb', 'victors', 'ecoli_vf', 'bacmet2', 'plasmidfinder']:
                     other_genes.extend(db_data.get(sample, []))
             
             # Count samples with data
@@ -4297,6 +5114,8 @@ class GeniusUltimateReporter:
                 samples_with_virulence += 1
             if environmental_genes:
                 samples_with_environmental += 1
+            if plasmid_genes:  # Only count if plasmidfinder file exists
+                samples_with_plasmids += 1
             
             # Create sample data
             sample_data = {
@@ -4306,18 +5125,27 @@ class GeniusUltimateReporter:
                 'amr_genes': list(set(amr_genes)),
                 'virulence_genes': list(set(virulence_genes)),
                 'environmental_genes': list(set(environmental_genes)),
+                'plasmid_genes': list(set(plasmid_genes)),  # Store plasmid genes
                 'other_genes': list(set(other_genes))
             }
             
             integrated_data['samples'][sample] = sample_data
         
-        # 7. Store gene frequencies
-        integrated_data['gene_frequencies'] = {
-            'amrfinder': amr_gene_freq,
-            'abricate': abricate_gene_freq
+        # 8. Store gene frequencies 
+            integrated_data['gene_frequencies'] = {
+                'amrfinder': amr_gene_freq,
+                'abricate': abricate_gene_freq
         }
         
-        # 8. Process gene-centric data and patterns
+        # IMPORTANT: Store plasmidfinder data separately so create_plasmid_analysis can find it
+        if plasmid_gene_freq:
+            integrated_data['gene_frequencies']['plasmidfinder'] = plasmid_gene_freq
+            integrated_data['plasmidfinder_data'] = {
+                'by_sample': plasmid_by_sample,
+                'gene_freq': plasmid_gene_freq
+            }
+        
+        # 9. Process gene-centric data and patterns
         print("\n🧠 Processing gene-centric analysis...")
         integrated_data['gene_centric'] = self.analyzer.create_gene_centric_tables(
             integrated_data, total_samples
@@ -4326,14 +5154,24 @@ class GeniusUltimateReporter:
             integrated_data, total_samples
         )
         
-        # 9. Store parsing summary
+        # 10. Process plasmid analysis ONLY if plasmidfinder file exists AND has data
+        if plasmid_gene_freq:  # Check if we have plasmid gene frequency data
+            print("\n🧬 Processing plasmid analysis...")
+            integrated_data['plasmid_analysis'] = self.analyzer.create_plasmid_analysis(integrated_data, total_samples)
+            print(f"    ✅ Plasmid analysis created with {len(integrated_data['plasmid_analysis'].get('plasmid_databases', {}).get('plasmidfinder', []))} markers")
+        else:
+            print("\n⚠️ Skipping plasmid analysis - no PlasmidFinder data found")
+            integrated_data['plasmid_analysis'] = {}  # Empty dict
+
+        # 11. Store parsing summary
         integrated_data['parsing_summary'] = {
             'total_samples': total_samples,
             'samples_with_typing': samples_with_typing,
             'samples_with_amr': samples_with_amr,
             'samples_with_virulence': samples_with_virulence,
             'samples_with_environmental': samples_with_environmental,
-            'databases_parsed': len(abricate_summary) + (1 if amr_by_sample else 0),
+            'samples_with_plasmids': samples_with_plasmids,
+            'databases_parsed': len(abricate_summary) + (1 if amr_by_sample else 0) + (1 if plasmid_by_sample else 0),
             'abricate_summary': abricate_summary,
             **parsing_summary
         }
@@ -4345,9 +5183,11 @@ class GeniusUltimateReporter:
         print(f"  ✅ Samples with AMR genes: {samples_with_amr} ({samples_with_amr/total_samples*100:.1f}%)")
         print(f"  ✅ Samples with virulence genes: {samples_with_virulence} ({samples_with_virulence/total_samples*100:.1f}%)")
         print(f"  ✅ Samples with environmental markers: {samples_with_environmental} ({samples_with_environmental/total_samples*100:.1f}%)")
-        print(f"  ✅ Databases successfully parsed: {len(abricate_summary) + (1 if amr_by_sample else 0)}")
+        if plasmid_by_sample:
+            print(f"  ✅ Samples with plasmid markers: {samples_with_plasmids} ({samples_with_plasmids/total_samples*100:.1f}%)")
+        print(f"  ✅ Databases successfully parsed: {len(abricate_summary) + (1 if amr_by_sample else 0) + (1 if plasmid_by_sample else 0)}")
         
-        return integrated_data
+        return integrated_data 
     
     def generate_json_report(self, integrated_data: Dict[str, Any]) -> Path:
         """Generate comprehensive JSON report"""
@@ -4409,8 +5249,9 @@ class GeniusUltimateReporter:
                 'AMR_Gene_Count': len(data['amr_genes']),
                 'Virulence_Gene_Count': len(data['virulence_genes']),
                 'Environmental_Gene_Count': len(data['environmental_genes']),
+                'Plasmid_Gene_Count': len(data.get('plasmid_genes', [])),  
                 'Other_Gene_Count': len(data['other_genes']),
-                'Total_Gene_Count': len(data['amr_genes']) + len(data['virulence_genes']) + len(data['environmental_genes']) + len(data['other_genes'])
+                'Total_Gene_Count': len(data['amr_genes']) + len(data['virulence_genes']) + len(data['environmental_genes']) + len(data.get('plasmid_genes', [])) + len(data['other_genes'])
             }
             samples_data.append(row)
         
@@ -4588,8 +5429,35 @@ class GeniusUltimateReporter:
             coverage_file = self.output_dir / "acinetobacter_database_coverage.csv"
             df_coverage.to_csv(coverage_file, index=False)
             print(f"    ✅ Database coverage: {len(coverage_data)} databases")
+
+        # 8. Plasmid analysis - FIXED: Check for plasmid data correctly
+        plasmid_data = []
+        plasmid_analysis = integrated_data.get('plasmid_analysis', {})
         
-        print(f"    ✅ All CSV reports saved in: {self.output_dir}")
+        # Check if we have plasmid data - fixed condition
+        if plasmid_analysis.get('plasmid_databases'):
+            for db_name, plasmids in plasmid_analysis.get('plasmid_databases', {}).items():
+                for plasmid_info in plasmids:
+                    plasmid_data.append({
+                        'Plasmid_Marker': plasmid_info['plasmid_marker'],
+                        'Full_Name': plasmid_info.get('full_name', plasmid_info['plasmid_marker']),
+                        'Category': plasmid_info['category'],
+                        'Database': plasmid_info['database'],
+                        'Frequency': plasmid_info.get('frequency_display', f"{plasmid_info['count']} ({plasmid_info.get('percentage', 0):.1f}%)"),
+                        'Count': plasmid_info['count'],
+                        'Percentage': round(plasmid_info.get('percentage', 0), 2),
+                        'Genomes': ';'.join(plasmid_info.get('genomes', []))
+                    })
+
+            if plasmid_data:
+                df_plasmid = pd.DataFrame(plasmid_data)
+                plasmid_file = self.output_dir / "acinetobacter_plasmid_analysis.csv"
+                df_plasmid.to_csv(plasmid_file, index=False)
+                print(f"    ✅ Plasmid analysis: {len(plasmid_data)} markers")
+            else:
+                print(f"    ⚠️ No plasmid markers found in plasmid analysis")
+        else:
+            print(f"    ⚠️ No plasmid analysis data available - skipping plasmid CSV")     
     
     def run(self):
         """Run the complete analysis for A. baumannii"""
@@ -4654,6 +5522,21 @@ class GeniusUltimateReporter:
         total_virulence_genes = sum(len(db) for db in gene_centric.get('virulence_databases', {}).values())
         total_environmental_genes = sum(len(db) for db in gene_centric.get('environmental_databases', {}).values())
         
+        # Check if we have plasmid data - FIXED LOGIC
+        plasmid_analysis = integrated_data.get('plasmid_analysis', {})
+        has_plasmid_data = False
+        total_plasmid_genes = 0
+        samples_with_plasmids = 0
+        
+        # Check for plasmid data more thoroughly
+        if plasmid_analysis:
+            plasmid_databases = plasmid_analysis.get('plasmid_databases', {})
+            if plasmid_databases:
+                has_plasmid_data = True
+                total_plasmid_genes = sum(len(db) for db in plasmid_databases.values())
+                plasmid_stats = plasmid_analysis.get('plasmid_summary_stats', {})
+                samples_with_plasmids = plasmid_stats.get('samples_with_plasmids', 0)
+        
         # Count carbapenemases and environmental markers
         carbapenemase_count = 0
         environmental_marker_count = 0
@@ -4681,6 +5564,8 @@ class GeniusUltimateReporter:
         print(f"   • acinetobacter_gene_categories.csv (Resistance mechanism analysis)")
         print(f"   • acinetobacter_patterns.csv (MDR/XDR patterns)")
         print(f"   • acinetobacter_database_coverage.csv (Database performance)")
+        if has_plasmid_data:
+            print(f"   • acinetobacter_plasmid_analysis.csv (Plasmid marker analysis)")
         
         print(f"\n🔬 KEY IMPROVEMENTS:")
         print(f"   • ✅ Environmental resistance & co-selection markers added")
@@ -4689,6 +5574,8 @@ class GeniusUltimateReporter:
         print(f"   • ✅ BACMET2 and VICTORS database markers categorized")
         print(f"   • ✅ Heavy metal, biocide, stress response tracking")
         print(f"   • ✅ Environmental co-selection pattern discovery")
+        if has_plasmid_data:
+            print(f"   • ✅ Plasmid analysis from PlasmidFinder")
         
         print(f"\n📈 ANALYSIS SUMMARY:")
         print(f"   • Total samples analyzed: {total_samples}")
@@ -4696,6 +5583,9 @@ class GeniusUltimateReporter:
         print(f"   • Samples with AMR genes: {parsing_summary.get('samples_with_amr', 0)} ({parsing_summary.get('samples_with_amr', 0)/total_samples*100:.1f}%)")
         print(f"   • Samples with virulence genes: {parsing_summary.get('samples_with_virulence', 0)} ({parsing_summary.get('samples_with_virulence', 0)/total_samples*100:.1f}%)")
         print(f"   • Samples with environmental markers: {parsing_summary.get('samples_with_environmental', 0)} ({parsing_summary.get('samples_with_environmental', 0)/total_samples*100:.1f}%)")
+        if has_plasmid_data:
+            print(f"   • Samples with plasmid markers: {samples_with_plasmids} ({samples_with_plasmids/total_samples*100:.1f}%)")
+            print(f"   • Plasmid markers detected: {total_plasmid_genes}")
         print(f"   • Carbapenemase genes detected: {carbapenemase_count}")
         print(f"   • Environmental resistance markers: {environmental_marker_count}")
         print(f"   • Total AMR genes: {total_amr_genes}")
@@ -4709,9 +5599,14 @@ class GeniusUltimateReporter:
         print(f"   1. Open genius_acinetobacter_ultimate_report.html in your browser")
         print(f"   2. Check 'Environmental' tab for co-selection markers")
         print(f"   3. Review 'AMR Genes' tab - frequency shown as 'count (percentage%)'")
-        print(f"   4. Check 'Pattern Discovery' for environmental co-selection patterns")
-        print(f"   5. Use 'Gene Categories' to analyze resistance mechanisms")
-        print(f"   6. Export data for surveillance reporting")
+        if has_plasmid_data:
+            print(f"   4. Check 'Plasmids' tab for plasmid marker analysis")
+            step_offset = 1
+        else:
+            step_offset = 0
+        print(f"   {5 + step_offset}. Check 'Pattern Discovery' for environmental co-selection patterns")
+        print(f"   {6 + step_offset}. Use 'Gene Categories' to analyze resistance mechanisms")
+        print(f"   {7 + step_offset}. Export data for surveillance reporting")
         
         print(f"\n⚠️  CRITICAL FINDINGS ALERT:")
         if carbapenemase_count > 0:
@@ -4722,6 +5617,8 @@ class GeniusUltimateReporter:
             print(f"   • 🔴 {high_risk} samples with carbapenemase + last-resort resistance")
         if mdr_patterns > 0:
             print(f"   • 🟡 {mdr_patterns} MDR/XDR A. baumannii isolates identified")
+        if has_plasmid_data and samples_with_plasmids > 0:
+            print(f"   • 🔵 {samples_with_plasmids} samples with plasmid markers - potential for horizontal gene transfer")
         
         if carbapenemase_count == 0 and high_risk == 0 and mdr_patterns == 0:
             print(f"   • ✅ No critical resistance patterns detected")
