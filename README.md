@@ -12,6 +12,13 @@
  A C I N E T O B A C T E R   B A U M A N N I I   G E N O M I C   S U R V E I L L A N C E   T O O L
                               S C I E N C E · P R E C I S I O N · I M P A C T
 ```
+### **A species-specific computational pipeline for rapid, comprehensive *Acinetobacter baumannii* outbreak investigation and resistance gene tracking**
+
+**Complete genomic surveillance in a single automated workflow — from FASTA to actionable insights.**
+
+📖 Documentation • ⚡ Quick Start • ✨ Features • 🔧 Installation • 🚀 Usage • 📊 Output • 🤖 AI-Enhanced Analysis • 📈 Performance
+
+* * *
 <div align="center">
 
 # 🦠 AcinetoScope
@@ -29,307 +36,282 @@
 
 </div>
 
-## 🚀 Revolutionizing A. baumannii Genomic Analysis
 
-**AcinetoScope** is a comprehensive, parallelized bioinformatics pipeline that solves the fragmentation problem in *Acinetobacter baumannii* genomic analysis. By integrating multiple analysis modules into a unified, automated workflow, it provides clinical microbiologists and researchers with a complete solution from raw sequencing data to meaningful insights.
 
-```
-📊 BEFORE: 6 separate tools, manual integration, hours of work
-╔══════════════════════════════════════════════════════════════════════════════╗
-║  FASTQC → MLST → Kaptive → AMRFinder → ABRicate → Summary Reports            ║
-║  │         │        │          │           │              │                  ║
-║  │         │        │          │           │              │                  ║
-║  │         │        │          │           │              │                  ║
-║  └─────┬───┴───┬────┴────┬─────┴─────┬─────┴──────┬───────┘                  ║
-║        │       │         │           │            │                          ║
-║  6 HOURS     MANUAL    ERROR     INCONSISTENT  FRAGMENTED                    ║
-║              MERGE     PRONE       OUTPUTS       RESULTS                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+## 📋 **Table of Contents**
+*   [🎯 Overview](#-overview)
+*   [✨ Key Features](#-key-features)
+*   [⚡ Quick Start](#-quick-start)
+*   [🔧 Installation](#-installation)
+*   [🚀 Usage Guide](#-usage-guide)
+*   [📊 Output Structure](#-output-structure)
+*   [🔍 Analytical Modules](#-analytical-modules)
+*   [🤖 AI-Enhanced Analysis](#-ai-enhanced-analysis)
+*   [📈 Performance & Validation](#-performance--validation)
+*   [📚 Citation](#-citation)
+*   [👥 Authors & Contact](#-authors--contact)
+*   [📄 License](#-license)
 
-📊 AFTER: 1 command, automated integration, parallel execution
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                    acinetoscope -i "*.fna" -o results --threads 8            ║
-║                                                                              ║
-║                    🚀 PARALLEL EXECUTION (8 workers)                         ║
-║                    ┌─────────┬─────────┬─────────┬─────────┐                 ║
-║                    │  QC     │ MLST    │ Kaptive │ AMR     │                 ║
-║                    │         │         │         │         │                 ║
-║                    │  MODULE │ MODULE  │ MODULE  │ MODULE  │                 ║
-║                    └─────────┴─────────┴─────────┴─────────┘                 ║
-║                    ┌─────────┬─────────┬───────────────────┐                 ║
-║                    │ABRicate │Summary  │    45 MINUTES     │                 ║
-║                    │ MODULE  │MODULE   │  (not 6 hours!)   │                 ║
-║                    └─────────┴─────────┴───────────────────┘                 ║
-║                                                                              ║
-║                    ✅ COMPLETE  ✅ INTEGRATED  ✅ CONSISTENT                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+* * *
 
-## 🌟 Why AcinetoScope?
+## 🎯 **Overview**
 
-### The Problem: Bioinformatics Fragmentation
-Current *A. baumannii* analysis requires running 6+ separate tools, manually integrating results, dealing with inconsistent outputs, and spending hours on data processing. This fragmentation leads to:
-- **Time-consuming manual integration**
-- **Inconsistent result formats**
-- **Missed critical genetic markers**
-- **Difficulty in outbreak tracking**
-- **Reproducibility challenges**
+**AcinetoScope** is an automated, comprehensive bioinformatics pipeline designed specifically for the genomic analysis of *Acinetobacter baumannii*, a critical multidrug-resistant nosocomial pathogen. It integrates fragmented analysis steps—quality control, dual-scheme MLST typing, capsule (K/O) typing, antimicrobial resistance (AMR) detection, virulence profiling, and environmental co-selection marker screening—into a single, cohesive workflow.
 
-### The Solution: Unified Parallel Pipeline
-AcinetoScope eliminates fragmentation by providing:
-- **🚀 Parallel Execution**: All modules run simultaneously
-- **🎯 Critical Gene Tracking**: 300+ scientifically curated markers
-- **📊 Interactive Reports**: Gene-centric HTML summaries
-- **⚡ One-Command Analysis**: From FASTA to final reports
-- **🔬 Scientific Accuracy**: Research-grade analysis pipelines
+### 🌍 **The Problem**
+*   **Fragmented Workflows**: Analyzing *A. baumannii* requires manual chaining of 6+ separate tools (MLST, Kaptive, AMRFinder, ABRicate, etc.).
+*   **Interpretation Barrier**: Raw outputs from multiple tools need manual integration to form an epidemiological narrative.
+*   **Time-Consuming Process**: Generalist pipelines like Bactopia perform unnecessary steps, slowing down outbreak response.
 
-## 🧬 Comprehensive Critical Gene Tracking
+### 💡 **Our Solution**
+AcinetoScope delivers:
+*   **✅ End-to-End Automation**: One command runs the entire analysis from raw FASTA to a consolidated report.
+*   **✅ *A. baumannii*-Optimized**: Pre-configured with species-specific databases and typing schemes (Pasteur & Oxford MLST, Kaptive K/O loci).
+*   **✅ Actionable Intelligence**: Features a four-tier risk flagging system (CRITICAL, HIGH, MEDIUM, LOW) and gene-centric tracking to highlight high-threat resistance determinants.
+*   **✅ Speed & Efficiency**: Benchmarked **40-75% faster** than generalist pipelines by eliminating redundant processing.
+*   **✅ AI-Ready Outputs**: Generates interactive HTML reports designed for seamless exploration with modern AI browser extensions.
 
-AcinetoScope tracks **300+ scientifically curated critical genes** across multiple categories:
+**Perfect for**: Hospital outbreak investigation, public health surveillance, antimicrobial resistance (AMR) research, and clinical microbiology.
 
-### 🚨 Priority 1: Life-Threatening Resistance
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                     CRITICAL CARBAPENEMASE SURVEILLANCE                      ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║  OXA-type (23, 24, 40, 51, 58, 66, 69, 71, 143, 235, 236, 237, 267, 317)     ║
-║  Metallo-β-lactamases (NDM-1-5, VIM-1-4, IMP-1-5, KPC-2-4)                   ║
-║  Other carbapenemases (GES, SIM, SPM, AIM)                                   ║ 
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+* * *
 
-### 💊 ESBL & AmpC Detection
-- **ESBLs**: CTX-M (1,2,3,9,14,15,27,55), SHV (1,2,5,11,12), TEM (1,2,10,52), PER (1-3), VEB (1-2)
-- **AmpC**: ADC (1,2,5,7,10,11,30,69,75,88,176)
+## ✨ **Key Features**
 
-### 🛡️ Last-Resort Antibiotic Resistance
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                   LAST LINE OF DEFENSE - TRACKING GENES                      ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║  🚨 COLISTIN: mcr-1 to mcr-10, pmrABC, lpxACD, eptA, arnA-F, phoPQ           ║
-║  🚨 TIGECYCLINE: tet(X1-6), tet(39), adeRSABC, adeJKNT                       ║
-║  🏥 BIOFILM: ompA, csuABCDE, bfmRS, pgaABCD, bap, pilABCDEF                  ║
-║  🧬 EFFLUX PUMPS: adeA-N, abeMS, amvA, craA, mexJKT, mdeA, mdfA/cmr          ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+### 🔬 **Core Analytical Modules**
+| Module | 🎯 Purpose | 📊 Key Outputs | ⚡ Speed |
+| :--- | :--- | :--- | :--- |
+| **Quality Control** | Assembly metric assessment & integrity checking | N50/N75, GC%, ambiguous bases, homopolymers | <1 min |
+| **Dual MLST Typing** | Phylogenetic classification via Pasteur & Oxford schemes | Sequence Type (ST), International Clone (IC), novel alleles | <1 min |
+| **Capsule (K/O) Typing** | Polysaccharide capsule & lipooligosaccharide typing via Kaptive | K type, O type, locus coverage/identity | 1-2 min |
+| **AMR Detection** | Comprehensive resistance gene detection with AMRFinderPlus | Carbapenemases, ESBLs, colistin/tigecycline resistance, 4-tier risk flags | 2-3 min |
+| **Multi-DB Screening** | Screening across 11 curated databases via ABRicate | Virulence factors, plasmid replicons, metal/biocide resistance, stress regulators | 3-4 min |
+| **Integrated Reporting** | Synthesizes all results into gene-centric, interactive reports | HTML dashboard, JSON/CSV/TSV exports, pattern discovery | Instant |
 
-### 🏥 Hospital Environment Survival Genes
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║            ENVIRONMENTAL CO-SELECTION & HOSPITAL PERSISTENCE                 ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║  🧪 Biocide Resistance: qacA-J, qacEA1, cepA, formABC, oqxAB                 ║
-║  ⚙️ Metal Resistance: czcABCD, merA-J, arsA-J, copA-J, zntA-J                 ║
-║  🧬 Stress Response: soxRS, marABC, robA, rpoS, phoBR                        ║
-║  🔄 Mobile Elements: traA-X, mobA-H, intI1-3, tnpA-F, istAB                  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+### 🚨 **Innovations for *A. baumannii* Surveillance**
+*   **Four-Tier Risk Flagging**: Automatically categorizes resistance genes (e.g., OXA-23 → CRITICAL; *qacE* → ENVIRONMENTAL).
+*   **Environmental Co-Selection Tracking**: Uniquely screens for heavy metal (*czc, mer, ars*) and biocide (*qac*) resistance genes.
+*   **Gene-Centric Analysis Framework**: Tracks each resistance gene across all samples for clear visualization of dissemination patterns.
+*   **Cross-Genome Pattern Discovery**: Automatically identifies high-risk combinations (e.g., carbapenemase + last-resort resistance).
+*   **Dynamic Resource Allocation**: Uses Python's `psutil` to optimize parallel processing for any system (from laptops to HPC clusters).
 
-### 🔬 Multi-Database Integration
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                    COMPREHENSIVE DATABASE COVERAGE                           ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║  🎯 AMR: AMRFinder, CARD, ResFinder, NCBI, MEGARes                           ║
-║  🦠 Virulence: VFDB, Victors, BacMet2, EcoH_VF                               ║
-║  🧬 Typing: MLST (Oxford & Pasteur), Kaptive K/O Locus                       ║
-║  📊 Quality: Comprehensive FASTA QC with multi-metric scoring                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+* * *
 
-## 🚀 Key Features
+## ⚡ **Quick Start**
 
-### 📊 Interactive HTML Reports
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                    GENE-CENTRIC INTERACTIVE DASHBOARD                        ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║  📈 Interactive HTML reports   🔬 Cross-genome pattern discovery             ║
-║  🎯 Risk Stratification        📊 Multi-Sample Comparisons                   ║
-║  🧬 Phylogenetic Context       🏥 Clinical Relevance Scoring                 ║
-║  📋 Export to CSV/JSON         🖨️ Statistical analysis                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
-
-### 🎯 Scientific Accuracy & Curation
-- **300+ scientifically validated gene markers**
-- **BACMET2-compliant environmental resistance tracking**
-- **Clinically relevant gene categorization**
-- **Research-grade analysis pipelines**
-
-## 📦 Installation
-
-### Quick Install with Conda
+### **Install in 60 Seconds**
 ```bash
-conda create -n acinetoscope -c bioconda -c conda-forge acinetoscope
+# Method 1: Conda (Recommended - handles all dependencies)
+conda create -n acinetoscope -c conda-forge -c bioconda acinetoscope -y
 conda activate acinetoscope
-```
 
-### From Source
-```bash
+# Method 2: From source
 git clone https://github.com/bbeckley-hub/acinetoscope.git
 cd acinetoscope
 pip install -e .
 ```
 
-### Docker
+### **Run Your First Analysis**
 ```bash
-docker pull bbeckleyhub/acinetoscope:latest
-docker run -v $(pwd)/data:/data bbeckley/acinetoscope \
-  -i /data/*.fna -o /data/results --threads 8
+# Analyze a single genome
+acinetoscope -i sample.fasta -o results/
+
+# Batch process multiple genomes
+acinetoscope -i "*.fasta" -o batch_results --threads 8
+
+# Analysis complete! Explore the interactive report.
+# The main report is in: batch_results/GENIUS_ACINETOBACTER_ULTIMATE_REPORTS/
 ```
 
-## 🚦 Quick Start
+* * *
 
-### Single Genome Analysis
+## 🔧 **Installation**
+
+### **System Requirements**
+| Resource | Minimum | Recommended |
+| :--- | :--- | :--- |
+| **CPU Cores** | 2 | 4+ |
+| **RAM** | 4 GB | 8 GB |
+| **Storage** | 2 GB | 10 GB+ |
+| **OS** | Linux, macOS, WSL2 | Linux |
+
+### **Step-by-Step Installation**
+1.  **Install Miniconda** (if needed):
+    ```bash
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh
+    # Follow prompts, then:
+    source ~/.bashrc
+    ```
+2.  **Install AcinetoScope**:
+    ```bash
+    conda create -n acinetoscope -c conda-forge -c bioconda acinetoscope
+    conda activate acinetoscope
+    ```
+3.  **(Recommended) Update ABRicate Databases**:
+    ```bash
+    abricate --setupdb
+    ```
+
+* * *
+
+## 🚀 **Usage Guide**
+
+### **Basic Command**
 ```bash
-acinetoscope -i sample.fasta -o results/ --threads 4
+acinetoscope -i <INPUT_PATTERN> -o <OUTPUT_DIR> [OPTIONS]
+```
+**Example**: `acinetoscope -i "genomes/*.fna" -o my_analysis -t 4`
+
+### **Command Line Options**
+| Flag | Description | Default |
+| :--- | :--- | :--- |
+| `-i, --input` | Input FASTA file(s). Supports wildcards (`*.fna`). | **Required** |
+| `-o, --output` | Directory for all results. | **Required** |
+| `-t, --threads` | Number of CPU threads to use. | Auto-detected |
+| `--skip-qc` | Skip the quality control module. | False |
+| `--skip-summary` | Skip the final integrated report generation. | False |
+| `--mlst-scheme` | Specify scheme: `pasteur`, `oxford`, or `both`. | `both` |
+| `--verbose` | Print detailed progress messages. | False |
+
+### **Input Requirements**
+*   **Format**: Assembled genomes in FASTA format (`.fna`, `.fasta`, `.fa`, `.fn`).
+*   **Content**: The pipeline is designed exclusively for *Acinetobacter baumannii* genomes.
+
+* * *
+
+## 📊 **Output Structure**
+AcinetoScope generates a well-organized directory structure. A typical run on 10 genomes produces over 500 files, systematically organized as shown in your `tree` output. The key directories are:
+
+```
+analysis/
+├── fasta_qc_results/                 # Quality control reports per sample
+├── PASTEUR_MLST/                     # MLST results (Pasteur scheme)
+├── OXFORD_MLST/                      # MLST results (Oxford scheme)
+├── kaptive_results/                  # Capsule (K) and lipooligosaccharide (O) typing
+├── acineto_amrfinder_results/        # AMR gene detection with risk stratification
+├── acineto_abricate_results/         # Multi-database screening (11 DBs)
+└── GENIUS_ACINETOBACTER_ULTIMATE_REPORTS/  # 🎯 FINAL INTEGRATED REPORT
+    ├── genius_acinetobacter_ultimate_report.html  # Interactive HTML Dashboard
+    ├── genius_acinetobacter_ultimate_report.json  # Complete data (machine-readable)
+    └── *.csv files for easy import into spreadsheets
 ```
 
-### Batch Processing
-```bash
-acinetoscope -i "*.fna" -o batch_results/ --threads 8
-```
+* * *
 
-### Specific Module Selection
-```bash
-# Skip QC and summary for faster analysis
-acinetoscope -i "*.fasta" -o results/ --threads 6 --skip-qc --skip-summary
+## 🔍 **Analytical Modules**
 
-# Only MLST Pasteur scheme
-acinetoscope -i genomes/ -o analysis/ --threads 4 --mlst-scheme pasteur
-```
+### **1. Quality Control Module**
+Validates input FASTA files using *A. baumannii*-specific thresholds (GC% 35-65%, ambiguous bases <5%). Generates per-sample and summary reports.
 
-## 📁 Output Structure
+### **2. Dual MLST Typing Module**
+Runs the `mlst` tool with both **Pasteur** and **Oxford** schemes. Identifies International Clones (IC1-IC10) and novel alleles.
 
-```
-results/
-├── 📊 fasta_qc_results/                    # Quality control reports
-├── 🧬 PASTEUR_MLST/                        # MLST Pasteur scheme results
-├── 🧬 OXFORD_MLST/                         # MLST Oxford scheme results  
-├── 🔬 kaptive_results/                     # K/O locus typing
-├── 💊 acineto_amrfinder_results/          # AMR gene detection
-├── 🦠 acineto_abricate_results/           # Multi-database screening
-└── 📈 GENIUS_ACINETOBACTER_ULTIMATE_REPORTS/
-    ├── 📄 gene_centric_summary.html       # Interactive dashboard
-    ├── 📋 complete_analysis.json          # Machine-readable output
-    
-```
+### **3. Capsule Typing Module**
+Utilizes **Kaptive** with *A. baumannii*-specific databases (`ab_k`, `ab_o`) for high-resolution capsule (K) and lipooligosaccharide (O) typing.
 
-## 🔬 Analysis Modules
+### **4. AMR Detection Module**
+Leverages **NCBI's AMRFinderPlus** to identify and categorize resistance determinants, applying the four-tier risk flagging system (CRITICAL, HIGH, MEDIUM, LOW).
 
-### 1. 🧬 MLST Typing Module
-- **Dual scheme support**: Oxford & Pasteur
-- **Batch processing**: Multiple genomes simultaneously with glob patterns "*.fasta"
-- **HTML summaries**: Interactive typing reports
-- **Sequence type tracking**: Outbreak cluster detection
+### **5. Comprehensive Screening Module**
+Executes **ABRicate** across 11 databases (CARD, ResFinder, VFDB, PlasmidFinder, BacMet2, etc.) to detect virulence factors, plasmid replicons, and environmental co-selection markers.
 
-### 2. 🔬 Kaptive K/O Locus Module
-- **Capsule typing**: Complete K locus analysis
-- **Lipooligosaccharide**: O locus determination
-- **Confidence scoring**: Quality metrics for typing
+### **6. Integrated Reporting Module**
+The **GENIUS Acinetobacter Reporter** synthesizes all results into a **gene-centric interactive HTML report**, enabling cross-sample pattern discovery and high-risk combination identification.
 
-### 3. 💊 AMR Detection Module
-- **AMRFinderPlus**: Comprehensive resistance gene detection
-- **Critical gene highlighting**: Priority resistance markers
-- **Percentage-based reporting**: Sample frequency analysis
-- **Risk stratification**: Clinical relevance scoring
+* * *
 
-### 4. 🦠 Multi-Database Screening Module
-- **8 databases**: CARD, ResFinder, NCBI, VFDB, ARG-ANNOT, MEGARES, VICTORS, BacMet2
-- **Environmental markers**: Hospital persistence genes
-- **Plasmid screening**: Mobile genetic element detection
-- **Virulence factors**: Pathogenicity assessment
+## 🤖 **AI-Enhanced Analysis**
 
-### 5. 📊 Quality Control Module
-- **FASTA validation**: Sequence integrity checking
-- **Contamination screening**: Multi-metric quality scoring
-- **Completeness assessment**: Assembly quality metrics
-- **Visual reports**: Interactive QC dashboards
+AcinetoScope's interactive HTML reports are **designed for AI augmentation**. You can use browser AI extensions (ChatGPT, Claude, Gemini, Copilot) to interrogate your genomic data conversationally.
 
-### 6. 📈 Ultimate Reporter Module
-- **Gene-centric integration**: All results in one view
-- **Interactive filtering**: Dynamic data exploration
-- **Export functionality**: CSV, JSON, HTML outputs
+### **🎯 Guiding Principle: AI Assists, Experts Decide!**
+Use AI as a collaborative tool to explore data and generate hypotheses, but always apply your domain expertise for final interpretation and clinical decisions.
 
-## 🏥 Clinical & Research Applications
+### **🚀 Step-by-Step AI Integration**
 
-### Hospital Infection Control
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                    OUTBREAK DETECTION WORKFLOW                               ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║  1. 📥 Upload patient isolates (n=50)                                        ║
-║  2. 🚀 Run: acinetoscope -i "*.fna" -o outbreak/ --threads 8                 ║
-║  3. 🔬 Detect: ST2/OXA-23 cluster in 12/50 samples                           ║
-║  4. 🎯 Identify: mcr-1 in 3/50 → immediate infection control measures        ║
-║  5. 📊 Report: Interactive dashboard for hospital epidemiology team          ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+1.  **Generate Your Report**: Run AcinetoScope to create the `genius_acinetobacter_ultimate_report.html`.
+2.  **Install an AI Assistant**: Add a browser extension like **ChatGPT for Chrome**, **Claude**, or **Microsoft Copilot** to your browser.
+3.  **Open and Explore**:
+    *   Open the HTML report in your browser.
+    *   Use the AI extension's "ask about this page" feature or simply copy-paste findings into the chat.
+4.  **Ask Powerful Questions**:
+    *   **"Summarize the primary resistance threat in these isolates."**
+    *   **"Is there evidence of an outbreak cluster based on the ST and capsule types?"**
+    *   **"Which samples carry both a carbapenemase and a colistin resistance mechanism? List them."**
+    *   **"Generate a concise clinical risk assessment for infection control."**
+    *   **"Suggest antibiotic treatment options based on this resistance profile."**
 
-### Research Studies
-- **Longitudinal surveillance**: Track resistance evolution
-- **Geographic distribution**: Map resistance gene spread  
-- **Treatment efficacy**: Correlate genotypes with outcomes
-- **Novel gene discovery**: Identify emerging resistance markers
+### **💡 Example AI Interaction**
+**Your Prompt**: "I'm looking at the AcinetoScope report for 10 ICU isolates. The summary says 8 are ST2 and carry OXA-23. What's the immediate implication?"
 
-### Public Health
-- **Regional surveillance**: Monitor resistance trends
-- **Early warning systems**: Detect emerging threats
-- **Policy guidance**: Data-driven antibiotic stewardship
-- **Global tracking**: International resistance monitoring
+**AI Assistant Response**: "This suggests a likely clonal outbreak of a high-risk carbapenem-resistant *A. baumannii* (CRAB) strain in your ICU. Immediate actions should include: 1) Reviewing infection control practices, 2) Patient cohorting, 3) Environmental decontamination focus. The co-presence of [other genes from report] indicates limited treatment options, necessitating an infectious disease consult."
 
-## 🧪 Scientific Validation
+* * *
 
-### Peer-Reviewed Methodology
-- **MLST**: Based on Institut Pasteur & Oxford University schemes
-- **AMR detection**: Validated against AMRFinderPlus gold standard
-- **Kaptive**: Published typing algorithm for *A. baumannii*
-- **Gene categorization**: Clinically validated marker lists
+## 📈 **Performance & Validation**
 
-## 📚 Citation & Acknowledgements
+### **⚡ Benchmarking vs. Bactopia**
+AcinetoScope is purpose-built for *A. baumannii*, making it significantly faster than generalist pipelines.
+
+| System Config | Pipeline | Time (50 genomes) | Speed Gain |
+| :--- | :--- | :--- | :--- |
+| 2 CPU, 8 GB RAM | **AcinetoScope** | **~2.5 hours** | **≈40% faster** |
+| | Bactopia | ~4 hours | |
+| 16 CPU, 16 GB RAM | **AcinetoScope** | **~35 minutes** | **≈75% faster** |
+| | Bactopia | ~2.5 hours | |
+
+### **✅ Validation Results**
+Tested on 10 well-characterized reference genomes, AcinetoScope achieved **100% accuracy** in:
+*   MLST typing (Pasteur & Oxford schemes)
+*   Capsule (K/O) type determination
+*   Identification of known antimicrobial resistance genes
+
+### **🔬 Key Findings from Clinical Genomes**
+Analysis of 50 clinical genomes revealed:
+*   **High-Risk Clones**: Dominance of International Clone II (ST2, 46%) and I (ST1, 26%).
+*   **Critical Resistance**: 56% harbored carbapenemase genes (*bla_OXA-23/66*); 96% co-harbored carbapenemase + last-resort resistance genes.
+*   **Environmental Persistence**: 100% contained heavy metal resistance genes; 58% had the biocide resistance gene *qacEdelta1*.
+
+* * *
+
+## 📚 **Citation**
 
 If you use AcinetoScope in your research, please cite:
 
+**Beckley, B. et al.** (2026). AcinetoScope: A Tool for Enhanced Outbreak Investigation and Resistance Gene Tracking in *Acinetobacter baumannii*. *[Journal Name],* [Volume], [Pages]. DOI: [To be assigned].
+
 ```bibtex
 @software{acinetoscope2026,
-  title = {AcinetoScope: A Unified Parallelized Pipeline for Comprehensive Genomic Surveillance of Acinetobacter baumannii and Tracking of Critical Resistance Determinants},
-  author = {Beckley, Brown},
+  title = {AcinetoScope: A Tool for Enhanced Outbreak Investigation and Resistance Gene Tracking in Acinetobacter baumannii},
+  author = {Beckley, Brown and Amarh, Vincent and Lopes, Bruno Silvester and Kakah, John and Kwarteng, Alexander and Olalekan, Adesola and Afeke, Innocent},
   year = {2026},
   publisher = {GitHub},
-  url = {https://github.com/bbeckley-hub/acinetoscope},
-  note = {Complete A. baumannii genomic analysis pipeline with parallel execution}
+  url = {https://github.com/bbeckley-hub/acinetoscope}
 }
 ```
 
-### 🙏 Acknowledgments
-- **University of Ghana Medical School** - Department of Medical Biochemistry
-- **Global AMR Surveillance Network** - Methodology validation
-- **Open Source Bioinformatics Community** - Tool integration
-- **Clinical Microbiology Partners** - Real-world testing and feedback
+* * *
 
-## 🐛 Bug Reports & Feature Requests
+## 👥 **Authors & Contact**
 
-Found a bug or have a feature request? Please open an issue on our [GitHub repository](https://github.com/bbeckley-hub/acinetoscope/issues).
+*   **Brown Beckley** (Corresponding Author) – Department of Medical Biochemistry, University of Ghana Medical School. Email: `brownbeckley94@gmail.com`
+*   Vincent Amarh – University of Ghana Medical School
+*   Bruno Silvester Lopes – Teesside University, UK
+*   John Kakah – University of Ghana Medical School
+*   Alexander Kwarteng – Kwame Nkrumah University of Science and Technology (KNUST)
+*   Adesola Olalekan – University of Lagos
+*   Innocent Afeke – University of Health and Allied Sciences
 
-## 🤝 Contributing
+**GitHub Repository**: [https://github.com/bbeckley-hub/acinetoscope](https://github.com/bbeckley-hub/acinetoscope)
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+* * *
 
-## 📄 License
+## 📄 **License**
 
-AcinetoScope is released under the MIT License. See [LICENSE](LICENSE) for details.
-
-## 📞 Contact & Support
-
-- **Author**: Brown Beckley
-- **Email**: brownbeckley94@gmail.com  
-- **Affiliation**: University of Ghana Medical School - Department of Medical Biochemistry
-- **GitHub**: [bbeckley-hub](https://github.com/bbeckley-hub)
-- **Documentation**: [GitHub Wiki](https://github.com/bbeckley-hub/acinetoscope/wiki)
+This project is licensed under the **MIT License**. See the LICENSE file in the repository for details.
 
 ---
+**⭐ Star us on GitHub if you find AcinetoScope useful!**
 
-</div>
-"Every microbe has its story. We provide the translation."
+**Transforming complex genomic data into clear, actionable insights for tackling AMR.** 🧬✨
+<div>
