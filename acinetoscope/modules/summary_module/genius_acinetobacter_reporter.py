@@ -902,9 +902,9 @@ class UltimateDataAnalyzer:
             'abeM', 'abeS', 'amvA', 'craA' 'adeT1', 'adeT2', 'amvA', 'mexJ', 'mexK', 'mexT', 'mdeA', 'mdfA/cmr', 'mdtN/yjcR'
         }
         
-        # ============================================================================
+        # ================================================================================
         # ENVIRONMENTAL RESISTANCE & CO-SELECTION MARKERS - SCIENTIFICALLY ACCURATE
-        # ============================================================================
+        # ================================================================================
         
         # 1. TRUE BACMET2 MARKERS (Biocide & Metal Resistance only)
         # Based on actual BACMET2 database (http://bacmet.biomedicine.gu.se/)
