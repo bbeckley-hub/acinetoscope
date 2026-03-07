@@ -305,7 +305,20 @@ class AcinetoMLSTAnalyzer:
         """Get lineage information based on ST"""
         # Comprehensive database for A. baumannii
         lineage_db = {
-            "abaumannii": {  # Oxford scheme
+            "abaumannii": {  # Oxford scheme 
+                # IC I
+                '81': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=81"
+                },
                 '231': {
                     "international_clone": "IC I",
                     "clonal_complex": "CC1",
@@ -315,7 +328,21 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
                     "outbreak_potential": "VERY HIGH",
                     "typical_resistance_genes": ["OXA-23", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=231"
+                },
+                # IC II
+                '195': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=195"
                 },
                 '208': {
                     "international_clone": "IC II",
@@ -326,8 +353,10 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
                     "outbreak_potential": "VERY HIGH",
                     "typical_resistance_genes": ["OXA-23", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=208"
                 },
+                # IC III
                 '452': {
                     "international_clone": "IC III",
                     "clonal_complex": "CC3",
@@ -337,65 +366,51 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "HIGH",
                     "typical_resistance_genes": ["OXA-23", "OXA-72"],
+                    "oxa51_variant": "OXA-71 (major); OXA-113 (minor)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=452"
                 },
-                '195': {
-                    "international_clone": "IC IV",
-                    "clonal_complex": "CC4",
-                    "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Worldwide",
-                    "clinical_significance": "Emerging global clone, increasing in prevalence",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE-HIGH",
-                    "typical_resistance_genes": ["OXA-23", "OXA-58"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=195"
-                },
-                '81': {
-                    "international_clone": "IC V",
-                    "clonal_complex": "CC10",
-                    "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Asia, Europe",
-                    "clinical_significance": "Fifth international clone, often OXA-23 producer",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=81"
-                },
+                # IC VII
                 '619': {
-                    "international_clone": "IC VI",
-                    "clonal_complex": "CC109",
-                    "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "South America, Europe",
-                    "clinical_significance": "Sixth international clone, often associated with OXA-58",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-58", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=619"
-                },
-                '114': {
                     "international_clone": "IC VII",
                     "clonal_complex": "CC25",
                     "classification": "Global Epidemic Clone",
                     "geographic_distribution": "Middle East, Asia",
                     "clinical_significance": "Seventh international clone, emerging threat",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-64"],
+                    "oxa51_variant": "OXA-64 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=619"
+                },
+                # Regional / other
+                '114': {
+                    "international_clone": "Regional Clone",
+                    "clonal_complex": "CC114",
+                    "classification": "Epidemic Clone",
+                    "geographic_distribution": "Middle East, Asia",
+                    "clinical_significance": "Emerging clone associated with carbapenem resistance",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-23", "NDM-1"],
+                    "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=114"
                 },
                 '449': {
-                    "international_clone": "IC VIII",
-                    "clonal_complex": "CC164",
-                    "classification": "Global Epidemic Clone",
+                    "international_clone": "Regional Clone",
+                    "clonal_complex": "CC449",
+                    "classification": "Epidemic Clone",
                     "geographic_distribution": "Europe, Middle East",
                     "clinical_significance": "Eighth international clone, often colistin-resistant",
                     "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR"],
                     "outbreak_potential": "HIGH",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like", "mcr-1"],
+                    "oxa51_variant": "OXA-68-like?",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=1&ST=449"
                 }
             },
-            "abaumannii_2": {  # Pasteur scheme - COMPREHENSIVE IC DATABASE
+
+            "abaumannii_2": {  # Pasteur scheme – fully updated with all IC I-IX STs
+                # ==================== IC I (CC1, OXA-69 lineage) ====================
                 '1': {
                     "international_clone": "IC I",
                     "clonal_complex": "CC1",
@@ -404,9 +419,156 @@ class AcinetoMLSTAnalyzer:
                     "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
                     "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
                     "outbreak_potential": "VERY HIGH",
-                    "typical_resistance_genes": ["OXA-23", "OXA-66", "ADC-30", "TEM-1"],
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1"
                 },
+                '19': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=19"
+                },
+                '20': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=20"
+                },
+                '81': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=81"
+                },
+                '94': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=94"
+                },
+                '315': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=315"
+                },
+                '460': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=460"
+                },
+                '623': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=623"
+                },
+                '717': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=717"
+                },
+                '734': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=734"
+                },
+                '986': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=986"
+                },
+                '1090': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1090"
+                },
+                '1106': {
+                    "international_clone": "IC I",
+                    "clonal_complex": "CC1",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide",
+                    "clinical_significance": "Most prevalent global clone, responsible for majority of hospital outbreaks worldwide. Often OXA-23 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-69", "ADC-30", "TEM-1"],
+                    "oxa51_variant": "OXA-69 (major); OXA-92, OXA-107, OXA-110, OXA-112 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1106"
+                },
+
+                # ==================== IC II (CC2, OXA-66 lineage) ====================
                 '2': {
                     "international_clone": "IC II",
                     "clonal_complex": "CC2",
@@ -416,217 +578,624 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
                     "outbreak_potential": "VERY HIGH",
                     "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=2"
                 },
+                '45': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=45"
+                },
+                '187': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=187"
+                },
+                '195': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=195"
+                },
+                '414': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=414"
+                },
+                '492': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=492"
+                },
+                '570': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=570"
+                },
+                '571': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=571"
+                },
+                '577': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=577"
+                },
+                '600': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=600"
+                },
+                '604': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=604"
+                },
+                '664': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=664"
+                },
+                '745': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=745"
+                },
+                '823': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=823"
+                },
+                '1537': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1537"
+                },
+                '1550': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1550"
+                },
+                '1555': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1555"
+                },
+                '1579': {
+                    "international_clone": "IC II",
+                    "clonal_complex": "CC2",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+                    "clinical_significance": "Second most prevalent global clone, associated with nosocomial outbreaks. Frequently OXA-23 and OXA-58 producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "VERY HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-58", "OXA-66", "ADC-30"],
+                    "oxa51_variant": "OXA-66 (major); OXA-82, OXA-83, OXA-84, OXA-109, OXA-172, OXA-201, OXA-202 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1579"
+                },
+
+                # ==================== IC III (CC3, OXA-71 lineage) ====================
                 '3': {
                     "international_clone": "IC III",
                     "clonal_complex": "CC3",
                     "classification": "Global Epidemic Clone",
                     "geographic_distribution": "Worldwide, particularly South America and Europe",
-                    "clinical_significance": "Third major global clone, often associated with OXA-72 carbapenemase",
+                    "clinical_significance": "Third major global clone, often associated with OXA-72 carbapenemase.",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "HIGH",
-                    "typical_resistance_genes": ["OXA-72", "OXA-51-like", "ADC-73"],
+                    "typical_resistance_genes": ["OXA-72", "OXA-71", "ADC-73"],
+                    "oxa51_variant": "OXA-71 (major); OXA-113 (minor)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=3"
                 },
-                '4': {
-                    "international_clone": "IC IV",
-                    "clonal_complex": "CC4",
+                '124': {
+                    "international_clone": "IC III",
+                    "clonal_complex": "CC3",
                     "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Worldwide, particularly Europe",
-                    "clinical_significance": "Emerging global clone, increasing in prevalence. Often associated with OXA-58",
+                    "geographic_distribution": "Worldwide, particularly South America and Europe",
+                    "clinical_significance": "Third major global clone, often associated with OXA-72 carbapenemase.",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE-HIGH",
-                    "typical_resistance_genes": ["OXA-58", "OXA-51-like", "ADC-96"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=4"
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-72", "OXA-71", "ADC-73"],
+                    "oxa51_variant": "OXA-71 (major); OXA-113 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=124"
                 },
-                '5': {
-                    "international_clone": "IC V",
-                    "clonal_complex": "CC5",
+                '229': {
+                    "international_clone": "IC III",
+                    "clonal_complex": "CC3",
                     "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Asia, Europe, Middle East",
-                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals",
+                    "geographic_distribution": "Worldwide, particularly South America and Europe",
+                    "clinical_significance": "Third major global clone, often associated with OXA-72 carbapenemase.",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE-HIGH",
-                    "typical_resistance_genes": ["OXA-23", "OXA-51-like", "ADC-30"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=5"
-                },
-                '6': {
-                    "international_clone": "IC VI",
-                    "clonal_complex": "CC6",
-                    "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "South America, Europe",
-                    "clinical_significance": "Sixth international clone, often associated with OXA-58 and colistin resistance",
-                    "common_resistance": ["Carbapenem-resistant", "Colistin-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-58", "OXA-51-like", "mcr-1"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=6"
-                },
-                '7': {
-                    "international_clone": "IC VII",
-                    "clonal_complex": "CC7",
-                    "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Middle East, Asia",
-                    "clinical_significance": "Seventh international clone, often NDM-1 metallo-β-lactamase producer",
-                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
                     "outbreak_potential": "HIGH",
-                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=7"
+                    "typical_resistance_genes": ["OXA-72", "OXA-71", "ADC-73"],
+                    "oxa51_variant": "OXA-71 (major); OXA-113 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=229"
                 },
-                '8': {
-                    "international_clone": "IC VIII",
-                    "clonal_complex": "CC8",
+                '500': {
+                    "international_clone": "IC III",
+                    "clonal_complex": "CC3",
                     "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Europe, Middle East",
-                    "clinical_significance": "Eighth international clone, often pan-drug resistant with colistin resistance",
-                    "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR", "PDR"],
+                    "geographic_distribution": "Worldwide, particularly South America and Europe",
+                    "clinical_significance": "Third major global clone, often associated with OXA-72 carbapenemase.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "HIGH",
-                    "typical_resistance_genes": ["OXA-23", "OXA-51-like", "mcr-1", "NDM-1"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=8"
+                    "typical_resistance_genes": ["OXA-72", "OXA-71", "ADC-73"],
+                    "oxa51_variant": "OXA-71 (major); OXA-113 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=500"
                 },
-                '10': {
-                    "international_clone": "IC IX",
-                    "clonal_complex": "CC10",
+                '1822': {
+                    "international_clone": "IC III",
+                    "clonal_complex": "CC3",
                     "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Asia, particularly China and India",
-                    "clinical_significance": "Ninth international clone, emerging threat with OXA-23 and NDM co-production",
-                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
-                    "outbreak_potential": "MODERATE-HIGH",
-                    "typical_resistance_genes": ["OXA-23", "NDM-1", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=10"
+                    "geographic_distribution": "Worldwide, particularly South America and Europe",
+                    "clinical_significance": "Third major global clone, often associated with OXA-72 carbapenemase.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-72", "OXA-71", "ADC-73"],
+                    "oxa51_variant": "OXA-71 (major); OXA-113 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1822"
                 },
+
+                # ==================== IC IV (CC15, OXA-51 lineage) ====================
                 '15': {
-                    "international_clone": "IC X",
+                    "international_clone": "IC IV",
                     "clonal_complex": "CC15",
                     "classification": "Global Epidemic Clone",
-                    "geographic_distribution": "Europe, North America",
-                    "clinical_significance": "Tenth international clone, often associated with OXA-40/24 carbapenemase",
+                    "geographic_distribution": "Worldwide, particularly Europe",
+                    "clinical_significance": "Emerging global clone, increasing in prevalence. Often associated with OXA-58.",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-40", "OXA-51-like", "ADC-30"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-58", "OXA-51", "ADC-96"],
+                    "oxa51_variant": "OXA-51 (major); OXA-98 (minor)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=15"
                 },
-                '20': {
-                    "international_clone": "IC XI",
-                    "clonal_complex": "CC20",
-                    "classification": "Regional Epidemic Clone",
-                    "geographic_distribution": "Middle East, Mediterranean region",
-                    "clinical_significance": "Eleventh international clone, often OXA-143 producer",
+                '238': {
+                    "international_clone": "IC IV",
+                    "clonal_complex": "CC15",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Worldwide, particularly Europe",
+                    "clinical_significance": "Emerging global clone, increasing in prevalence. Often associated with OXA-58.",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-143", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=20"
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-58", "OXA-51", "ADC-96"],
+                    "oxa51_variant": "OXA-51 (major); OXA-98 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=238"
                 },
-                '25': {
-                    "international_clone": "IC XII",
-                    "clonal_complex": "CC25",
-                    "classification": "Regional Epidemic Clone",
-                    "geographic_distribution": "South America, Caribbean",
-                    "clinical_significance": "Twelfth international clone, often associated with OXA-72 and OXA-58",
+
+                # ==================== IC V (CC79, OXA-65 lineage) ====================
+                '79': {
+                    "international_clone": "IC V",
+                    "clonal_complex": "CC79",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, Europe, Middle East",
+                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals.",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-65", "ADC-30"],
+                    "oxa51_variant": "OXA-65 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=79"
+                },
+                '156': {
+                    "international_clone": "IC V",
+                    "clonal_complex": "CC79",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, Europe, Middle East",
+                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-65", "ADC-30"],
+                    "oxa51_variant": "OXA-65 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=156"
+                },
+                '175': {
+                    "international_clone": "IC V",
+                    "clonal_complex": "CC79",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, Europe, Middle East",
+                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-65", "ADC-30"],
+                    "oxa51_variant": "OXA-65 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=175"
+                },
+                '422': {
+                    "international_clone": "IC V",
+                    "clonal_complex": "CC79",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, Europe, Middle East",
+                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-65", "ADC-30"],
+                    "oxa51_variant": "OXA-65 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=422"
+                },
+                '730': {
+                    "international_clone": "IC V",
+                    "clonal_complex": "CC79",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, Europe, Middle East",
+                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-65", "ADC-30"],
+                    "oxa51_variant": "OXA-65 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=730"
+                },
+                '1163': {
+                    "international_clone": "IC V",
+                    "clonal_complex": "CC79",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, Europe, Middle East",
+                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-65", "ADC-30"],
+                    "oxa51_variant": "OXA-65 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1163"
+                },
+                '1196': {
+                    "international_clone": "IC V",
+                    "clonal_complex": "CC79",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, Europe, Middle East",
+                    "clinical_significance": "Fifth international clone, often OXA-23 producer. Emerging in Asian hospitals.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-65", "ADC-30"],
+                    "oxa51_variant": "OXA-65 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1196"
+                },
+
+                # ==================== IC VI (CC78, OXA-90 lineage) ====================
+                '78': {
+                    "international_clone": "IC VI",
+                    "clonal_complex": "CC78",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "South America, Europe",
+                    "clinical_significance": "Sixth international clone, often associated with OXA-58 and colistin resistance.",
+                    "common_resistance": ["Carbapenem-resistant", "Colistin-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-72", "OXA-58", "OXA-51-like"],
+                    "typical_resistance_genes": ["OXA-58", "OXA-90", "mcr-1"],
+                    "oxa51_variant": "OXA-90 (major); OXA-200 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=78"
+                },
+
+                # ==================== IC VII (CC25, OXA-64 lineage) ====================
+                '25': {
+                    "international_clone": "IC VII",
+                    "clonal_complex": "CC25",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Middle East, Asia",
+                    "clinical_significance": "Seventh international clone, often NDM-1 metallo-β-lactamase producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-64"],
+                    "oxa51_variant": "OXA-64 (major)",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=25"
                 },
+                '113': {
+                    "international_clone": "IC VII",
+                    "clonal_complex": "CC25",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Middle East, Asia",
+                    "clinical_significance": "Seventh international clone, often NDM-1 metallo-β-lactamase producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-64"],
+                    "oxa51_variant": "OXA-64 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=113"
+                },
+                '619': {
+                    "international_clone": "IC VII",
+                    "clonal_complex": "CC25",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Middle East, Asia",
+                    "clinical_significance": "Seventh international clone, often NDM-1 metallo-β-lactamase producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-64"],
+                    "oxa51_variant": "OXA-64 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=619"
+                },
+                '945': {
+                    "international_clone": "IC VII",
+                    "clonal_complex": "CC25",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Middle East, Asia",
+                    "clinical_significance": "Seventh international clone, often NDM-1 metallo-β-lactamase producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-64"],
+                    "oxa51_variant": "OXA-64 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=945"
+                },
+                '1487': {
+                    "international_clone": "IC VII",
+                    "clonal_complex": "CC25",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Middle East, Asia",
+                    "clinical_significance": "Seventh international clone, often NDM-1 metallo-β-lactamase producer.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-64"],
+                    "oxa51_variant": "OXA-64 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1487"
+                },
+
+                # ==================== IC VIII (CC10, OXA-68 lineage) ====================
+                '10': {
+                    "international_clone": "IC VIII",
+                    "clonal_complex": "CC10",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Europe, Middle East",
+                    "clinical_significance": "Eighth international clone, often pan-drug resistant with colistin resistance.",
+                    "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR", "PDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-68", "mcr-1", "NDM-1"],
+                    "oxa51_variant": "OXA-68 (major); OXA-128, OXA-144 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=10"
+                },
+                '23': {
+                    "international_clone": "IC VIII",
+                    "clonal_complex": "CC10",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Europe, Middle East",
+                    "clinical_significance": "Eighth international clone, often pan-drug resistant with colistin resistance.",
+                    "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR", "PDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-68", "mcr-1", "NDM-1"],
+                    "oxa51_variant": "OXA-68 (major); OXA-128, OXA-144 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=23"
+                },
+                '82': {
+                    "international_clone": "IC VIII",
+                    "clonal_complex": "CC10",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Europe, Middle East",
+                    "clinical_significance": "Eighth international clone, often pan-drug resistant with colistin resistance.",
+                    "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR", "PDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-68", "mcr-1", "NDM-1"],
+                    "oxa51_variant": "OXA-68 (major); OXA-128, OXA-144 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=82"
+                },
+                '575': {
+                    "international_clone": "IC VIII",
+                    "clonal_complex": "CC10",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Europe, Middle East",
+                    "clinical_significance": "Eighth international clone, often pan-drug resistant with colistin resistance.",
+                    "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR", "PDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-68", "mcr-1", "NDM-1"],
+                    "oxa51_variant": "OXA-68 (major); OXA-128, OXA-144 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=575"
+                },
+                '613': {
+                    "international_clone": "IC VIII",
+                    "clonal_complex": "CC10",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Europe, Middle East",
+                    "clinical_significance": "Eighth international clone, often pan-drug resistant with colistin resistance.",
+                    "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR", "PDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-68", "mcr-1", "NDM-1"],
+                    "oxa51_variant": "OXA-68 (major); OXA-128, OXA-144 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=613"
+                },
+                '1512': {
+                    "international_clone": "IC VIII",
+                    "clonal_complex": "CC10",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Europe, Middle East",
+                    "clinical_significance": "Eighth international clone, often pan-drug resistant with colistin resistance.",
+                    "common_resistance": ["Colistin-resistant", "Carbapenem-resistant", "XDR", "PDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["OXA-23", "OXA-68", "mcr-1", "NDM-1"],
+                    "oxa51_variant": "OXA-68 (major); OXA-128, OXA-144 (minor)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=1512"
+                },
+
+                # ==================== IC IX (CC464, OXA-94 lineage) ====================
+                '6': {
+                    "international_clone": "IC IX",
+                    "clonal_complex": "CC464",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, particularly China and India",
+                    "clinical_significance": "Ninth international clone, emerging threat with OXA-23 and NDM co-production.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "NDM-1", "OXA-94"],
+                    "oxa51_variant": "OXA-94 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=6"
+                },
+                '85': {
+                    "international_clone": "IC IX",
+                    "clonal_complex": "CC464",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, particularly China and India",
+                    "clinical_significance": "Ninth international clone, emerging threat with OXA-23 and NDM co-production.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "NDM-1", "OXA-94"],
+                    "oxa51_variant": "OXA-94 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=85"
+                },
+                '464': {
+                    "international_clone": "IC IX",
+                    "clonal_complex": "CC464",
+                    "classification": "Global Epidemic Clone",
+                    "geographic_distribution": "Asia, particularly China and India",
+                    "clinical_significance": "Ninth international clone, emerging threat with OXA-23 and NDM co-production.",
+                    "common_resistance": ["Carbapenem-resistant", "MDR", "XDR"],
+                    "outbreak_potential": "MODERATE-HIGH",
+                    "typical_resistance_genes": ["OXA-23", "NDM-1", "OXA-94"],
+                    "oxa51_variant": "OXA-94 (major)",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=464"
+                },
+
+                # ==================== Regional Clones====================
                 '30': {
-                    "international_clone": "IC XIII",
+                    "international_clone": "Regional Clone",
                     "clonal_complex": "CC30",
-                    "classification": "Regional Epidemic Clone",
+                    "classification": "Epidemic Clone",
                     "geographic_distribution": "Africa, Middle East",
-                    "clinical_significance": "Thirteenth international clone, emerging in African hospitals",
+                    "clinical_significance": "Thirteenth international clone (original designation), emerging in African hospitals",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=30"
                 },
                 '40': {
-                    "international_clone": "IC XIV",
+                    "international_clone": "Regional Clone",
                     "clonal_complex": "CC40",
-                    "classification": "Regional Epidemic Clone",
+                    "classification": "Epidemic Clone",
                     "geographic_distribution": "Asia-Pacific region",
-                    "clinical_significance": "Fourteenth international clone, often IMP-type metallo-β-lactamase producer",
+                    "clinical_significance": "Fourteenth international clone (original designation), often IMP-type metallo-β-lactamase producer",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["IMP-type", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=40"
                 },
                 '49': {
-                    "international_clone": "IC XV",
+                    "international_clone": "Regional Clone",
                     "clonal_complex": "CC49",
-                    "classification": "Regional Epidemic Clone",
+                    "classification": "Epidemic Clone",
                     "geographic_distribution": "Europe, particularly Mediterranean",
-                    "clinical_significance": "Fifteenth international clone, often OXA-58 and PER-1 producer",
+                    "clinical_significance": "Fifteenth international clone (original designation), often OXA-58 and PER-1 producer",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-58", "PER-1", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=49"
                 },
                 '60': {
-                    "international_clone": "IC XVI",
+                    "international_clone": "Regional Clone",
                     "clonal_complex": "CC60",
-                    "classification": "Regional Epidemic Clone",
+                    "classification": "Epidemic Clone",
                     "geographic_distribution": "Latin America",
-                    "clinical_significance": "Sixteenth international clone, often KPC producer",
+                    "clinical_significance": "Sixteenth international clone (original designation), often KPC producer",
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["KPC", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=60"
-                },
-                '78': {
-                    "international_clone": "IC XVII",
-                    "clonal_complex": "CC78",
-                    "classification": "Regional Epidemic Clone",
-                    "geographic_distribution": "Worldwide, particularly in ICU settings",
-                    "clinical_significance": "Seventeenth international clone, often associated with ventilator-associated pneumonia",
-                    "common_resistance": ["Carbapenem-resistant", "MDR", "Colistin-resistant"],
-                    "outbreak_potential": "HIGH",
-                    "typical_resistance_genes": ["OXA-23", "OXA-51-like", "mcr-1"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=78"
-                },
-                '85': {
-                    "international_clone": "IC XVIII",
-                    "clonal_complex": "CC85",
-                    "classification": "Regional Epidemic Clone",
-                    "geographic_distribution": "Middle East, North Africa",
-                    "clinical_significance": "Eighteenth international clone, often VIM producer",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["VIM", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=85"
-                },
-                '92': {
-                    "international_clone": "IC XIX",
-                    "clonal_complex": "CC92",
-                    "classification": "Regional Epidemic Clone",
-                    "geographic_distribution": "Asia, particularly India and Pakistan",
-                    "clinical_significance": "Nineteenth international clone, often NDM and OXA-23 co-producer",
-                    "common_resistance": ["Carbapenem-resistant", "XDR"],
-                    "outbreak_potential": "HIGH",
-                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=92"
-                },
-                '103': {
-                    "international_clone": "IC XX",
-                    "clonal_complex": "CC103",
-                    "classification": "Regional Epidemic Clone",
-                    "geographic_distribution": "Europe, North America",
-                    "clinical_significance": "Twentieth international clone, often associated with OXA-48-like enzymes",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-48-like", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=103"
-                },
-                # Additional notable STs in Pasteur scheme
-                '79': {
-                    "international_clone": "Regional Clone",
-                    "clonal_complex": "CC79",
-                    "classification": "Epidemic Clone",
-                    "geographic_distribution": "Worldwide",
-                    "clinical_significance": "Widely distributed clone, often carbapenem-resistant",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=79"
                 },
                 '84': {
                     "international_clone": "Regional Clone",
@@ -637,18 +1206,20 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=84"
                 },
-                '94': {
+                '92': {
                     "international_clone": "Regional Clone",
-                    "clonal_complex": "CC94",
+                    "clonal_complex": "CC92",
                     "classification": "Epidemic Clone",
-                    "geographic_distribution": "Europe",
-                    "clinical_significance": "Clone associated with hospital outbreaks in Europe",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-58", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=94"
+                    "geographic_distribution": "Asia, particularly India and Pakistan",
+                    "clinical_significance": "Nineteenth international clone (original designation), often NDM and OXA-23 co-producer",
+                    "common_resistance": ["Carbapenem-resistant", "XDR"],
+                    "outbreak_potential": "HIGH",
+                    "typical_resistance_genes": ["NDM-1", "OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=92"
                 },
                 '98': {
                     "international_clone": "Regional Clone",
@@ -659,7 +1230,20 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=98"
+                },
+                '103': {
+                    "international_clone": "Regional Clone",
+                    "clonal_complex": "CC103",
+                    "classification": "Epidemic Clone",
+                    "geographic_distribution": "Europe, North America",
+                    "clinical_significance": "Twentieth international clone (original designation), often associated with OXA-48-like enzymes",
+                    "common_resistance": ["Carbapenem-resistant", "MDR"],
+                    "outbreak_potential": "MODERATE",
+                    "typical_resistance_genes": ["OXA-48-like", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
+                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=103"
                 },
                 '106': {
                     "international_clone": "Regional Clone",
@@ -670,6 +1254,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-72", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=106"
                 },
                 '111': {
@@ -681,6 +1266,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=111"
                 },
                 '136': {
@@ -692,6 +1278,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-58", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=136"
                 },
                 '158': {
@@ -703,6 +1290,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "XDR"],
                     "outbreak_potential": "HIGH",
                     "typical_resistance_genes": ["NDM-1", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=158"
                 },
                 '176': {
@@ -714,18 +1302,8 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE-HIGH",
                     "typical_resistance_genes": ["OXA-23", "IMP-type", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=176"
-                },
-                '195': {
-                    "international_clone": "Regional Clone",
-                    "clonal_complex": "CC195",
-                    "classification": "Epidemic Clone",
-                    "geographic_distribution": "Worldwide",
-                    "clinical_significance": "Widely distributed clone with diverse resistance patterns",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=195"
                 },
                 '208': {
                     "international_clone": "Regional Clone",
@@ -736,18 +1314,8 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=208"
-                },
-                '229': {
-                    "international_clone": "Regional Clone",
-                    "clonal_complex": "CC229",
-                    "classification": "Epidemic Clone",
-                    "geographic_distribution": "Europe",
-                    "clinical_significance": "Clone associated with nosocomial infections in European hospitals",
-                    "common_resistance": ["Carbapenem-resistant", "MDR"],
-                    "outbreak_potential": "MODERATE",
-                    "typical_resistance_genes": ["OXA-58", "OXA-51-like"],
-                    "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=229"
                 },
                 '254': {
                     "international_clone": "Regional Clone",
@@ -758,6 +1326,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=254"
                 },
                 '281': {
@@ -769,6 +1338,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-72", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=281"
                 },
                 '369': {
@@ -780,6 +1350,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE-HIGH",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=369"
                 },
                 '450': {
@@ -791,6 +1362,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "XDR"],
                     "outbreak_potential": "HIGH",
                     "typical_resistance_genes": ["OXA-23", "NDM-1", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=450"
                 },
                 '499': {
@@ -802,6 +1374,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR"],
                     "outbreak_potential": "MODERATE",
                     "typical_resistance_genes": ["OXA-48-like", "OXA-51-like"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=499"
                 },
                 '513': {
@@ -813,6 +1386,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Carbapenem-resistant", "MDR", "Colistin-resistant"],
                     "outbreak_potential": "HIGH",
                     "typical_resistance_genes": ["OXA-23", "OXA-51-like", "mcr-1"],
+                    "oxa51_variant": "Unknown",
                     "pubmlst_link": "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id=2&ST=513"
                 }
             }
@@ -847,6 +1421,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Unknown - requires further analysis"],
                     "outbreak_potential": "UNKNOWN",
                     "typical_resistance_genes": ["Unknown"],
+                    "oxa51_variant": "Not in Database",
                     "pubmlst_link": pubmlst_link
                 }
             else:
@@ -860,6 +1435,7 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Cannot determine"],
                     "outbreak_potential": "UNKNOWN",
                     "typical_resistance_genes": ["Cannot determine"],
+                    "oxa51_variant": "Not in Database",
                     "pubmlst_link": "https://pubmlst.org/organisms/acinetobacter-baumannii"
                 }    
 
@@ -951,6 +1527,7 @@ Outbreak Potential: {mlst_results.get('outbreak_potential', 'UNKNOWN')}
 
 Common Resistance: {', '.join(mlst_results.get('common_resistance', ['Unknown']))}
 Typical Resistance Genes: {', '.join(mlst_results.get('typical_resistance_genes', ['Unknown']))}
+Oxa51_variant:  {', '.join(mlst_results.get('oxa51_varinat', ['Unknown']))}
 
 PubMLST Link: {mlst_results.get('pubmlst_link', 'https://pubmlst.org/organisms/acinetobacter-baumannii')}
 """
@@ -981,7 +1558,7 @@ PubMLST Link: {mlst_results.get('pubmlst_link', 'https://pubmlst.org/organisms/a
                 "analysis_date": datetime.now().isoformat(),
                 "scheme": mlst_results['scheme'],
                 "scheme_display": mlst_results['scheme_display'],
-                "version": "1.0",
+                "version": "1.0.0",
                 "tool": "AcinetoScope"
             },
             "mlst_results": {
@@ -1035,6 +1612,7 @@ PubMLST Link: {mlst_results.get('pubmlst_link', 'https://pubmlst.org/organisms/a
         clinical_significance = mlst_results.get('clinical_significance', 'Unknown')
         common_resistance = mlst_results.get('common_resistance', ['Unknown'])
         typical_resistance_genes = mlst_results.get('typical_resistance_genes', ['Unknown'])
+        oxa51_variant = mlst_results.get('oxa51_variant', ['Unknown'])
         pubmlst_link = mlst_results.get('pubmlst_link', 'https://pubmlst.org/organisms/acinetobacter-baumannii')
         
         # Build alleles HTML - ensure gene names are fully visible
@@ -1448,6 +2026,8 @@ PubMLST Link: {mlst_results.get('pubmlst_link', 'https://pubmlst.org/organisms/a
 {resistance_html}                    </div>
                 </div>
             </div>
+            <p style="margin-top: 12px; margin-bottom: 0;"><strong>OXA-51-like Variant:</strong> {oxa51_variant}</p>
+</div>
             
             <div style="margin-top: 20px; text-align: center;">
                 <a href="{pubmlst_link}" target="_blank" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
@@ -1752,7 +2332,7 @@ For detailed analysis, refer to individual scheme reports.
                 "analysis_date": datetime.now().isoformat(),
                 "schemes": ["Oxford (abaumannii)", "Pasteur (abaumannii_2)"],
                 "samples_analyzed": len(all_results),
-                "version": "1.0",
+                "version": "1.0.0",
                 "tool": "AcinetoScope"
             },
             "results": detailed_results,
@@ -2196,7 +2776,7 @@ For detailed analysis, refer to individual scheme reports.
                 "scheme": scheme,
                 "scheme_display": self.scheme_display_names.get(scheme, scheme.upper()),
                 "samples_analyzed": len(all_results),
-                "version": "1.0",
+                "version": "1.0.0",
                 "tool": "AcinetoScope"
             },
             "results": detailed_results,

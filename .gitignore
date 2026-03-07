@@ -16,3 +16,4 @@ acinetoscope/modules/amr_module/data/amrfinder_db/
 *.fna
 *.fa
 *.gbk
+acinetoscope/modules/mlst_module/
