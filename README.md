@@ -1,5 +1,5 @@
-```markdown
 # 🦠 AcinetoScope - The Ultimate A. baumannii Genomic Analysis Pipeline
+```markdown
 
 ```bash
  █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
