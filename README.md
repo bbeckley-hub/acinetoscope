@@ -304,10 +304,10 @@ AcinetoScope integrates several essential third-party tools and databases. If yo
 
 #### **MLST (Torsten Seemann)**
 ```bibtex
-@software{seemann_mlst_2025,
+@software{seemann_mlst_2018,
   author = {Seemann, T.},
   title = {MLST: Scan contig files against traditional PubMLST typing schemes},
-  year = {2025},
+  year = {2018},
   publisher = {GitHub},
   url = {https://github.com/tseemann/mlst}
 }
@@ -315,10 +315,10 @@ AcinetoScope integrates several essential third-party tools and databases. If yo
 
 #### **ABRicate (Torsten Seemann)**
 ```bibtex
-@software{seemann_abricate_2025,
+@software{seemann_abricate_2018,
   author = {Seemann, T.},
   title = {ABRicate: Mass screening of contigs for antimicrobial resistance and virulence genes},
-  year = {2025},
+  year = {2018},
   publisher = {GitHub},
   url = {https://github.com/tseemann/abricate}
 }
@@ -339,13 +339,13 @@ AcinetoScope integrates several essential third-party tools and databases. If yo
 
 #### **Kaptive (Kath Holt Lab)**
 ```bibtex
-@article{wyres_kaptive_2020,
+@article{wyres_kaptive_2025,
   author = {Wyres, K. L. et al.},
   title = {Kaptive: a tool for identification of Klebsiella pneumoniae and Acinetobacter baumannii capsule loci},
   journal = {Microbial Genomics},
   volume = {6},
   number = {3},
-  year = {2020},
+  year = {2025},
   doi = {10.1099/mgen.0.000334}
 }
 ```
