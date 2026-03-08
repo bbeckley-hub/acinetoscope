@@ -167,7 +167,7 @@ acinetoscope -i <INPUT_PATTERN> -o <OUTPUT_DIR> [OPTIONS]
 | `--skip-qc` | Skip the quality control module. | False |
 | `--skip-summary` | Skip the final integrated report generation. | False |
 | `--mlst-scheme` | Specify scheme: `pasteur`, `oxford`, or `both`. | `both` |
-| `--verbose` | Print detailed progress messages. | False |
+
 
 ### **Input Requirements**
 - **Format**: Assembled genomes in FASTA format (`.fna`, `.fasta`, `.fa`, `.fn`).
