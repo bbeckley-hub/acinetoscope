@@ -454,7 +454,3 @@ By using AcinetoScope, you agree to comply with the licenses of these third-part
 **Transforming complex genomic data into clear, actionable insights for tackling AMR.** 🧬✨
 
 </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> c55d7734841eb359d8507cf993832549b2d53d48
