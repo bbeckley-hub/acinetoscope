@@ -1,7 +1,5 @@
 # 🦠 AcinetoScope - The Ultimate A. baumannii Genomic Analysis Pipeline
 ```markdown
-
-<<<<<<< HEAD
 <p align="center">
   <img src="acinetoscope_banner(1).png" alt="AcinetoScope Banner" width="100%">
 </p>
