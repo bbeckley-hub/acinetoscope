@@ -1,11 +1,10 @@
 # 🦠 AcinetoScope - The Ultimate A. baumannii Genomic Analysis Pipeline
+```markdown
 
+<<<<<<< HEAD
 <p align="center">
   <img src="acinetoscope_banner(1).png" alt="AcinetoScope Banner" width="100%">
 </p>
-
-<div align="center">
-### A species-specific computational pipeline...
 
 <div align="center">
 
@@ -457,4 +456,7 @@ By using AcinetoScope, you agree to comply with the licenses of these third-part
 **Transforming complex genomic data into clear, actionable insights for tackling AMR.** 🧬✨
 
 </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> c55d7734841eb359d8507cf993832549b2d53d48
