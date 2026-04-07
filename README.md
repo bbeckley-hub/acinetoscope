@@ -146,47 +146,193 @@ acinetoscope -i "*.fasta" -o batch_results --threads 8
 
 For users who prefer a containerized environment or cannot install Conda, we provide a Docker image with all dependencies pre‑installed and ABRicate databases pre‑configured.
 
-### Pull the Docker image
+---
+
+# 🐳 AcinetoScope Docker Image
+
+**Run the complete *Acinetobacter baumannii* typing pipeline with zero installation – just Docker.**
+---
+
+## 📦 What’s inside this Docker image
+
+- Full **AcinetoScope** pipeline (all modules)
+- All dependencies pre‑installed (Conda environment, Perl, BLAST, ABRicate, Kaptive, etc.)
+- **ABRicate databases** pre‑configured (`abricate --setupdb` already run)
+- **jq** installed for reliable JSON parsing
+- No need for Conda, no manual setup, no “read‑only filesystem” errors
+
+---
+
+## 🚀 Quick Start
+
+### Pull the image
 
 ```bash
 docker pull bbeckleyhub/acinetoscope:latest
 ```
 
-### Run AcinetoScope (output files owned by root)
+### Run on a single FASTA file
+
+```bash
+docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest -i "/data/genome.fna" -o /data/output
+```
+
+After the run, output files are owned by `root` on your host. To reclaim ownership:
+
+```bash
+sudo chown -R $USER:$USER ./output
+```
+
+### Run on all FASTA files in the current directory
 
 ```bash
 docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest -i "/data/*.fna" -o /data/output
 ```
 
-> **Note:** Inside the container, files are written as `root`. To take ownership of the results on your host, run:
-> ```bash
-> sudo chown -R $USER:$USER ./output
-> ```
-> (If you don’t have `sudo`, see the Singularity alternative below.)
+---
 
-### Run with Singularity (HPC‑friendly, no `sudo` needed)
+## 📖 Detailed Usage
 
-On HPC systems that support [Singularity/Apptainer](https://sylabs.io/singularity/), convert the Docker image and run – the output files will automatically belong to your user.
+### Basic syntax
+
+```bash
+docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest [OPTIONS]
+```
+
+- `--rm` : remove container after exit
+- `-v $(pwd):/data` : mount current directory to `/data` inside container
+- Input files must be under `/data` (e.g., `/data/*.fna`)
+- Output directory must also be under `/data` (e.g., `/data/output`)
+
+### All AcinetoScope options work
+
+```bash
+docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest \
+  -i "/data/*.fna" -o /data/output \
+  --threads 8 --skip-qc --skip-amr
+```
+
+See `docker run --rm bbeckleyhub/acinetoscope:latest -h` for all options.
+
+### Using custom threads
+
+```bash
+docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest \
+  -i "/data/*.fna" -o /data/output -t 16
+```
+
+---
+
+## 🔧 Handling File Permissions (The “Padlock” Issue)
+
+By default, Docker runs as `root` inside the container. Any files written to your mounted directory will be owned by `root:root`.  
+You have three options:
+
+### 1. Change ownership after the run (easiest)
+
+```bash
+sudo chown -R $USER:$USER ./output
+```
+
+### 2. Run with your host user ID (requires a small code fix – coming soon)
+
+Currently not fully supported because AcinetoScope needs to write to its own installation directory. A future update will fix this.
+
+### 3. Use Singularity (recommended for HPC, no `sudo` needed)
+
+See the [Singularity section](#singularity-for-hpc-no-sudo) below.
+
+---
+
+## 🧪 Testing Your Docker Setup
+
+### Check help message
+
+```bash
+docker run --rm bbeckleyhub/acinetoscope:latest -h
+```
+
+### Verify ABRicate databases are installed
+
+```bash
+docker run --rm --entrypoint /bin/bash bbeckleyhub/acinetoscope:latest -c "abricate --list | head -5"
+```
+
+Expected output: list of databases (ncbi, card, vfdb, etc.)
+
+### Verify jq is installed (important for correct summaries)
+
+```bash
+docker run --rm --entrypoint /bin/bash bbeckleyhub/acinetoscope:latest -c "jq --version"
+```
+
+Should output `jq-1.6` or similar.
+
+---
+
+## 🖥️ Singularity for HPC (no `sudo`, correct ownership)
+
+On HPC clusters that support [Singularity/Apptainer](https://sylabs.io/singularity/), you can run AcinetoScope **without `sudo`** and output files will be owned by your user automatically.
+
+> **Important:** AcinetoScope writes temporary files inside its own installation directory (`/opt/acinetoscope/...`). Singularity mounts containers as read‑only by default, so you **must** add the `--writable-tmpfs` flag to allow these writes. The flag creates an ephemeral, writable overlay in memory – no permanent changes are made to the container.
+
+### Option A: Direct pull (if network allows)
 
 ```bash
 singularity pull acinetoscope.sif docker://bbeckleyhub/acinetoscope:latest
-singularity run -B $(pwd):/data acinetoscope.sif -i "/data/*.fna" -o /data/output
+singularity run --writable-tmpfs -B $(pwd):/data acinetoscope.sif -i "/data/*.fna" -o /data/output
 ```
 
-### Docker Hub Repository
+### Option B: Convert from a local Docker image (when `singularity pull` fails)
 
-All releases are available at:  
-[https://hub.docker.com/r/bbeckleyhub/acinetoscope](https://hub.docker.com/r/bbeckleyhub/acinetoscope)
+If you encounter TLS timeouts or other network errors (common on some HPCs), convert an existing Docker image to a Singularity SIF file on a machine with Docker, then transfer the `.sif` file to the HPC.
 
-### Advanced Docker Options
+**Step 1 – on a machine with Docker (e.g., your laptop):**
 
 ```bash
-# Run with custom threads
-docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest -i "/data/*.fna" -o /data/output -t 8
-
-# Skip specific modules for faster testing
-docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest -i "/data/*.fna" -o /data/output --skip-qc --skip-amr
+docker pull bbeckleyhub/acinetoscope:latest
+docker save bbeckleyhub/acinetoscope:latest -o acinetoscope.tar
+singularity build acinetoscope.sif docker-archive://acinetoscope.tar
 ```
+
+Now copy `acinetoscope.sif` to your HPC home or project directory (e.g., using `scp`).
+
+**Step 2 – on the HPC (no sudo needed):**
+
+```bash
+singularity run --writable-tmpfs -B $(pwd):/data acinetoscope.sif -i "/data/*.fna" -o /data/output
+```
+
+### Explanation of flags
+
+| Flag | Purpose |
+|------|---------|
+| `--writable-tmpfs` | Creates a temporary writable overlay – **required** for AcinetoScope to write intermediate files to `/opt/...` |
+| `-B $(pwd):/data` | Binds your current directory to `/data` inside the container (input files are read from here, output is written here) |
+| `-i "/data/*.fna"` | Input pattern – use quotes to prevent shell expansion on the host |
+| `-o /data/output` | Output directory (will appear as `./output` on your host) |
+
+### Additional options
+
+You can use any AcinetoScope flag, e.g.:
+
+```bash
+singularity run --writable-tmpfs -B $(pwd):/data acinetoscope.sif \
+    -i "/data/*.fna" -o /data/output --threads 8 --skip-qc
+```
+
+### Verify it works
+
+After a successful run, you will see output like:
+
+```
+✓ QC analysis completed!
+✓ MLST Pasteur completed
+...
+✓ 🎉 All analyses completed successfully!
+```
+
+All result files in `./output` will be owned by **your HPC user** – no `sudo chown` needed.
 
 ---
 
