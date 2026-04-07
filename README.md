@@ -144,12 +144,8 @@ acinetoscope -i "*.fasta" -o batch_results --threads 8
 
 ## 🐳 **Docker Usage**
 
-For users who prefer a containerized environment or cannot install Conda, we provide a Docker image with all dependencies pre‑installed and ABRicate databases pre‑configured.
+For users who prefer a containerized environment or cannot install Conda, we provide a Docker image with all dependencies pre‑installed and ABRicate databases pre‑configured. Run the complete *Acinetobacter baumannii* typing pipeline with zero installation – just Docker.
 
-
-## 🐳 **AcinetoScope Docker Image**
-
-**Run the complete *Acinetobacter baumannii* typing pipeline with zero installation – just Docker.**
 ---
 
 ## 📦 What’s inside this Docker image
