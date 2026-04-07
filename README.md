@@ -14,6 +14,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
 [![Bioconda](https://img.shields.io/badge/bioconda-✓-44A833.svg?logo=conda)](https://anaconda.org/bioconda/acinetoscope)
 [![Last updated](https://anaconda.org/bbeckley-hub/acinetoscope/badges/latest_release_date.svg)](https://anaconda.org/bbeckley-hub/acinetoscope)
+[![Docker Pulls](https://img.shields.io/docker/pulls/bbeckleyhub/acinetoscope)](https://hub.docker.com/r/bbeckleyhub/acinetoscope)
 
 [![GitHub Stars](https://img.shields.io/github/stars/bbeckley-hub/acinetoscope)](https://github.com/bbeckley-hub/acinetoscope/stargazers)
 [![GitHub Issues](https://img.shields.io/github/issues/bbeckley-hub/acinetoscope)](https://github.com/bbeckley-hub/acinetoscope/issues)
@@ -29,6 +30,7 @@
 - [✨ Key Features](#-key-features)
 - [⚡ Quick Start](#-quick-start)
 - [🔧 Installation](#-installation)
+- [🐳 Docker Usage](#-docker-usage)
 - [🚀 Usage Guide](#-usage-guide)
 - [📊 Output Structure](#-output-structure)
 - [🔍 Analytical Modules](#-analytical-modules)
@@ -55,7 +57,7 @@
 AcinetoScope delivers:
 - **✅ End-to-End Automation**: One command runs the entire analysis from raw FASTA to a consolidated report.
 - **✅ *A. baumannii*-Optimized**: Pre-configured with species-specific databases and typing schemes (Pasteur & Oxford MLST, Kaptive K/O loci).
-- **✅ Actionable Intelligence**: Features a four-tier risk flagging system (CRITICAL, HIGH, MEDIUM, LOW) and gene-centric tracking to highlight high-threat resistance determinantss.
+- **✅ Actionable Intelligence**: Features a four-tier risk flagging system (CRITICAL, HIGH, MEDIUM, LOW) and gene-centric tracking to highlight high-threat resistance determinants.
 - **✅ Speed & Efficiency**: Benchmarked **40-75% faster** than generalist pipelines by eliminating redundant processing.
 - **✅ AI-Ready Outputs**: Generates interactive HTML reports designed for seamless exploration with modern AI browser extensions.
 
@@ -140,6 +142,54 @@ acinetoscope -i "*.fasta" -o batch_results --threads 8
 
 ---
 
+## 🐳 **Docker Usage**
+
+For users who prefer a containerized environment or cannot install Conda, we provide a Docker image with all dependencies pre‑installed and ABRicate databases pre‑configured.
+
+### Pull the Docker image
+
+```bash
+docker pull bbeckleyhub/acinetoscope:latest
+```
+
+### Run AcinetoScope (output files owned by root)
+
+```bash
+docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest -i "/data/*.fna" -o /data/output
+```
+
+> **Note:** Inside the container, files are written as `root`. To take ownership of the results on your host, run:
+> ```bash
+> sudo chown -R $USER:$USER ./output
+> ```
+> (If you don’t have `sudo`, see the Singularity alternative below.)
+
+### Run with Singularity (HPC‑friendly, no `sudo` needed)
+
+On HPC systems that support [Singularity/Apptainer](https://sylabs.io/singularity/), convert the Docker image and run – the output files will automatically belong to your user.
+
+```bash
+singularity pull acinetoscope.sif docker://bbeckleyhub/acinetoscope:latest
+singularity run -B $(pwd):/data acinetoscope.sif -i "/data/*.fna" -o /data/output
+```
+
+### Docker Hub Repository
+
+All releases are available at:  
+[https://hub.docker.com/r/bbeckleyhub/acinetoscope](https://hub.docker.com/r/bbeckleyhub/acinetoscope)
+
+### Advanced Docker Options
+
+```bash
+# Run with custom threads
+docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest -i "/data/*.fna" -o /data/output -t 8
+
+# Skip specific modules for faster testing
+docker run --rm -v $(pwd):/data bbeckleyhub/acinetoscope:latest -i "/data/*.fna" -o /data/output --skip-qc --skip-amr
+```
+
+---
+
 ## 🚀 **Usage Guide**
 
 ### **Basic Command**
@@ -157,7 +207,6 @@ acinetoscope -i <INPUT_PATTERN> -o <OUTPUT_DIR> [OPTIONS]
 | `--skip-qc` | Skip the quality control module. | False |
 | `--skip-summary` | Skip the final integrated report generation. | False |
 | `--mlst-scheme` | Specify scheme: `pasteur`, `oxford`, or `both`. | `both` |
-
 
 ### **Input Requirements**
 - **Format**: Assembled genomes in FASTA format (`.fna`, `.fasta`, `.fa`, `.fn`).
@@ -452,4 +501,3 @@ By using AcinetoScope, you agree to comply with the licenses of these third-part
 **Transforming complex genomic data into clear, actionable insights for tackling AMR.** 🧬✨
 
 </div>
-
