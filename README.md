@@ -114,7 +114,7 @@ AcinetoScope delivers:
 ### **Install in 60 Seconds**
 ```bash
 # Method 1: Conda (Recommended)
-conda create -n acinetoscope -c conda-forge -c bioconda acinetoscope -y
+conda create -n acinetoscope -c conda-forge -c bioconda  -c bbeckley-hub acinetoscope -y
 conda activate acinetoscope
 
 # Method 2: From source
@@ -155,7 +155,7 @@ acinetoscope -i "*.fasta" -o batch_results --threads 8
     ```
 2. **Install AcinetoScope**:
     ```bash
-    conda create -n acinetoscope -c conda-forge -c bioconda acinetoscope -y
+    conda create -n acinetoscope -c conda-forge -c bioconda -c bbeckley-hub acinetoscope -y
     conda activate acinetoscope
     ```
 3. **(Recommended) Update ABRicate Databases**:
