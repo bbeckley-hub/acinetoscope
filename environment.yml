@@ -1,4 +1,4 @@
-name:acinetoscope
+name: acinetoscope
 channels:
   - conda-forge
   - bioconda

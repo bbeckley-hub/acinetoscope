@@ -40,7 +40,7 @@ class AcinetoAbricateExecutor:
         # A. baumannii specific databases
         self.required_databases = [
             'ncbi', 'card', 'resfinder', 'vfdb', 'argannot', 
-            'plasmidfinder', 'megares', 'ecoh', 'bacmet2', 'ecoli_vf', 'victors'
+            'plasmidfinder', 'megares', 'ecoh', 'bacmet2', 'ecoli_vf'
         ]
         
         # CRITICAL CARBAPENEMASE genes for A. baumannii (🔴 HIGHEST PRIORITY)
@@ -184,7 +184,7 @@ class AcinetoAbricateExecutor:
         
         self.metadata = {
             "tool_name": "AcinetoScope ABRicate",
-            "version": "1.0.0", 
+            "version": "1.1.0", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
@@ -707,7 +707,6 @@ class AcinetoAbricateExecutor:
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
             <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                Analysis performed using AcinetoScope ABRicate v1.2.0
             </p>
         </div>
     </div>
@@ -1396,7 +1395,6 @@ class AcinetoAbricateExecutor:
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
             <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                Analysis performed using AcinetoScope (ABRicate v1.2.0)
             </p>
         </div>
     </div>
@@ -2084,7 +2082,6 @@ class AcinetoAbricateExecutor:
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
             <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                Analysis performed using AcinetoScope (ABRicate v1.2.0)
             </p>
         </div>
     </div>
@@ -2228,7 +2225,7 @@ MAXIMUM SPEED RESOURCE MANAGEMENT:
   • 5-8 cores: Uses (cores-1) for optimal performance  
   • 9-16 cores: Uses (cores-2) for high performance
   • 17-32 cores: Uses (cores-4) for maximum throughput
-  • 32+ cores: Uses 85% of cores (capped at 32)
+  • 32+ cores: Uses 95% of cores (capped at 32)
 
 Supported FASTA extensions: .fasta, .fa, .fna, .faa
         """

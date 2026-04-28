@@ -45,7 +45,7 @@ class AcinetoFASTAQC:
         # Metadata
         self.metadata = {
             "tool_name": "AcinetoScope FASTA QC Analysis",
-            "version": "1.0.0", 
+            "version": "1.1.0", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
@@ -1129,8 +1129,6 @@ class AcinetoFASTAQC:
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
             <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                Analysis performed using AcinetoScope FASTA QC v{self.metadata['version']}
-                with BioPython {self.metadata['biopython_version']}
             </p>
         </div>
     </div>
@@ -1897,8 +1895,6 @@ class AcinetoFASTAQC:
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
             <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                Analysis performed using AcinetoScope FASTA QC v{self.metadata['version']}
-                with BioPython {self.metadata['biopython_version']}
             </p>
         </div>
     </div>

@@ -45,7 +45,7 @@ class AcinetoKaptive:
         
         self.metadata = {
             "tool_name": "AcinetoScope Kaptive K/O Analysis",
-            "version": "1.0.0", 
+            "version": "1.1.0", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
@@ -821,8 +821,6 @@ class AcinetoKaptive:
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
             <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                Analysis performed using AcinetoScope Kaptive K/O Analysis v{self.metadata['version']}
-                with Kaptive {self.metadata['kaptive_version']} and A. baumannii databases
             </p>
         </div>
     </div>
@@ -1815,8 +1813,6 @@ class AcinetoKaptive:
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
             <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                Analysis performed using AcinetoScope Kaptive K/O Analysis v1.0.0
-                with Kaptive v3.1.0 and A. baumannii databases
             </p>
         </div>
     </div>

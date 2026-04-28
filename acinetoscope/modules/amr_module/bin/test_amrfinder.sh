@@ -46,22 +46,27 @@ fi
 
 if [ "$no_download" -gt 0 ]
 then
-    echo "-n option detected, skipping download of test data"
+    echo "-n option detected, skipping download of test data and using tests in"
+    echo "$PWD.  Note test data may not match the latest database release."
 else
     echo Downloading fresh test data...
-    curl -k -s -f \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_dna.fa \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.fa \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.gff \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_both.expected \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_dna.expected \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.expected
+    BASE_URL=https://raw.githubusercontent.com/ncbi/amr/master
+    curl --silent --location \
+       -O ${BASE_URL}/test_dna.fa \
+       -O ${BASE_URL}/test_prot.fa \
+       -O ${BASE_URL}/test_prot.gff \
+       -O ${BASE_URL}/test_both.expected \
+       -O ${BASE_URL}/test_dna.expected \
+       -O ${BASE_URL}/test_dna_mut_all.expected \
+       -O ${BASE_URL}/test_prot.expected \
+       -O ${BASE_URL}/test_disrupt.fa \
+       -O ${BASE_URL}/test_disrupt.expected
 
     if [ $? != 0 ]
     then
-        echo "WARNING: Could not download new test data."
+        echo "${red}WARNING: Could not download new test data.${reset}"
         echo "Will attempt to use test data in $PWD."
-        echo "Test data included with installation not match the latest database release."
+        echo "Test data included with installation may not match the latest database release."
     fi
 fi
 
@@ -104,6 +109,9 @@ test_input_file "test_dna" "-n test_dna.fa -O Escherichia --mutation_all test_dn
 FAILURES=$(( $? + $FAILURES ))
 
 test_input_file "test_both" "-n test_dna.fa -g test_prot.gff -p test_prot.fa -O Escherichia"
+FAILURES=$(( $? + $FAILURES ))
+
+test_input_file "test_disrupt" "-n test_disrupt.fa -O Klebsiella_pneumoniae"
 FAILURES=$(( $? + $FAILURES ))
 
 # gzipped input
