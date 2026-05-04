@@ -103,7 +103,6 @@ class AcinetoScopeOrchestrator:
             'acineto_bacmet2_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
             'acineto_plasmidfinder_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
             'acineto_ecoh_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
-            'acineto_victors_summary_report.html': 'acineto_abricate_results/acineto_victors_summary_report.html',
             'acineto_plasmidfinder_summary_report.html': 'acineto_abricate_results/acineto_plasmidfinder_summary_report.html'
         }
     

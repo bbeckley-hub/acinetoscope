@@ -58,8 +58,7 @@ class UltimateHTMLParser:
             if sample.endswith(ext):
                 sample = sample[:-len(ext)]
                 break
-        if sample.startswith('GCF_'):
-            sample = 'GCA_' + sample[4:]
+        
         return sample.strip()
     
     def parse_html_table(self, html_content: str, table_index: int = 0) -> pd.DataFrame:
