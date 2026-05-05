@@ -1,0 +1,32 @@
+# .gitpod.yml
+image: gitpod/workspace-full
+
+tasks:
+  - name: Setup acinetoscope
+    init: |
+      conda config --add channels conda-forge
+      conda config --add channels bioconda
+      conda config --add channels bbeckley-hub  
+      conda create -n acinetoscope -c bbeckley-hub -c conda-forge -c bioconda acinetoscope python=3.9 -y
+      eval "$(conda shell.bash hook)"
+      conda activate acinetoscope
+      echo "conda activate acinetoscope" >> ~/.bashrc
+      echo "✅ acinetoscope development environment ready!"
+    command: |
+      echo "Ready to use acinetoscope!"
+      echo ""
+      echo "Quick test:"
+      echo "  acinetoscope --help"
+      echo ""
+      echo "Remember databases are not installed in Gitpod - run these first:"
+      echo "  abricate --setupdb"
+      echo "  acinetoscope --update-amr-db"
+
+ports:
+  - port: 8000
+    onOpen: open-preview
+
+vscode:
+  extensions:
+    - ms-python.python
+    - GitHub.vscode-pull-request-github
