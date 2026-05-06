@@ -546,6 +546,19 @@ AcinetoScope integrates several essential third-party tools and databases. If yo
   url = {https://github.com/tseemann/mlst}
 }
 ```
+### **PubMLST (Jolley et al.)**
+```bibtex
+
+@article{jolley_pubmlst_2018,
+  author = {Jolley, K. A. and Bray, J. E. and Maiden, M. C. J.},
+  title = {Open-access bacterial population genomics: {BIGSdb} software, the {PubMLST.org} website and their applications},
+  journal = {Wellcome Open Research},
+  volume = {3},
+  pages = {124},
+  year = {2018},
+  doi = {10.12688/wellcomeopenres.14826.1}
+}
+```
 
 #### **ABRicate (Torsten Seemann)**
 ```bibtex
