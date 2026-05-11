@@ -96,7 +96,6 @@
 ### 🌍 **The Problem**
 - **Fragmented Workflows**: Analyzing *A. baumannii* requires manual chaining of 6+ separate tools (MLST, Kaptive, AMRFinder, ABRicate, etc.).
 - **Interpretation Barrier**: Raw outputs from multiple tools need manual integration to form an epidemiological narrative.
-- **Time-Consuming Process**: Generalist pipelines like Bactopia perform unnecessary steps, slowing down outbreak response.
 
 ### 💡 **Our Solution**
 AcinetoScope delivers:
