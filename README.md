@@ -489,18 +489,6 @@ Use AI as a collaborative tool to explore data and generate hypotheses, but alwa
 
 ---
 
-## 📈 **Performance & Validation**
-
-### ⚡ **Benchmarking vs. Bactopia**
-AcinetoScope is purpose-built for *A. baumannii*, making it significantly faster than generalist pipelines.
-
-| System Config | Pipeline | Time (50 genomes) | Speed Gain |
-| :--- | :--- | :--- | :--- |
-| 2 CPU, 8 GB RAM | **AcinetoScope** | **~2.5 hours** | **≈40% faster** |
-| | Bactopia | ~4 hours | |
-| 16 CPU, 16 GB RAM | **AcinetoScope** | **~35 minutes** | **≈75% faster** |
-| | Bactopia | ~2.5 hours | |
-
 ### ✅ **Validation Results**
 Tested on 10 well-characterized reference genomes, AcinetoScope achieved **100% accuracy** in:
 - MLST typing (Pasteur & Oxford schemes)
