@@ -192,6 +192,9 @@ acinetoscope -i "*.fasta" -o batch_results --threads 8
     ```bash
     abricate --setupdb
     ```
+    ```bash
+    acinetoscope --force-update
+    ```
 
 ---
 
