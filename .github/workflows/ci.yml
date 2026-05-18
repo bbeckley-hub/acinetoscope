@@ -27,13 +27,12 @@ jobs:
         auto-update-conda: true
         python-version: ${{ matrix.python-version }}
     
-    - name: Install acinetoscope from bbeckley-hub channel
+    - name: Install acinetoscope from bioconda channel
       shell: bash -l {0}
       run: |
         conda config --add channels conda-forge
         conda config --add channels bioconda
-        conda config --add channels bbeckley-hub  
-        conda create -n acinetoscope -c bbeckley-hub -c conda-forge -c bioconda acinetoscope python=${{ matrix.python-version }} -y
+        conda create -n acinetoscope -c conda-forge -c bioconda acinetoscope python=${{ matrix.python-version }} -y
         conda activate acinetoscope
     
     - name: Test acinetoscope help
