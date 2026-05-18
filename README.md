@@ -102,7 +102,7 @@ AcinetoScope delivers:
 - **✅ End-to-End Automation**: One command runs the entire analysis from raw FASTA to a consolidated report.
 - **✅ *A. baumannii*-Optimized**: Pre-configured with species-specific databases and typing schemes (Pasteur & Oxford MLST, Kaptive K/O loci).
 - **✅ Actionable Intelligence**: Features a four-tier risk flagging system (CRITICAL, HIGH, MEDIUM, LOW) and gene-centric tracking to highlight high-threat resistance determinants.
-- **✅ Speed & Efficiency**: Benchmarked **40-75% faster** than generalist pipelines by eliminating redundant processing.
+- **✅ Speed & Efficiency**: Benchmarked **40-75% faster** than generalist pipelines.
 - **✅ AI-Ready Outputs**: Generates interactive HTML reports designed for seamless exploration with modern AI browser extensions.
 
 **Perfect for**: Hospital outbreak investigation, public health surveillance, antimicrobial resistance (AMR) research, and clinical microbiology.
