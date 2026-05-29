@@ -10,7 +10,6 @@ acinetoscope.egg-info/
 acinetoscope/modules/amr_module/data/
 # Large files
 *.LIB
-*.fasta
 *.fna
 *.fa
 *.gbk
