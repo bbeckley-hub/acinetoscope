@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="acinetoscope",
-    version="1.1.0",
+    version="1.2.0",
     author="Brown Beckley",
     author_email="brownbeckley94@gmail.com",
     description="Advanced Acinetobacter baumannii Genomic Analysis Platform",

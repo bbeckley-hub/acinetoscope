@@ -3,10 +3,9 @@
 AcinetoScope Main Orchestrator - Colored Sequential Execution with Scientific Quotes
 Complete A. baumannii typing pipeline - MLST, K/O, AMR, Plasmid, Virulence, QC, Summary
 Author: Brown Beckley <brownbeckley94@gmail.com>
-Date: 2026-04-28
-Version: 1.1.0 - Added --force-update for AMR database and --version flag
-Send a quick mail for any issues or further explanations.
-Affiliation: University of Ghana Medical School-Department of Medical Biochemistry
+Date: 2026-05-29
+Version: 1.2.0 - Added APT plasmid typing module and improved error handling
+Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
 """
 
 import os
@@ -20,10 +19,11 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Set
 
+
 # ----------------------------------------------------------------------
 # Version and color definitions
 # ----------------------------------------------------------------------
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 class Color:
     """ANSI color codes for colored output"""
@@ -31,7 +31,6 @@ class Color:
     BOLD = '\033[1m'
     DIM = '\033[2m'
     
-    # Regular colors
     BLACK = '\033[30m'
     RED = '\033[31m'
     GREEN = '\033[32m'
@@ -41,7 +40,6 @@ class Color:
     CYAN = '\033[36m'
     WHITE = '\033[37m'
     
-    # Bright colors
     BRIGHT_BLACK = '\033[90m'
     BRIGHT_RED = '\033[91m'
     BRIGHT_GREEN = '\033[92m'
@@ -59,40 +57,34 @@ class AcinetoScopeOrchestrator:
         self.setup_colors()
         self.quotes = self._get_scientific_quotes()
         self.quote_colors = [
-            Color.BRIGHT_CYAN,
-            Color.BRIGHT_GREEN,
-            Color.BRIGHT_YELLOW,
-            Color.BRIGHT_MAGENTA,
-            Color.BRIGHT_BLUE,
-            Color.BRIGHT_RED,
-            Color.CYAN,
-            Color.GREEN,
-            Color.YELLOW,
-            Color.MAGENTA
+            Color.BRIGHT_CYAN, Color.BRIGHT_GREEN, Color.BRIGHT_YELLOW,
+            Color.BRIGHT_MAGENTA, Color.BRIGHT_BLUE, Color.BRIGHT_RED,
+            Color.CYAN, Color.GREEN, Color.YELLOW, Color.MAGENTA
         ]
         
-        # EXACT OUTPUT DIRECTORY NAMES
+        # Output directory names (must match what modules produce)
         self.output_dirs = {
             'qc': 'fasta_qc_results',
             'abricate': 'acineto_abricate_results',
             'amr': 'acineto_amrfinder_results',
             'kaptive': 'kaptive_results',
             'mlst_pasteur': 'PASTEUR_MLST',
-            'mlst_oxford': 'OXFORD_MLST'
+            'mlst_oxford': 'OXFORD_MLST',
+            'plasmid': 'acineto_plasmid_results'        # new
         }
         
-        # EXACT HTML FILES REQUIRED FOR SUMMARY MODULE
+        # HTML files required for the summary reporter (including plasmid)
         self.summary_html_files = {
-            # FASTA QC File
+            # FASTA QC
             'FASTA_QC_summary.html': 'fasta_qc_results/FASTA_QC_summary.html',
-            # MLST files
+            # MLST
             'pasteur_mlst_summary.html': 'pasteur_mlst_summary.html',
             'oxford_mlst_summary.html': 'oxford_mlst_summary.html',
-            # Kaptive file
+            # Kaptive
             'Kaptive_summary.html': 'kaptive_results/Kaptive_summary.html',
-            # AMR file
+            # AMR
             'acineto_amrfinder_summary_report.html': 'acineto_amrfinder_results/acineto_amrfinder_summary_report.html',
-            # ABRicate files
+            # ABRicate databases
             'acineto_card_summary_report.html': 'acineto_abricate_results/acineto_card_summary_report.html',
             'acineto_ncbi_summary_report.html': 'acineto_abricate_results/acineto_ncbi_summary_report.html',
             'acineto_resfinder_summary_report.html': 'acineto_abricate_results/acineto_resfinder_summary_report.html',
@@ -101,13 +93,14 @@ class AcinetoScopeOrchestrator:
             'acineto_megares_summary_report.html': 'acineto_abricate_results/acineto_megares_summary_report.html',
             'acineto_ecoli_vf_summary_report.html': 'acineto_abricate_results/acineto_ecoli_vf_summary_report.html',
             'acineto_bacmet2_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
-            'acineto_plasmidfinder_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
-            'acineto_ecoh_summary_report.html': 'acineto_abricate_results/acineto_bacmet2_summary_report.html',
-            'acineto_plasmidfinder_summary_report.html': 'acineto_abricate_results/acineto_plasmidfinder_summary_report.html'
+            'acineto_ecoh_summary_report.html': 'acineto_abricate_results/acineto_ecoh_summary_report.html',
+            'acineto_plasmidfinder_summary_report.html': 'acineto_abricate_results/acineto_plasmidfinder_summary_report.html',
+            # New plasmid typing (APT)
+            'plasmid_summary_report.html': 'acineto_plasmid_results/plasmid_summary_report.html'
         }
     
     def _get_scientific_quotes(self):
-        """Curated scientific quotes about microbiology, genomics, and discovery (same as original)"""
+        """Curated scientific quotes (same as original)"""
         return [
             {"quote": "Science is organized knowledge.", "author": "Herbert Spencer", "theme": "knowledge"},
             {"quote": "The science of today is the technology of tomorrow.", "author": "Edward Teller", "theme": "technology"},
@@ -213,7 +206,7 @@ class AcinetoScopeOrchestrator:
 {'='*80}
 {Color.RESET}{Color.BRIGHT_CYAN}
 Complete A. baumannii genomic analysis pipeline
-MLST | K/O Locus | AMR | Virulence | Plasmid | Quality Control | Critical Genes Flagging | Summary Reports
+MLST | K/O Locus | AMR | Virulence | Plasmid (APT) | Quality Control | Critical Genes Flagging | Summary Reports
 {Color.RESET}{Color.DIM}
 Author: Brown Beckley | Email: brownbeckley94@gmail.com
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
@@ -268,7 +261,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                     temp_file.unlink()
             exact_dirs_to_remove = ["fasta_qc_results", "acineto_abricate_results", "acineto_amrfinder_results",
                                     "kaptive_results", "PASTEUR_MLST", "OXFORD_MLST", "mlst_pasteur_results",
-                                    "mlst_oxford_results", "results"]
+                                    "mlst_oxford_results", "results", "acineto_plasmid_results"]
             for dir_name in exact_dirs_to_remove:
                 dir_path = module_path / dir_name
                 if dir_path.exists():
@@ -285,7 +278,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             self.print_warning(f"⚠️  Partial cleanup issue in {module_path.name}: {str(e)}")
 
     # ----------------------------------------------------------------------
-    # Module execution methods (with fixed string escaping)
+    # Module execution methods (each returns True on completion, False on fatal error)
     # ----------------------------------------------------------------------
     def run_qc_analysis(self, fasta_files: List[Path], output_dir: Path, threads: int) -> bool:
         qc_module_path = self.base_dir / "modules" / "qc_module"
@@ -545,6 +538,64 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         finally:
             self.cleanup_module_directory(abricate_module_path, fasta_files)
 
+    def run_plasmid_analysis(self, fasta_files: List[Path], output_dir: Path, threads: int) -> bool:
+        """Run APT‑based plasmid typing module."""
+        plasmid_module_path = self.base_dir / "modules" / "plasmid_typing_module"
+        try:
+            self.print_header("PLASMID TYPING ANALYSIS", "Acinetobacter Plasmid Typing (APT)")
+            plasmid_script = plasmid_module_path / "plasmid_typer.py"
+            if not plasmid_script.exists():
+                self.print_error(f"Plasmid script not found at: {plasmid_script}")
+                return False
+            
+            # Copy FASTA files to the module directory
+            for fasta_file in fasta_files:
+                shutil.copy2(fasta_file, plasmid_module_path / fasta_file.name)
+            self.print_info(f"Copied {len(fasta_files)} files to plasmid module")
+            
+            file_pattern = self.get_file_pattern(fasta_files)
+            pattern_clean = file_pattern.strip('"')
+            cmd = [sys.executable, str(plasmid_script), pattern_clean]
+            self.print_info(f"Running APT plasmid typing with pattern: {file_pattern}")
+            self.print_command(f"python3 {plasmid_script.name} {pattern_clean}")
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=plasmid_module_path)
+            if result.returncode == 0:
+                self.print_success("Plasmid typing completed!")
+                plasmid_source = plasmid_module_path / "acineto_plasmid_results"
+                plasmid_target = output_dir / "acineto_plasmid_results"
+                if plasmid_source.exists():
+                    if plasmid_target.exists():
+                        shutil.rmtree(plasmid_target)
+                    shutil.copytree(plasmid_source, plasmid_target)
+                    self.print_success(f"Plasmid results copied to: {plasmid_target}")
+                else:
+                    self.print_warning("Plasmid results directory not found: acineto_plasmid_results")
+                
+                # Copy the plasmid summary HTML to the output root (for later summary module)
+                html_source = plasmid_module_path / "acineto_plasmid_results" / "plasmid_summary_report.html"
+                if html_source.exists():
+                    html_target = output_dir / "plasmid_summary_report.html"
+                    shutil.copy2(html_source, html_target)
+                    self.print_success(f"Plasmid HTML report copied to: {html_target}")
+                else:
+                    self.print_warning("Plasmid HTML report not found: plasmid_summary_report.html")
+                self.display_random_quote()
+                return True
+            else:
+                self.print_warning("Plasmid typing had warnings (non‑fatal, continuing)")
+                if result.stderr:
+                    error_lines = result.stderr.strip().split('\n')
+                    for line in error_lines[:5]:
+                        if "error" in line.lower() or "failed" in line.lower():
+                            print(f"{self.color_warning}  {line}{Color.RESET}")
+                return True   # non‑fatal, continue pipeline
+        except Exception as e:
+            self.print_error(f"Plasmid analysis failed: {str(e)}")
+            return False
+        finally:
+            self.cleanup_module_directory(plasmid_module_path, fasta_files)
+
     def copy_files_to_summary_module(self, output_dir: Path) -> Dict[str, bool]:
         try:
             self.print_header("PREPARING SUMMARY MODULE", "Copying required HTML files")
@@ -565,6 +616,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                     missing_count += 1
                     self.print_warning(f"  ✗ {target_filename} (not found at: {relative_path})")
             self.print_info(f"Copied {copied_count} files, {missing_count} files missing")
+            # Critical files that must exist for the reporter to run
             critical_files = ["pasteur_mlst_summary.html", "oxford_mlst_summary.html", "Kaptive_summary.html",
                               "acineto_amrfinder_summary_report.html", "acineto_card_summary_report.html"]
             missing_critical = [f for f in critical_files if not required_files.get(f, False)]
@@ -629,9 +681,13 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             analysis_functions.append(("AMR Analysis", self.run_amr_analysis, True))
         if not skip_modules.get('abricate', False):
             analysis_functions.append(("ABRicate Analysis", self.run_abricate_analysis, True))
+        if not skip_modules.get('plasmid', False):
+            analysis_functions.append(("Plasmid Typing", self.run_plasmid_analysis, True))
+        
         if not analysis_functions:
             self.print_warning("All analyses were skipped! Nothing to run.")
             return {}
+        
         self.print_info(f"Running {len(analysis_functions)} analyses sequentially")
         results = {}
         for analysis_name, analysis_func, _ in analysis_functions:
@@ -689,7 +745,8 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             self.print_success(f"Starting analysis of {len(fasta_files)} A. baumannii samples")
             self.print_info(f"File formats detected: {', '.join(extensions)}")
             subdirs = ["fasta_qc_results", "PASTEUR_MLST", "OXFORD_MLST", "kaptive_results",
-                       "acineto_amrfinder_results", "acineto_abricate_results", "GENIUS_ACINETOBACTER_ULTIMATE_REPORTS"]
+                       "acineto_amrfinder_results", "acineto_abricate_results", "acineto_plasmid_results",
+                       "GENIUS_ACINETOBACTER_ULTIMATE_REPORTS"]
             for subdir in subdirs:
                 (output_path / subdir).mkdir(exist_ok=True)
             self.print_header("ANALYSIS PLAN", "Modules to be executed")
@@ -700,6 +757,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                 ("Kaptive Analysis", not skip_modules.get('kaptive', False)),
                 ("AMR Analysis", not skip_modules.get('amr', False)),
                 ("ABRicate Analysis", not skip_modules.get('abricate', False)),
+                ("Plasmid Typing", not skip_modules.get('plasmid', False)),
                 ("Ultimate Reporter", not skip_summary),
             ]
             for analysis, enabled in analyses_to_run:
@@ -781,6 +839,7 @@ def main():
     parser.add_argument('--skip-kaptive', action='store_true', help='Skip Kaptive analysis')
     parser.add_argument('--skip-amr', action='store_true', help='Skip AMR analysis')
     parser.add_argument('--skip-abricate', action='store_true', help='Skip ABRicate analysis')
+    parser.add_argument('--skip-plasmid', action='store_true', help='Skip plasmid typing (APT) analysis')
     parser.add_argument('--skip-summary', action='store_true', help='Skip ultimate reporter generation')
     parser.add_argument('--force-update', action='store_true', help='Force update of AMR database (overwrites existing)')
     parser.add_argument('-h', '--help', action='store_true', help='Show this help message and exit')
@@ -804,6 +863,7 @@ def main():
         print(f"  {Color.GREEN}--skip-kaptive{Color.RESET}      Skip Kaptive analysis")
         print(f"  {Color.GREEN}--skip-amr{Color.RESET}          Skip AMR analysis")
         print(f"  {Color.GREEN}--skip-abricate{Color.RESET}     Skip ABRicate analysis")
+        print(f"  {Color.GREEN}--skip-plasmid{Color.RESET}      Skip plasmid typing (APT) analysis")
         print(f"  {Color.GREEN}--skip-summary{Color.RESET}      Skip ultimate reporter")
         print(f"  {Color.GREEN}--force-update{Color.RESET}      Force update of AMR database (overwrites existing)")
         print(f"  {Color.GREEN}-h, --help{Color.RESET}           Show this help message")
@@ -843,7 +903,8 @@ def main():
         'mlst': args.skip_mlst,
         'kaptive': args.skip_kaptive,
         'amr': args.skip_amr,
-        'abricate': args.skip_abricate
+        'abricate': args.skip_abricate,
+        'plasmid': args.skip_plasmid,
     }
     orchestrator = AcinetoScopeOrchestrator()
     orchestrator.run_complete_analysis(

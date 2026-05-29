@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-GENIUS ACINETOBACTER BAUMANNII ULTIMATE REPORTER 
+GENIUS ACINETOBACTER BAUMANNII ULTIMATE REPORTER
 Advanced HTML Parser with Gene-Centric Cross-Genome Analysis for A. baumannii
-Author: Beckley Brown <brownbeckley94@gmail.com>
+Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School
-Version: 2.0.0 
-Date: 2026-04-28
+Version: 2.1.0
+Date: 2026-05-29
 """
 
 import os
@@ -25,11 +25,11 @@ warnings.filterwarnings('ignore')
 from bs4 import BeautifulSoup
 
 # =============================================================================
-# HTML PARSER CLASS 
+# HTML PARSER CLASS
 # =============================================================================
 class UltimateHTMLParser:
-    """Ultimate HTML parser for AcinetoScope reports"""
-    
+    """Parse AcinetoScope HTML reports (QC, MLST, Kaptive, AMR, ABRicate, PlasmidFinder, APT)."""
+
     def __init__(self):
         self.all_databases = [
             'amrfinder', 'card', 'resfinder', 'argannot', 'megares', 'bacmet2',
@@ -48,7 +48,7 @@ class UltimateHTMLParser:
             'acineto_ecoh': 'ecoh',
             'acineto_ncbi': 'ncbi'
         }
-    
+
     def normalize_sample_id(self, sample_id: str) -> str:
         sample = str(sample_id)
         if '/' in sample or '\\' in sample:
@@ -58,9 +58,8 @@ class UltimateHTMLParser:
             if sample.endswith(ext):
                 sample = sample[:-len(ext)]
                 break
-        
         return sample.strip()
-    
+
     def parse_html_table(self, html_content: str, table_index: int = 0) -> pd.DataFrame:
         try:
             soup = BeautifulSoup(html_content, 'html.parser')
@@ -88,7 +87,7 @@ class UltimateHTMLParser:
         except Exception as e:
             print(f"  ⚠️ Table parsing error: {e}")
             return pd.DataFrame()
-    
+
     def parse_mlst_report(self, file_path: Path, scheme: str = "pasteur") -> Dict[str, Dict]:
         print(f"  🧬 Parsing {scheme.upper()} MLST: {file_path.name}")
         try:
@@ -100,8 +99,7 @@ class UltimateHTMLParser:
                 if df.empty:
                     return {}
             df.columns = [col.strip().replace('\n', ' ') for col in df.columns]
-            
-            # Find sample column (usually "Sample" or "Genome")
+
             sample_col = None
             for col in df.columns:
                 col_lower = col.lower()
@@ -110,17 +108,15 @@ class UltimateHTMLParser:
                         sample_col = col
                         break
             if not sample_col and len(df.columns) > 1:
-                # fallback: assume first column is sample
                 sample_col = df.columns[0]
             if not sample_col:
                 print(f"    ⚠️ Could not find sample column in {scheme} MLST")
                 return {}
-            
+
             df['normalized_sample'] = df[sample_col].apply(self.normalize_sample_id)
             results = {}
             valid_st_count = 0
-            
-            # Determine the ST column: look for exact "ST" or any column containing "ST"
+
             st_col = None
             for col in df.columns:
                 if col.upper() == 'ST':
@@ -131,30 +127,26 @@ class UltimateHTMLParser:
                     if 'st' in col.lower() and 'sample' not in col.lower():
                         st_col = col
                         break
-            
+
             for _, row in df.iterrows():
                 sample = row['normalized_sample']
                 if pd.isna(sample) or not sample:
                     continue
-                
+
                 st = 'ND'
-                # Try to get ST from the dedicated column
                 if st_col is not None and pd.notna(row.get(st_col)):
                     st_val = str(row[st_col]).strip()
                     if st_val and st_val.upper() not in ['', 'NAN', 'NONE', 'ND', 'UNKNOWN', 'STUNKNOWN']:
-                        # Extract the numeric part after "ST" (case-insensitive)
                         match = re.search(r'ST(\d+)', st_val, re.IGNORECASE)
                         if match:
                             st = match.group(1)
                             valid_st_count += 1
                         else:
-                            # Try to extract any number
                             num_match = re.search(r'\d+', st_val)
                             if num_match:
                                 st = num_match.group()
                                 valid_st_count += 1
                 else:
-                    # No explicit ST column, search all columns for ST pattern
                     for col in df.columns:
                         if col.lower() != sample_col.lower() and pd.notna(row.get(col)):
                             cell_val = str(row[col])
@@ -163,8 +155,7 @@ class UltimateHTMLParser:
                                 st = match.group(1)
                                 valid_st_count += 1
                                 break
-                
-                # International Clone (only for Pasteur scheme)
+
                 ic = 'Unknown'
                 if scheme.lower() == 'pasteur':
                     ic_col = None
@@ -188,7 +179,7 @@ class UltimateHTMLParser:
                                 if ic_match:
                                     ic = ic_match.group(1).replace(' ', '')
                                     break
-                
+
                 allele_profile = 'ND'
                 for col in df.columns:
                     if 'allele' in col.lower() and 'profile' in col.lower():
@@ -197,14 +188,14 @@ class UltimateHTMLParser:
                             if allele_val and allele_val.lower() not in ['', 'nan', 'none', 'nd']:
                                 allele_profile = allele_val
                         break
-                
+
                 results[sample] = {
                     'ST': st,
                     'International_Clone': ic,
                     'Allele_Profile': allele_profile,
                     'Scheme': scheme
                 }
-            
+
             print(f"    ✓ Found {len(results)} samples for {scheme.upper()} scheme (valid STs: {valid_st_count})")
             return results
         except Exception as e:
@@ -212,8 +203,6 @@ class UltimateHTMLParser:
             import traceback
             traceback.print_exc()
             return {}
-    
-    # ---------- All other parsing methods ---------------------------
 
     def parse_kaptive_report(self, file_path: Path) -> Dict[str, Dict]:
         print(f"  🧬 Parsing Kaptive: {file_path.name}")
@@ -304,7 +293,7 @@ class UltimateHTMLParser:
         except Exception as e:
             print(f"    ❌ Error parsing Kaptive: {e}")
             return {}
-    
+
     def parse_qc_report(self, file_path: Path) -> Dict[str, Dict]:
         print(f"  🧬 Parsing FASTA QC: {file_path.name}")
         try:
@@ -345,7 +334,7 @@ class UltimateHTMLParser:
         except Exception as e:
             print(f"    ❌ Error parsing QC: {e}")
             return {}
-    
+
     def parse_amrfinder_report(self, file_path: Path, total_samples: int = 0) -> Tuple[Dict[str, List], Dict[str, Dict]]:
         print(f"  🧬 Parsing AMRfinder: {file_path.name}")
         try:
@@ -389,14 +378,14 @@ class UltimateHTMLParser:
                     genes = []
                     if pd.notna(row.get('Genes Detected')):
                         gene_str = str(row['Genes Detected'])
-                        genes = [g.strip() for g in gene_str.split() if g.strip() and not g.startswith('Showing') and not '(' in g and not ')' in g]
+                        genes = [g.strip() for g in gene_str.split() if g.strip() and not g.startswith('Showing') and '(' not in g and ')' not in g]
                     genes_by_genome[sample] = genes
             print(f"    ✓ Found {len(genes_by_genome)} samples, {len(gene_frequencies)} genes")
             return genes_by_genome, gene_frequencies
         except Exception as e:
             print(f"    ❌ Error parsing AMRfinder: {e}")
             return {}, {}
-    
+
     def parse_abricate_database_report(self, file_path: Path, total_samples: int = 0) -> Tuple[Dict[str, List], Dict[str, Dict]]:
         print(f"  🧬 Parsing ABRicate: {file_path.name}")
         try:
@@ -468,7 +457,7 @@ class UltimateHTMLParser:
         except Exception as e:
             print(f"    ❌ Error parsing ABRicate report: {e}")
             return {}, {}
-    
+
     def parse_plasmidfinder_report(self, file_path: Path, total_samples: int = 0) -> Tuple[Dict[str, List], Dict[str, Dict]]:
         print(f"  🧬 Parsing PlasmidFinder: {file_path.name}")
         try:
@@ -534,7 +523,58 @@ class UltimateHTMLParser:
         except Exception as e:
             print(f"    ❌ Error parsing PlasmidFinder: {e}")
             return {}, {}
-    
+
+    def parse_apt_plasmid_summary(self, file_path: Path) -> Dict[str, Any]:
+        """Parse plasmid_summary_report.html (APT) to extract rep type frequency and per-genome rep types."""
+        print(f"  🧬 Parsing APT plasmid summary: {file_path.name}")
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                html = f.read()
+            soup = BeautifulSoup(html, 'html.parser')
+            freq_table = soup.find('table', id='freqTable')
+            if not freq_table:
+                for table in soup.find_all('table'):
+                    if 'Rep Type' in table.get_text():
+                        freq_table = table
+                        break
+            rep_freq = []
+            if freq_table:
+                rows = freq_table.find_all('tr')
+                for row in rows[1:]:
+                    cols = row.find_all('td')
+                    if len(cols) >= 3:
+                        rep_type = cols[0].get_text().strip()
+                        count = int(cols[1].get_text().strip())
+                        genomes = [g.strip() for g in cols[2].get_text().strip().split(',')]
+                        rep_freq.append({
+                            'rep_type': rep_type,
+                            'count': count,
+                            'genomes': genomes
+                        })
+            genome_table = soup.find('table', id='genomeTable')
+            per_genome = {}
+            if genome_table:
+                rows = genome_table.find_all('tr')
+                for row in rows[1:]:
+                    cols = row.find_all('td')
+                    if len(cols) >= 2:
+                        genome = cols[0].get_text().strip()
+                        rep_types_raw = cols[1].get_text().strip()
+                        rep_types = [rt.strip() for rt in rep_types_raw.split() if rt.strip() and rt.strip() != 'No Rep found']
+                        if not rep_types and 'No Rep found' in rep_types_raw:
+                            rep_types = []
+                        per_genome[genome] = rep_types
+            return {
+                'rep_frequency': rep_freq,
+                'per_genome': per_genome,
+                'total_genomes': len(per_genome),
+                'total_with_plasmids': sum(1 for reps in per_genome.values() if reps),
+                'unique_rep_types': len(rep_freq)
+            }
+        except Exception as e:
+            print(f"    ❌ Error parsing APT plasmid summary: {e}")
+            return {}
+
     def _clean_plasmid_gene_name(self, gene_name: str) -> str:
         gene = re.sub(r'_(\d+)$', '', gene_name)
         plasmid_match = re.search(r'\((.*?)\)', gene)
@@ -546,7 +586,7 @@ class UltimateHTMLParser:
             else:
                 gene = plasmid_name
         return gene.strip()
-    
+
     def _categorize_plasmid(self, gene_name: str) -> str:
         gene_lower = gene_name.lower()
         if any(rep in gene_lower for rep in ['rep', 'inc', 'rep_']):
@@ -576,7 +616,7 @@ class UltimateHTMLParser:
 
 
 # =============================================================================
-# DATA ANALYZER CLASS 
+# DATA ANALYZER CLASS
 # =============================================================================
 class UltimateDataAnalyzer:
     def __init__(self):
@@ -627,7 +667,7 @@ class UltimateDataAnalyzer:
             'pbrA', 'pbrB', 'pbrC', 'pbrD', 'pbrR',
             'corA', 'corC', 'corR', 'zraR', 'pitA', 'nccN', 'nreB', 'fptA', 'fecE', 'fpvA', 'znuB', 'znuC', 'frnE'
         }
-    
+
     def categorize_gene(self, gene: str) -> str:
         gene_lower = gene.lower()
         if any(carb in gene_lower for carb in [g.lower() for g in self.critical_carbapenemases]):
@@ -646,7 +686,7 @@ class UltimateDataAnalyzer:
             return 'Bacmet (Biocide/Metal)'
         else:
             return 'Other'
-    
+
     def create_gene_centric_tables(self, integrated_data: Dict[str, Any], total_samples: int) -> Dict[str, Any]:
         gene_centric = {
             'amr_databases': {},
@@ -694,11 +734,13 @@ class UltimateDataAnalyzer:
                     })
                 if gene_list:
                     gene_list.sort(key=lambda x: x['count'], reverse=True)
-                    if db_name in ['vfdb', 'ecoli_vf']:
+                    db_lower = db_name.lower()
+                    # Fix: case‑insensitive and substring matching
+                    if 'vfdb' in db_lower or 'ecoli_vf' in db_lower:
                         gene_centric['virulence_databases'][db_name] = gene_list
-                    elif db_name == 'bacmet2':
+                    elif 'bacmet2' in db_lower:
                         gene_centric['bacmet_databases'][db_name] = gene_list
-                    elif db_name in ['plasmidfinder', 'ecoh']:
+                    elif 'plasmidfinder' in db_lower or 'ecoh' in db_lower:
                         gene_centric['plasmid_databases'][db_name] = gene_list
                     else:
                         gene_centric['amr_databases'][db_name] = gene_list
@@ -721,7 +763,7 @@ class UltimateDataAnalyzer:
                     'critical_genes': sum(1 for g in genes if g['category'] in ['Carbapenemases', 'ESBLs', 'Colistin Resistance', 'Tigecycline Resistance']),
                 }
         return gene_centric
-    
+
     def create_cross_genome_patterns(self, integrated_data: Dict[str, Any], total_samples: int) -> Dict[str, Any]:
         patterns = {
             'pasteur_st_distribution': Counter(),
@@ -786,7 +828,7 @@ class UltimateDataAnalyzer:
                     'tigecycline_resistance': tigecycline_res
                 })
         return patterns
-    
+
     def create_plasmid_analysis(self, integrated_data: Dict[str, Any], total_samples: int) -> Dict[str, Any]:
         plasmid_analysis = {'plasmid_databases': {}, 'plasmid_frequencies': [], 'sample_plasmid_profiles': defaultdict(list)}
         if 'plasmidfinder' not in integrated_data.get('gene_frequencies', {}):
@@ -821,12 +863,12 @@ class UltimateDataAnalyzer:
 
 
 # =============================================================================
-# HTML GENERATOR CLASS 
+# HTML GENERATOR CLASS
 # =============================================================================
 class UltimateHTMLGenerator:
     def __init__(self, data_analyzer: UltimateDataAnalyzer):
         self.data_analyzer = data_analyzer
-    
+
     def generate_main_report(self, integrated_data: Dict[str, Any], output_dir: Path) -> str:
         print("\n🎨 Generating ULTIMATE HTML report for A. baumannii...")
         samples_data = integrated_data.get('samples', {})
@@ -835,17 +877,18 @@ class UltimateHTMLGenerator:
         metadata = integrated_data.get('metadata', {})
         plasmid_analysis = integrated_data.get('plasmid_analysis', {})
         qc_data = integrated_data.get('qc_data', {})
+        apt_plasmid = integrated_data.get('apt_plasmid', {})
         html = self._create_ultimate_html(
             metadata=metadata, samples_data=samples_data, patterns=patterns,
             gene_centric=gene_centric, plasmid_analysis=plasmid_analysis,
-            qc_data=qc_data, total_samples=len(samples_data)
+            qc_data=qc_data, total_samples=len(samples_data), apt_plasmid=apt_plasmid
         )
         output_file = output_dir / "genius_acinetobacter_ultimate_report.html"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
         print(f"    ✅ HTML report saved: {output_file}")
         return str(output_file)
-    
+
     def _create_ultimate_html(self, **kwargs) -> str:
         metadata = kwargs['metadata']
         samples_data = kwargs['samples_data']
@@ -854,14 +897,18 @@ class UltimateHTMLGenerator:
         plasmid_analysis = kwargs.get('plasmid_analysis', {})
         qc_data = kwargs.get('qc_data', {})
         total_samples = kwargs['total_samples']
+        apt_plasmid = kwargs.get('apt_plasmid', {})
         total_amr = sum(len(db) for db in gene_centric.get('amr_databases', {}).values())
         total_vir = sum(len(db) for db in gene_centric.get('virulence_databases', {}).values())
         total_bacmet = sum(len(db) for db in gene_centric.get('bacmet_databases', {}).values())
-        total_plasmid = sum(len(db) for db in plasmid_analysis.get('plasmid_databases', {}).values())
+        if apt_plasmid and apt_plasmid.get('unique_rep_types', 0) > 0:
+            total_plasmid = apt_plasmid['unique_rep_types']
+        else:
+            total_plasmid = sum(len(db) for db in plasmid_analysis.get('plasmid_databases', {}).values())
         high_risk = len(patterns.get('high_risk_crab', []))
         carbapenemase_count = sum(1 for db in gene_centric.get('amr_databases', {}).values() for g in db if g['category'] == 'Carbapenemases')
         env_count = total_bacmet
-        
+
         css = """
         <style>
         :root { --summary-color:#4CAF50; --samples-color:#2196F3; --mlst-color:#FF9800; --kaptive-color:#9C27B0; --amr-color:#F44336; --virulence-color:#E91E63; --bacmet-color:#795548; --combinations-color:#009688; --patterns-color:#FF5722; --plasmid-color:#2196F3; --databases-color:#607D8B; --qc-color:#17a2b8; --aiguide-color:#3F51B5; --calltoaction-color:#2E7D32; --export-color:#3F51B5; }
@@ -932,6 +979,7 @@ class UltimateHTMLGenerator:
         .critical-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin:20px 0}
         .critical-card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);border-left:4px solid}
         .sort-icon{margin-left:5px;font-size:0.8em;opacity:0.6}
+        mark { background-color: #ffeb3b; color: #000; padding: 0 2px; border-radius: 3px; }
         </style>
         """
         js = """
@@ -954,6 +1002,36 @@ class UltimateHTMLGenerator:
                 rows[i].style.display=found?'':'none';
             }
         }
+        function highlightTableCells(tableId, searchId, caseSensitive=false){
+            let term = document.getElementById(searchId).value;
+            if(!term.trim()){
+                const table = document.getElementById(tableId);
+                table.querySelectorAll('mark').forEach(m => {
+                    const parent = m.parentNode;
+                    parent.replaceChild(document.createTextNode(m.textContent), m);
+                    parent.normalize();
+                });
+                return;
+            }
+            let regex;
+            try {
+                regex = new RegExp('(' + escapeRegex(term) + ')', 'gi');
+            } catch(e){ return; }
+            const table = document.getElementById(tableId);
+            const cells = table.querySelectorAll('td');
+            cells.forEach(cell => {
+                const original = cell.innerText;
+                if(regex.test(original)){
+                    const newHtml = original.replace(regex, '<mark>$1</mark>');
+                    cell.innerHTML = newHtml;
+                } else {
+                    if(cell.querySelector('mark')) {
+                        cell.innerHTML = original;
+                    }
+                }
+            });
+        }
+        function escapeRegex(str){ return str.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'); }
         function highlightGenome(tableId, genomeSearchId){
             let filter=document.getElementById(genomeSearchId).value.toUpperCase().trim();
             let table=document.getElementById(tableId);
@@ -1036,7 +1114,7 @@ class UltimateHTMLGenerator:
         });
         </script>
         """
-        
+
         html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>GENIUS Acinetobacter baumannii Ultimate Report</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1055,7 +1133,7 @@ class UltimateHTMLGenerator:
 <div class="dashboard-card card-amr" onclick="switchTab('amr')"><div class="card-number">{total_amr}</div><div class="card-label">AMR Genes</div><i class="fas fa-biohazard fa-2x" style="color:var(--amr-color)"></i></div>
 <div class="dashboard-card card-virulence" onclick="switchTab('virulence')"><div class="card-number">{total_vir}</div><div class="card-label">Virulence Genes</div><i class="fas fa-virus fa-2x" style="color:var(--virulence-color)"></i></div>
 <div class="dashboard-card card-bacmet" onclick="switchTab('bacmet')"><div class="card-number">{total_bacmet}</div><div class="card-label">Bacmet</div><i class="fas fa-flask fa-2x" style="color:var(--bacmet-color)"></i></div>
-<div class="dashboard-card card-plasmid" onclick="switchTab('plasmid')"><div class="card-number">{total_plasmid}</div><div class="card-label">Plasmid Markers</div><i class="fas fa-dna fa-2x" style="color:var(--plasmid-color)"></i></div>
+<div class="dashboard-card card-plasmid" onclick="switchTab('plasmid')"><div class="card-number">{total_plasmid}</div><div class="card-label">Plasmid Rep Types</div><i class="fas fa-dna fa-2x" style="color:var(--plasmid-color)"></i></div>
 <div class="dashboard-card card-patterns" onclick="switchTab('patterns')"><div class="card-number">{high_risk}</div><div class="card-label">CRAB High-Risk</div><i class="fas fa-exclamation-triangle fa-2x" style="color:var(--patterns-color)"></i></div>
 </div>
 <div class="tab-navigation">
@@ -1084,17 +1162,21 @@ class UltimateHTMLGenerator:
 <div id="amr-tab" class="tab-content">{self._amr_section(kwargs)}</div>
 <div id="virulence-tab" class="tab-content">{self._virulence_section(kwargs)}</div>
 <div id="bacmet-tab" class="tab-content">{self._bacmet_section(kwargs)}</div>
-<div id="plasmid-tab" class="tab-content">{self._plasmid_section(kwargs)}</div>
+<div id="plasmid-tab" class="tab-content">{self._plasmid_section(kwargs, apt_plasmid)}</div>
 <div id="patterns-tab" class="tab-content">{self._patterns_section(kwargs)}</div>
 <div id="databases-tab" class="tab-content">{self._databases_section(kwargs)}</div>
 <div id="aiguide-tab" class="tab-content">{self._aiguide_section()}</div>
 <div id="calltoaction-tab" class="tab-content">{self._calltoaction_section()}</div>
 <div id="export-tab" class="tab-content">{self._export_section()}</div>
-<div class="footer"><h3>GENIUS Acinetobacter baumannii Ultimate Reporter v2.0.0</h3><p>University of Ghana Medical School | Brown Beckley &lt;brownbeckley94@gmail.com&gt;</p><p>If you find this tool helpful, please <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank">⭐ star us on GitHub</a> and share with your network.</p><p>Critical Genes Tracked: Carbapenemases • ESBLs • Colistin Resistance • Tigecycline Resistance • Biofilm Formation • Efflux Pumps • Environmental Co-Selection</p><p>Generated on {metadata.get('analysis_date','Unknown')}</p></div>
+<div class="footer"><h3>GENIUS Acinetobacter baumannii Ultimate Reporter v2.1.0</h3><p>University of Ghana Medical School | Brown Beckley &lt;brownbeckley94@gmail.com&gt;</p><p>If you find this tool helpful, please <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank">⭐ star us on GitHub</a> and share with your network.</p><p>Critical Genes Tracked: Carbapenemases • ESBLs • Colistin Resistance • Tigecycline Resistance • Biofilm Formation • Efflux Pumps • Environmental Co-Selection</p><p>Generated on {metadata.get('analysis_date','Unknown')}</p></div>
 </div></body></html>"""
         return html
-    
-    # ------------------------------ All section methods ------------------------------
+
+    # Helper method to build genome tags from a list
+    def _make_genome_tags(self, genomes: List[str]) -> str:
+        return ''.join(f'<span class="genome-tag">{gen}</span>' for gen in sorted(genomes))
+
+    # ------------------------------ Section methods ------------------------------
     def _summary_section(self, kwargs, carb_count, env_count):
         samples = kwargs['samples_data']
         patterns = kwargs['patterns']
@@ -1132,7 +1214,7 @@ class UltimateHTMLGenerator:
         </div>
         <div class="info-text"><i class="fas fa-chart-line"></i> <strong>About this section:</strong> The summary provides an executive overview of the analysis, highlighting key resistance threats, population structure, and environmental co-selection markers. Use the dashboard cards to navigate to specific analysis tabs.</div>
         """
-    
+
     def _samples_section(self, kwargs):
         samples = kwargs['samples_data']
         gene_centric = kwargs['gene_centric']
@@ -1143,9 +1225,14 @@ class UltimateHTMLGenerator:
                     sample_vir_counts[genome] += 1
         html = """
         <div class="alert-box alert-info"><i class="fas fa-info-circle"></i><div><h3>Population Structure Overview</h3><p>This table summarises the key typing results for each genome. Understanding the population structure helps identify dominant clones, track outbreaks, and link genotypes to phenotypes.</p><ul><li><strong>MLST (Sequence Type)</strong>: Gold standard for global epidemiology. Clonal complexes indicate recent common ancestry.</li><li><strong>Capsule Typing (K:O)</strong>: K (capsule) and O (lipooligosaccharide) loci are critical for virulence and immune evasion. Specific K:O combinations are associated with different clonal complexes.</li><li><strong>ND (Not Determined)</strong>: Indicates that the typing result could not be determined from the available data.</li></ul></div></div>
-        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('samples-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-samples').value=''; searchTable('samples-table','search-samples')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV('samples-table','acinetobacter_samples.csv')"><i class="fas fa-download"></i> Export CSV</button></div>
-        <input type="text" class="search-box" id="search-samples" onkeyup="searchTable('samples-table','search-samples')" placeholder="🔍 Search samples by any field...">
-        <div class="master-scrollable-container"><table id="samples-table" class="data-table"><thead><tr><th data-sort="string">Sample</th><th data-sort="string">Pasteur ST</th><th data-sort="string">Oxford ST</th><th data-sort="string">K Locus</th><th data-sort="string">O Locus</th><th data-sort="number">Virulence Count</th></tr></thead><tbody>
+        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('samples-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-samples').value=''; searchTable('samples-table','search-samples'); highlightTableCells('samples-table','highlight-samples')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV('samples-table','acinetobacter_samples.csv')"><i class="fas fa-download"></i> Export CSV</button></div>
+        <div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-samples" onkeyup="searchTable('samples-table','search-samples')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-samples" onkeyup="highlightTableCells('samples-table','highlight-samples')" placeholder="✨ Highlight text..."></div>
+        <div class="master-scrollable-container">
+            <table id="samples-table" class="data-table">
+                <thead>
+                    <tr><th data-sort="string">Sample</th><th data-sort="string">Pasteur ST</th><th data-sort="string">Oxford ST</th><th data-sort="string">K Locus</th><th data-sort="string">O Locus</th><th data-sort="number">Virulence Count</th></tr>
+                </thead>
+                <tbody>
         """
         for sample, data in samples.items():
             pasteur = data.get('pasteur_mlst',{}).get('ST','ND')
@@ -1156,9 +1243,13 @@ class UltimateHTMLGenerator:
             pasteur_disp = f"ST{pasteur}" if pasteur != 'ND' else 'ND'
             oxford_disp = f"ST{oxford}" if oxford != 'ND' else 'ND'
             html += f'<tr><td><strong>{sample}</strong></td><td>{pasteur_disp}</td><td>{oxford_disp}</td><td>{k}</td><td>{o}</td><td>{vcount}</td></tr>'
-        html += '</tbody></table></div>'
+        html += """
+                </tbody>
+            </table>
+        </div>
+        """
         return html
-    
+
     def _qc_section(self, kwargs):
         qc = kwargs.get('qc_data', {})
         if not qc:
@@ -1168,8 +1259,8 @@ class UltimateHTMLGenerator:
             metrics.update(d.keys())
         metrics = sorted(metrics)
         html = '<div class="alert-box alert-info"><i class="fas fa-chart-line"></i><div><h3>FASTA Quality Control</h3><p>This section provides assembly quality metrics for each genome, including total sequences (contigs), total bases, GC%, N50, and more. High N50 and low contig count indicate better assembly quality.</p></div></div>'
-        html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'qc-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-qc\').value=\'\'; searchTable(\'qc-table\',\'search-qc\')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV(\'qc-table\',\'fasta_qc.csv\')"><i class="fas fa-download"></i> Export CSV</button></div>'
-        html += '<input type="text" class="search-box" id="search-qc" onkeyup="searchTable(\'qc-table\',\'search-qc\')" placeholder="🔍 Search sample...">'
+        html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'qc-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-qc\').value=\'\'; searchTable(\'qc-table\',\'search-qc\'); highlightTableCells(\'qc-table\',\'highlight-qc\')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV(\'qc-table\',\'fasta_qc.csv\')"><i class="fas fa-download"></i> Export CSV</button></div>'
+        html += '<div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-qc" onkeyup="searchTable(\'qc-table\',\'search-qc\')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-qc" onkeyup="highlightTableCells(\'qc-table\',\'highlight-qc\')" placeholder="✨ Highlight text..."></div>'
         html += '<div class="master-scrollable-container"><table id="qc-table" class="data-table"><thead><tr><th data-sort="string" style="min-width:200px">Sample</th>'
         for m in metrics:
             html += f'<th data-sort="number">{m}</th>'
@@ -1184,8 +1275,7 @@ class UltimateHTMLGenerator:
             html += '</tr>'
         html += '</tbody></table></div>'
         return html
-    
-  # ------------------------------ MLST Section ---------------------------------
+
     def _mlst_section(self, kwargs):
         patterns = kwargs['patterns']
         samples = kwargs['samples_data']
@@ -1199,9 +1289,11 @@ class UltimateHTMLGenerator:
         total_pasteur = sum(pasteur.values())
         total_oxford = sum(oxford.values())
         html = f"""
-        <div class="alert-box alert-info"><i class="fas fa-code-branch"></i><div><h3>MLST Analysis - Dual Scheme (Pasteur & Oxford)</h3><p>Multi‑Locus Sequence Typing (MLST) uses internal fragments of seven housekeeping genes. It is highly reproducible and defines Sequence Types (STs). Closely related STs belong to the same Clonal Complex (CC).</p><p><strong>{len(pasteur)} unique Pasteur STs</strong> and <strong>{len(oxford)} unique Oxford STs</strong> identified. International Clone (IC) classification helps track global lineages.</p></div></div>
-        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('mlst-tab')"><i class="fas fa-print"></i> Print Section</button></div>
-        <h3>Pasteur MLST Scheme</h3><div class="master-scrollable-container"><table id="mlst-pasteur-table" class="data-table"><thead><tr><th data-sort="string">ST</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>
+        <div class="alert-box alert-info"><i class="fas fa-code-branch"></i><div><h3>MLST Analysis - Dual Scheme (Pasteur & Oxford)</h3><p>Multi‑Locus Sequence Typing (MLST) uses internal fragments of seven housekeeping genes. It is highly reproducible and defines Sequence Types (STs). Closely related STs belong to the same Clonal Complex (CC).</p><p><strong>{len(pasteur)} unique Pasteur STs</strong> and <strong> Oxford STs</strong> identified. International Clone (IC) classification helps track global lineages.</p></div></div>
+        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('mlst-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-mlst-pasteur').value=''; searchTable('mlst-pasteur-table','search-mlst-pasteur'); highlightGenome('mlst-pasteur-table','highlight-mlst-pasteur')"><i class="fas fa-sync"></i> Clear</button></div>
+        <h3>Pasteur MLST Scheme</h3>
+        <div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-mlst-pasteur" onkeyup="searchTable('mlst-pasteur-table','search-mlst-pasteur')" placeholder="🔍 Filter STs..."><input type="text" class="search-box" id="highlight-mlst-pasteur" onkeyup="highlightGenome('mlst-pasteur-table','highlight-mlst-pasteur')" placeholder="🔍 Highlight genome tags..."></div>
+        <div class="master-scrollable-container"><table id="mlst-pasteur-table" class="data-table"><thead><tr><th data-sort="string">ST</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>
         """
         for st, cnt in sorted(pasteur.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if st=='ND': continue
@@ -1213,10 +1305,12 @@ class UltimateHTMLGenerator:
                 count = cnt
                 pct = (count/total_pasteur)*100
                 freq = f"{count} ({pct:.1f}%)"
-            sample_list = ', '.join([s for s,d in samples.items() if d.get('pasteur_mlst',{}).get('ST')==str(st)])
-            html += f'<tr><td><strong>ST{st}</strong></td><td>{freq}</td><td>{sample_list}</td></tr>'
+            sample_list = [s for s,d in samples.items() if d.get('pasteur_mlst',{}).get('ST')==str(st)]
+            tags = self._make_genome_tags(sample_list)
+            html += f'<tr><td><strong>ST{st}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
         html += '</tbody></table></div>'
-        html += '<h3>Oxford MLST Scheme</h3><div class="master-scrollable-container"><table id="mlst-oxford-table" class="data-table"><thead><tr><th data-sort="string">ST</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
+        html += '<h3>Oxford MLST Scheme</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-mlst-oxford" onkeyup="searchTable(\'mlst-oxford-table\',\'search-mlst-oxford\')" placeholder="🔍 Filter STs..."><input type="text" class="search-box" id="highlight-mlst-oxford" onkeyup="highlightGenome(\'mlst-oxford-table\',\'highlight-mlst-oxford\')" placeholder="🔍 Highlight genome tags..."></div>'
+        html += '<div class="master-scrollable-container"><table id="mlst-oxford-table" class="data-table"><thead><tr><th data-sort="string">ST</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
         for st, cnt in sorted(oxford.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if st=='ND': continue
             if isinstance(cnt, dict):
@@ -1227,17 +1321,19 @@ class UltimateHTMLGenerator:
                 count = cnt
                 pct = (count/total_oxford)*100
                 freq = f"{count} ({pct:.1f}%)"
-            sample_list = ', '.join([s for s,d in samples.items() if d.get('oxford_mlst',{}).get('ST')==str(st)])
-            html += f'<tr><td><strong>ST{st}</strong></td><td>{freq}</td><td>{sample_list}</td></tr>'
+            sample_list = [s for s,d in samples.items() if d.get('oxford_mlst',{}).get('ST')==str(st)]
+            tags = self._make_genome_tags(sample_list)
+            html += f'<tr><td><strong>ST{st}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
         html += '</tbody></table></div>'
-        html += '<h3>International Clone Distribution</h3><div class="master-scrollable-container"><table id="ic-table" class="data-table"><thead><tr><th data-sort="string">International Clone</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
+        html += '<h3>International Clone Distribution</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-ic" onkeyup="searchTable(\'ic-table\',\'search-ic\')" placeholder="🔍 Filter IC..."><input type="text" class="search-box" id="highlight-ic" onkeyup="highlightGenome(\'ic-table\',\'highlight-ic\')" placeholder="🔍 Highlight genome tags..."></div>'
+        html += '<div class="master-scrollable-container"><table id="ic-table" class="data-table"><thead><tr><th data-sort="string">International Clone</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
         for ic, cnt in ic_dist.most_common():
-            sample_list = ', '.join([s for s,d in samples.items() if d.get('pasteur_mlst',{}).get('International_Clone')==ic])
-            html += f'<tr><td><strong>{ic}</strong></td><td>{cnt}</td><td>{sample_list}</td></tr>'
+            sample_list = [s for s,d in samples.items() if d.get('pasteur_mlst',{}).get('International_Clone')==ic]
+            tags = self._make_genome_tags(sample_list)
+            html += f'<tr><td><strong>{ic}</strong></td><td>{cnt}</td><td><div class="genome-list">{tags}</div></td></tr>'
         html += '</tbody></table></div>'
         return html
-    
-    # ------------------------------ Capsule Tab  ---------------------------------
+
     def _kaptive_section(self, kwargs):
         patterns = kwargs['patterns']
         samples = kwargs['samples_data']
@@ -1245,10 +1341,10 @@ class UltimateHTMLGenerator:
         o_dist = patterns.get('o_locus_distribution', {})
         html = """
         <div class="alert-box alert-info"><i class="fas fa-shield-alt"></i><div><h3>Capsule Typing (Kaptive) Analysis</h3><p>Kaptive identifies capsule (K) and lipooligosaccharide (O) loci in A. baumannii. The capsule is a major virulence determinant, protecting against phagocytosis and complement killing. Specific K types are associated with different clonal complexes and clinical outcomes. O locus (OCL) influences immune evasion and serum resistance.</p><p><strong>Clinical significance:</strong> Certain K types (e.g., K1, K2, K3) are linked to hypervirulent strains. Monitoring capsule distribution helps track epidemic lineages.</p></div></div>
-        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('kaptive-tab')"><i class="fas fa-print"></i> Print Section</button></div>
+        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('kaptive-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-k').value=''; searchTable('k-locus-table','search-k'); highlightGenome('k-locus-table','highlight-k')"><i class="fas fa-sync"></i> Clear</button></div>
         """
-        # K Locus
-        html += '<h3>K Locus Distribution</h3><div class="master-scrollable-container"><table id="k-locus-table" class="data-table"><thead><tr><th data-sort="string">K Locus</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
+        html += '<h3>K Locus Distribution</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-k" onkeyup="searchTable(\'k-locus-table\',\'search-k\')" placeholder="🔍 Filter K locus..."><input type="text" class="search-box" id="highlight-k" onkeyup="highlightGenome(\'k-locus-table\',\'highlight-k\')" placeholder="🔍 Highlight genome tags..."></div>'
+        html += '<div class="master-scrollable-container"><table id="k-locus-table" class="data-table"><thead><tr><th data-sort="string">K Locus</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
         totalk = sum(k_dist.values()) if k_dist else 0
         for k, cnt in sorted(k_dist.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if k=='ND': continue
@@ -1260,11 +1356,12 @@ class UltimateHTMLGenerator:
                 count = cnt
                 pct = (count/totalk)*100
                 freq = f"{count} ({pct:.1f}%)"
-            sample_list = ', '.join([s for s,d in samples.items() if d.get('kaptive',{}).get('K_Locus')==k])
-            html += f'<tr><td><strong>{k}</strong></td><td>{freq}</td><td>{sample_list}</td></tr>'
+            sample_list = [s for s,d in samples.items() if d.get('kaptive',{}).get('K_Locus')==k]
+            tags = self._make_genome_tags(sample_list)
+            html += f'<tr><td><strong>{k}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
         html += '</tbody></table></div>'
-        # O Locus
-        html += '<h3>O Locus Distribution</h3><div class="master-scrollable-container"><table id="o-locus-table" class="data-table"><thead><tr><th data-sort="string">O Locus</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
+        html += '<h3>O Locus Distribution</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-o" onkeyup="searchTable(\'o-locus-table\',\'search-o\')" placeholder="🔍 Filter O locus..."><input type="text" class="search-box" id="highlight-o" onkeyup="highlightGenome(\'o-locus-table\',\'highlight-o\')" placeholder="🔍 Highlight genome tags..."></div>'
+        html += '<div class="master-scrollable-container"><table id="o-locus-table" class="data-table"><thead><tr><th data-sort="string">O Locus</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
         totalo = sum(o_dist.values()) if o_dist else 0
         for o, cnt in sorted(o_dist.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if o=='ND': continue
@@ -1276,12 +1373,12 @@ class UltimateHTMLGenerator:
                 count = cnt
                 pct = (count/totalo)*100
                 freq = f"{count} ({pct:.1f}%)"
-            sample_list = ', '.join([s for s,d in samples.items() if d.get('kaptive',{}).get('O_Locus')==o])
-            html += f'<tr><td><strong>{o}</strong></td><td>{freq}</td><td>{sample_list}</td></tr>'
+            sample_list = [s for s,d in samples.items() if d.get('kaptive',{}).get('O_Locus')==o]
+            tags = self._make_genome_tags(sample_list)
+            html += f'<tr><td><strong>{o}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
         html += '</tbody></table></div>'
         return html
-    
-    # ------------------------------ Combination Tables ---------------------------------
+
     def _combinations_section(self, kwargs):
         patterns = kwargs['patterns']
         combos = [
@@ -1296,88 +1393,42 @@ class UltimateHTMLGenerator:
             data = patterns.get(key, {})
             if not data:
                 continue
-            html += f'<h3>{title}</h3><input type="text" class="search-box" id="search-{key}" onkeyup="searchTable(\'{key}-table\',\'search-{key}\')" placeholder="🔍 Search {title}...">'
-            html += f'<div class="master-scrollable-container"><table id="{key}-table" class="data-table"><thead><tr><th data-sort="string">{title}</th><th data-sort="number">Count</th><th data-sort="string">Samples</th></tr></thead><tbody>'
-            for combo, samples in sorted(data.items(), key=lambda x: len(x[1]), reverse=True):
-                html += f'<tr><td><strong>{combo}</strong></td><td>{len(samples)}</td><td>{", ".join(samples)}</td></tr>'
+            html += f'<h3>{title}</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-{key}" onkeyup="searchTable(\'{key}-table\',\'search-{key}\')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-{key}" onkeyup="highlightGenome(\'{key}-table\',\'highlight-{key}\')" placeholder="🔍 Highlight genome tags..."></div>'
+            html += f'<div class="master-scrollable-container"><table id="{key}-table" class="data-table"><thead><tr><th data-sort="string">{title}</th><th data-sort="number">Count</th><th data-sort="string">Samples</th><tr></thead><tbody>'
+            for combo, samples_list in sorted(data.items(), key=lambda x: len(x[1]), reverse=True):
+                tags = self._make_genome_tags(samples_list)
+                html += f'<tr><td><strong>{combo}</strong></td><td>{len(samples_list)}</td><td><div class="genome-list">{tags}</div></td></tr>'
             html += '</tbody></table></div>'
         return html
-    
-    # ------------------------------ AMR Section ---------------------------------
+
     def _amr_section(self, kwargs):
         gene_centric = kwargs['gene_centric']
         all_genes = []
         for db in gene_centric.get('amr_databases', {}).values():
             all_genes.extend(db)
         all_genes.sort(key=lambda x: x['count'], reverse=True)
-        
-        # Filters: each tuple = (display_label, search_term)
         filters = [
-            # Carbapenemases (Critical)
-            ('blaOXA- (Carbapenemase - OXA-type)', 'blaOXA-'),
-            ('blaNDM (Carbapenemase - NDM)', 'NDM'),
-            ('KPC (Carbapenemase - KPC)', 'KPC'),
-            ('VIM (Carbapenemase - VIM)', 'VIM'),
-            ('IMP (Carbapenemase - IMP)', 'IMP'),
-            ('GES (Carbapenemase - GES)', 'GES'),
-
-            # ESBLs & other β-lactamases
-            ('CTX-M (ESBL)', 'CTX-M'),
-            ('SHV (ESBL)', 'SHV'),
-            ('blaTEM (ESBL / broad-spectrum)', 'blaTEM'),
-            ('PER (ESBL)', 'PER'),
-            ('VEB (ESBL)', 'VEB'),
-            ('blaADC (AmpC cephalosporinase)', 'blaADC'),
-
-            # Colistin resistance (last-line)
-            ('mcr (Colistin resistance - MCR)', 'mcr'),
-            ('pmr (Colistin resistance - PMRAB)', 'pmr'),
-            ('lpx (Colistin resistance - LPS modification)', 'lpx'),
-            ('arn (Colistin resistance - L-Ara4N modification)', 'arn'),
+            ('blaOXA- (Carbapenemase - OXA-type)', 'blaOXA-'), ('blaNDM (Carbapenemase - NDM)', 'NDM'),
+            ('KPC (Carbapenemase - KPC)', 'KPC'), ('VIM (Carbapenemase - VIM)', 'VIM'),
+            ('IMP (Carbapenemase - IMP)', 'IMP'), ('GES (Carbapenemase - GES)', 'GES'),
+            ('CTX-M (ESBL)', 'CTX-M'), ('SHV (ESBL)', 'SHV'), ('blaTEM (ESBL / broad-spectrum)', 'blaTEM'),
+            ('PER (ESBL)', 'PER'), ('VEB (ESBL)', 'VEB'), ('blaADC (AmpC cephalosporinase)', 'blaADC'),
+            ('mcr (Colistin resistance - MCR)', 'mcr'), ('pmr (Colistin resistance - PMRAB)', 'pmr'),
+            ('lpx (Colistin resistance - LPS modification)', 'lpx'), ('arn (Colistin resistance - L-Ara4N modification)', 'arn'),
             ('clpK (Colistin tolerance - heat shock protein)', 'clpK'),
-
-            # Aminoglycoside resistance
-            ('aac (Aminoglycoside acetyltransferase)', 'aac'),
-            ('aph (Aminoglycoside phosphotransferase)', 'aph'),
-            ('ant (Aminoglycoside nucleotidyltransferase)', 'ant'),
-            ('armA (16S rRNA methylase - high-level)', 'armA'),
-            ('rmtE (16S rRNA methylase - high-level)', 'rmtE'),
-
-            # Tetracycline resistance
-            ('tet (Tetracycline resistance)', 'tet'),
-
-            # Fluoroquinolone resistance (chromosomal & plasmid)
-            ('gyrA_S (Fluoroquinolone resistance - gyrA mutation)', 'gyrA'),
-            ('parC_S (Fluoroquinolone resistance - parC mutation)', 'parC'),
-            ('parC_E (Fluoroquinolone resistance - parC mutation)', 'parC'),
-            ('qnr (Plasmid-mediated quinolone resistance)', 'qnr'),
-
-            # Sulfonamide & trimethoprim
-            ('sul (Sulfonamide resistance)', 'sul'),
-            ('dfr (Trimethoprim resistance)', 'dfr'),
-
-            # Phenicol resistance
-            ('cat (Chloramphenicol acetyltransferase)', 'cat'),
-            ('floR (Florfenicol/chloramphenicol efflux)', 'floR'),
-
-            # Macrolide & lincosamide
-            ('erm (Macrolide-lincosamide-streptogramin B)', 'erm'),
-            ('msr (Macrolide efflux)', 'msr'),
-            ('mph (Macrolide phosphotransferase)', 'mph'),
-
-            # Efflux pumps
-            ('ade (RND efflux pump - AdelJK / AdeFGH)', 'ade'),
-            ('abeM (MFS efflux pump)', 'abeM'),
-            ('abeS (MFS efflux pump)', 'abeS'),
-            ('amvA (MATE efflux pump)', 'amvA'),
-            ('abaF (ABC transporter)', 'abaF'),
-            ('abaQ (MFS efflux pump)', 'abaQ'),
-            ('mex (RND efflux pump - Pseudomonas type)', 'mex'),
-
-            # Other / housekeeping
+            ('aac (Aminoglycoside acetyltransferase)', 'aac'), ('aph (Aminoglycoside phosphotransferase)', 'aph'),
+            ('ant (Aminoglycoside nucleotidyltransferase)', 'ant'), ('armA (16S rRNA methylase - high-level)', 'armA'),
+            ('rmtE (16S rRNA methylase - high-level)', 'rmtE'), ('tet (Tetracycline resistance)', 'tet'),
+            ('gyrA_S (Fluoroquinolone resistance - gyrA mutation)', 'gyrA'), ('parC_S (Fluoroquinolone resistance - parC mutation)', 'parC'),
+            ('qnr (Plasmid-mediated quinolone resistance)', 'qnr'), ('sul (Sulfonamide resistance)', 'sul'),
+            ('dfr (Trimethoprim resistance)', 'dfr'), ('cat (Chloramphenicol acetyltransferase)', 'cat'),
+            ('floR (Florfenicol/chloramphenicol efflux)', 'floR'), ('erm (Macrolide-lincosamide-streptogramin B)', 'erm'),
+            ('msr (Macrolide efflux)', 'msr'), ('mph (Macrolide phosphotransferase)', 'mph'),
+            ('ade (RND efflux pump - AdelJK / AdeFGH)', 'ade'), ('abeM (MFS efflux pump)', 'abeM'),
+            ('abeS (MFS efflux pump)', 'abeS'), ('amvA (MATE efflux pump)', 'amvA'), ('abaF (ABC transporter)', 'abaF'),
+            ('abaQ (MFS efflux pump)', 'abaQ'), ('mex (RND efflux pump - Pseudomonas type)', 'mex'),
             ('cxpE (Conserved hypothetical)', 'cxpE')
         ]
-        
         html = """
         <div class="alert-box alert-info"><i class="fas fa-biohazard"></i><div><h3>AMR Genes (Carbapenemases, ESBLs, Colistin, Tigecycline)</h3><p>Each gene with frequency (count & %). Use filters below to focus on key resistance classes. Use the genome search to highlight isolates carrying specific genes. Carbapenemases are highlighted as critical.</p><p><strong>Focused on A. baumannii:</strong> OXA-type carbapenemases (OXA-23, OXA-58), NDM, VIM, IMP, KPC, and colistin resistance mechanisms (mcr, pmrAB).</p></div></div>
         <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('amr-tab')"><i class="fas fa-print"></i> Print Section</button></div>
@@ -1386,18 +1437,16 @@ class UltimateHTMLGenerator:
         <div class="action-buttons">
         """
         for display, search_term in filters:
-            # Use JavaScript to set the search box value to the search_term 
             html += f'<button class="action-btn btn-warning" onclick="document.getElementById(\'search-amr-gene\').value=\'{search_term}\'; searchTable(\'amr-table\',\'search-amr-gene\')">{display}</button>'
         html += '<button class="action-btn btn-primary" onclick="document.getElementById(\'search-amr-gene\').value=\'\'; searchTable(\'amr-table\',\'search-amr-gene\')">Clear</button>'
         html += '</div><div class="master-scrollable-container"><table id="amr-table" class="data-table"><thead><tr><th data-sort="string">Gene</th><th data-sort="string">Database</th><th data-sort="number">Frequency</th><th class="col-genomes" data-sort="string">Genomes</th></tr></thead><tbody>'
         for g in all_genes:
-            genome_tags = ''.join(f'<span class="genome-tag">{gen}</span>' for gen in g['genomes'])
+            genome_tags = self._make_genome_tags(g['genomes'])
             gene_display = f"<strong>{g['gene']}</strong>" + (' 🔥' if g['category']=='Carbapenemases' else '')
             html += f'<tr><td>{gene_display}</td><td>{g["database"]}</td><td>{g["frequency_display"]}</td><td class="col-genomes"><div class="genome-list">{genome_tags}</div></td></tr>'
         html += '</tbody></table></div>'
         return html
-    
-    # ------------------------------ Virulence Section ---------------------------------
+
     def _virulence_section(self, kwargs):
         gene_centric = kwargs['gene_centric']
         all_genes = []
@@ -1405,62 +1454,18 @@ class UltimateHTMLGenerator:
             all_genes.extend(db)
         all_genes.sort(key=lambda x: x['count'], reverse=True)
         filters = [
-            # Biofilm & Adhesion
-            'ompA (Biofilm)',
-            'csu (Chaperone-usher pili - biofilm)',
-            'bfmR (Biofilm regulator)',
-            'bfmS (Biofilm regulator)',
-            'bap (Biofilm-associated protein)',
-            'pga (PGA biofilm synthesis)',         
-            'pta (Biofilm polysaccharide)',
-            'ptk (Biofilm polysaccharide kinase)',
-            'epsA (Exopolysaccharide)',
-            'fim (Fimbrial adherence/assembly)',    
-            'tsaP (Trimeric autotransporter)',
-            'ata (Acinetobacter trimeric autotransporter)',
-
-            # Type IV Pili (T4P)
-            'pil (Type IV pilus)',                 
-
-            # Type II Secretion System (T2SS)
-            'gsp (Type II secretion system (T2SS))', 
-
-            # Type VI Secretion System (T6SS)
-            'tss (Type VI secretion system (T6SS))',
-            'clpV (T6SS ATPase)',
-            'hcp (T6SS tube protein)',
-            'vgrG (T6SS spike protein)',
-            'tse (T6SS effector)',                 
-
-            # Iron Acquisition & Siderophores
-            'bau (Acinetobactin siderophore)',
-            'bas (Acinetobactin biosynthesis)',
-            'entE (Enterobactin component)',
-            'hemO (Heme oxygenase)',
-            'barA (Iron-regulated signalling)',
-            'barB (Iron-regulated signalling)',
-
-            # Lipopolysaccharide (LPS) & Capsule
-            'lpx (Lipid A biosynthesis)',           
-            'lpsB (LPS biosynthesis)',
-            'galE (Capsule/LPS epimerase)',
-            'galU (Capsule biosynthesis)',
-
-            # Phospholipases & Cytotoxins
-            'plc (Phospholipase)',                  
-            'cpaA (Complement protease)',
-
-            # Quorum Sensing & Regulation
-            'abaI (Quorum sensing AHL synthase)',
-            'abaR (Quorum sensing receptor)',
-            'adeF (Efflux & virulence regulator)',
-            'adeG (Efflux & virulence regulator)',
-            'adeH (Efflux & virulence regulator)',
-
-            # Cell Wall & Miscellaneous
-            'tagX (Teichoic acid biosynthesis)',
-            'pbpG (Penicillin-binding protein)',
-            'clpK (Heat shock protein, colistin tolerance)'
+            'ompA (Biofilm)', 'csu (Chaperone-usher pili - biofilm)', 'bfmR (Biofilm regulator)', 'bfmS (Biofilm regulator)',
+            'bap (Biofilm-associated protein)', 'pga (PGA biofilm synthesis)', 'pta (Biofilm polysaccharide)',
+            'ptk (Biofilm polysaccharide kinase)', 'epsA (Exopolysaccharide)', 'fim (Fimbrial adherence/assembly)',
+            'tsaP (Trimeric autotransporter)', 'ata (Acinetobacter trimeric autotransporter)', 'pil (Type IV pilus)',
+            'gsp (Type II secretion system (T2SS))', 'tss (Type VI secretion system (T6SS))', 'clpV (T6SS ATPase)',
+            'hcp (T6SS tube protein)', 'vgrG (T6SS spike protein)', 'tse (T6SS effector)',
+            'bau (Acinetobactin siderophore)', 'bas (Acinetobactin biosynthesis)', 'entE (Enterobactin component)',
+            'hemO (Heme oxygenase)', 'barA (Iron-regulated signalling)', 'barB (Iron-regulated signalling)',
+            'lpx (Lipid A biosynthesis)', 'lpsB (LPS biosynthesis)', 'galE (Capsule/LPS epimerase)', 'galU (Capsule biosynthesis)',
+            'plc (Phospholipase)', 'cpaA (Complement protease)', 'abaI (Quorum sensing AHL synthase)', 'abaR (Quorum sensing receptor)',
+            'adeF (Efflux & virulence regulator)', 'adeG (Efflux & virulence regulator)', 'adeH (Efflux & virulence regulator)',
+            'tagX (Teichoic acid biosynthesis)', 'pbpG (Penicillin-binding protein)', 'clpK (Heat shock protein, colistin tolerance)'
         ]
         html = """
         <div class="alert-box alert-info"><i class="fas fa-virus"></i><div><h3>Virulence Factors (Biofilm, Adhesion, Toxins)</h3><p>Key A. baumannii virulence genes: biofilm formation (ompA, csu, bfmRS), pili, and iron uptake. Biofilm formation is critical for persistence on medical devices and hospital outbreaks. Use filters to explore specific mechanisms.</p></div></div>
@@ -1470,80 +1475,41 @@ class UltimateHTMLGenerator:
         <div class="action-buttons">
         """
         for f in filters:
-            html += f'<button class="action-btn btn-success" onclick="document.getElementById(\'search-vir-gene\').value=\'{f.split(" (")[0]}\'; searchTable(\'vir-table\',\'search-vir-gene\')">{f}</button>'
+            base = f.split(' (')[0]
+            html += f'<button class="action-btn btn-success" onclick="document.getElementById(\'search-vir-gene\').value=\'{base}\'; searchTable(\'vir-table\',\'search-vir-gene\')">{f}</button>'
         html += '<button class="action-btn btn-primary" onclick="document.getElementById(\'search-vir-gene\').value=\'\'; searchTable(\'vir-table\',\'search-vir-gene\')">Clear</button>'
         html += '</div><div class="master-scrollable-container"><table id="vir-table" class="data-table"><thead><tr><th data-sort="string">Gene</th><th data-sort="string">Database</th><th data-sort="number">Frequency</th><th class="col-genomes" data-sort="string">Genomes</th></tr></thead><tbody>'
         for g in all_genes:
-            genome_tags = ''.join(f'<span class="genome-tag">{gen}</span>' for gen in g['genomes'])
+            genome_tags = self._make_genome_tags(g['genomes'])
             html += f'<tr><td><strong>{g["gene"]}</strong></td><td>{g["database"]}</td><td>{g["frequency_display"]}</td><td class="col-genomes"><div class="genome-list">{genome_tags}</div></td></tr>'
         html += '</tbody></table></div>'
         return html
-    
-    # ------------------------------ Bacmet Section (rich filters) ---------------------------------
+
     def _bacmet_section(self, kwargs):
         gene_centric = kwargs['gene_centric']
         all_genes = []
         for db in gene_centric.get('bacmet_databases', {}).values():
             all_genes.extend(db)
         all_genes.sort(key=lambda x: x['count'], reverse=True)
-        
-        # Filters: (display_label, search_term)
         filters = [
-            # Biocides & disinfectants
-            ('qac (Biocide - quaternary ammonium)', 'qac'),
-            ('qacEdelta1 (Biocide - truncated qacE)', 'qacEdelta1'),
-            ('cep (Biocide - chlorhexidine)', 'cep'),
-            ('form (Biocide - formaldehyde)', 'form'),
-            ('blt (Bleomycin resistance)', 'blt'),
-            
-            # Heavy metals
-            ('mer (Mercury resistance)', 'mer'),
-            ('ars (Arsenic resistance)', 'ars'),
-            ('arsT (Arsenic resistance - ArsT)', 'arsT'),
-            ('cop (Copper homeostasis)', 'cop'),
-            ('sil (Silver resistance)', 'sil'),
-            ('chr (Chromate resistance)', 'chr'),
-            ('cad (Cadmium resistance)', 'cad'),
-            ('znt (Zinc efflux)', 'znt'),
-            ('czc (Cobalt‑zinc‑cadmium efflux)', 'czc'),
-            ('pbr (Lead resistance)', 'pbr'),
-            ('hmr (Heavy metal resistance)', 'hmr'),
-            ('nre (Nickel resistance regulator)', 'nre'),
-            ('pco (Copper resistance operon)', 'pco'),
-            
-            # Transport & stress response
-            ('nik (Nickel transport)', 'nik'),
-            ('cor (Magnesium/cobalt transport)', 'cor'),
-            ('mod (Molybdate transport)', 'mod'),
-            ('sit (Iron/manganese transport)', 'sit'),
-            ('fec (Iron‑dicitrate transport)', 'fec'),
-            ('fpv (Pyoverdine receptor - iron)', 'fpv'),
-            ('soxR (Oxidative stress regulator)', 'soxR'),
-            ('cpxR (Envelope stress regulator)', 'cpxR'),
-            ('baeR (Multidrug efflux regulator)', 'baeR'),
-            ('ydeP (Acid resistance / efflux)', 'ydeP'),
-            
-            # Multidrug efflux pumps
-            ('ade (RND efflux pump - Ade family)', 'ade'),
-            ('mex (RND efflux pump - Mex family)', 'mex'),
-            ('emr (MFS efflux pump - Emr family)', 'emr'),
-            ('sme (MFS efflux pump - Sme family)', 'sme'),
-            ('norA (MFS efflux pump - NorA family)', 'norA'),
-            ('vce (Multidrug efflux - Vce family)', 'vce'),
-            
-            # Other / general
-            ('fab (Fatty acid synthesis adaptation)', 'fab'),
-            ('oxyRkp (Oxidative stress response)', 'oxyRkp'),
-            ('kla/tel/kil (Plasmid‑associated)', 'kla'),
-            ('czrA (Cadmium‑zinc regulator)', 'czrA'),
-            ('cutA (Copper tolerance)', 'cutA'),
-            ('ter (Tellurite resistance)', 'ter'),
-            ('smd (Sulfonamide/multidrug efflux)', 'smd'),
-            ('vex (Efflux pump)', 'vex'),
-            ('srp (Stress response)', 'srp'),
-            ('dps (DNA protection under starvation)', 'dps')
+            ('qac (Biocide - quaternary ammonium)', 'qac'), ('qacEdelta1 (Biocide - truncated qacE)', 'qacEdelta1'),
+            ('cep (Biocide - chlorhexidine)', 'cep'), ('form (Biocide - formaldehyde)', 'form'), ('blt (Bleomycin resistance)', 'blt'),
+            ('mer (Mercury resistance)', 'mer'), ('ars (Arsenic resistance)', 'ars'), ('arsT (Arsenic resistance - ArsT)', 'arsT'),
+            ('cop (Copper homeostasis)', 'cop'), ('sil (Silver resistance)', 'sil'), ('chr (Chromate resistance)', 'chr'),
+            ('cad (Cadmium resistance)', 'cad'), ('znt (Zinc efflux)', 'znt'), ('czc (Cobalt‑zinc‑cadmium efflux)', 'czc'),
+            ('pbr (Lead resistance)', 'pbr'), ('hmr (Heavy metal resistance)', 'hmr'), ('nre (Nickel resistance regulator)', 'nre'),
+            ('pco (Copper resistance operon)', 'pco'), ('nik (Nickel transport)', 'nik'), ('cor (Magnesium/cobalt transport)', 'cor'),
+            ('mod (Molybdate transport)', 'mod'), ('sit (Iron/manganese transport)', 'sit'), ('fec (Iron‑dicitrate transport)', 'fec'),
+            ('fpv (Pyoverdine receptor - iron)', 'fpv'), ('soxR (Oxidative stress regulator)', 'soxR'), ('cpxR (Envelope stress regulator)', 'cpxR'),
+            ('baeR (Multidrug efflux regulator)', 'baeR'), ('ydeP (Acid resistance / efflux)', 'ydeP'),
+            ('ade (RND efflux pump - Ade family)', 'ade'), ('mex (RND efflux pump - Mex family)', 'mex'),
+            ('emr (MFS efflux pump - Emr family)', 'emr'), ('sme (MFS efflux pump - Sme family)', 'sme'),
+            ('norA (MFS efflux pump - NorA family)', 'norA'), ('vce (Multidrug efflux - Vce family)', 'vce'),
+            ('fab (Fatty acid synthesis adaptation)', 'fab'), ('oxyRkp (Oxidative stress response)', 'oxyRkp'),
+            ('kla/tel/kil (Plasmid‑associated)', 'kla'), ('czrA (Cadmium‑zinc regulator)', 'czrA'), ('cutA (Copper tolerance)', 'cutA'),
+            ('ter (Tellurite resistance)', 'ter'), ('smd (Sulfonamide/multidrug efflux)', 'smd'), ('vex (Efflux pump)', 'vex'),
+            ('srp (Stress response)', 'srp'), ('dps (DNA protection under starvation)', 'dps')
         ]
-        
         html = """
         <div class="alert-box alert-info"><i class="fas fa-flask"></i><div><h3>BACMET2 Database: Biocide & Heavy Metal Resistance</h3><p>These genes confer resistance to disinfectants (quaternary ammonium, chlorhexidine) and heavy metals (mercury, copper, arsenic, etc.), which can co‑select for antibiotic resistance in hospital environments. Tracking these markers helps understand persistence and resistance spread.</p></div></div>
         <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('bacmet-tab')"><i class="fas fa-print"></i> Print Section</button></div>
@@ -1554,38 +1520,89 @@ class UltimateHTMLGenerator:
         for display, search_term in filters:
             html += f'<button class="action-btn btn-warning" onclick="document.getElementById(\'search-bac-gene\').value=\'{search_term}\'; searchTable(\'bac-table\',\'search-bac-gene\')">{display}</button>'
         html += '<button class="action-btn btn-primary" onclick="document.getElementById(\'search-bac-gene\').value=\'\'; searchTable(\'bac-table\',\'search-bac-gene\')">Clear</button>'
-        html += '</div><div class="master-scrollable-container"><table id="bac-table" class="data-table"><thead><tr><th data-sort="string">Gene</th><th data-sort="string">Database</th><th data-sort="number">Frequency</th><th class="col-genomes" data-sort="string">Genomes</th></tr></thead><tbody>'
+        html += '</div><div class="master-scrollable-container"><table id="bac-table" class="data-table"><thead><tr><th data-sort="string">Gene</th><th data-sort="string">Database</th><th data-sort="number">Frequency</th><th class="col-genomes" data-sort="string">Genomes</th><tr></thead><tbody>'
         for g in all_genes:
-            genome_tags = ''.join(f'<span class="genome-tag">{gen}</span>' for gen in g['genomes'])
+            genome_tags = self._make_genome_tags(g['genomes'])
             html += f'<tr><td><strong>{g["gene"]}</strong></td><td>{g["database"]}</td><td>{g["frequency_display"]}</td><td class="col-genomes"><div class="genome-list">{genome_tags}</div></td></tr>'
         html += '</tbody></table></div>'
         return html
-    
-    # ------------------------------ Plasmid Section  ---------------------------------
-    def _plasmid_section(self, kwargs):
-        plasmid = kwargs.get('plasmid_analysis', {})
-        genes = plasmid.get('plasmid_frequencies', [])
-        html = '<div class="alert-box alert-info"><i class="fas fa-dna"></i><div><h3>Plasmid Analysis</h3><p>Plasmid replicons and transfer genes track horizontal gene transfer of resistance. Plasmids are major vehicles for carbapenemase and colistin resistance genes in A. baumannii.</p></div></div>'
-        if not genes:
-            return html + '<p>No PlasmidFinder data available.</p>'
-        html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'plasmid-tab\')"><i class="fas fa-print"></i> Print Section</button></div>'
-        html += '<input type="text" class="search-box" id="search-plasmid-gene" onkeyup="searchTable(\'plasmid-table\',\'search-plasmid-gene\')" placeholder="🔍 Search plasmids...">'
-        html += '<input type="text" class="search-box" id="search-plasmid-genome" onkeyup="highlightGenome(\'plasmid-table\',\'search-plasmid-genome\')" placeholder="🔍 Highlight genome tags matching text">'
-        html += '<div class="master-scrollable-container"><table id="plasmid-table" class="data-table"><thead><tr><th data-sort="string">Plasmid Marker</th><th data-sort="string">Category</th><th data-sort="number">Frequency</th><th class="col-genomes" data-sort="string">Genomes</th></tr></thead><tbody>'
-        for g in genes:
-            genome_tags = ''.join(f'<span class="genome-tag">{gen}</span>' for gen in g['genomes'])
-            html += f'<tr><td><strong>{g["plasmid_marker"]}</strong></td><td>{g["category"]}</td><td>{g["frequency_display"]}</td><td class="col-genomes"><div class="genome-list">{genome_tags}</div></td></tr>'
-        html += '</tbody></table></div>'
+
+    def _plasmid_section(self, kwargs, apt_plasmid: Dict[str, Any]):
+        plasmidfinder = kwargs.get('plasmid_analysis', {})
+        total_genomes = len(apt_plasmid.get('per_genome', {})) if apt_plasmid else 0
+        html = """
+        <div class="alert-box alert-info"><i class="fas fa-dna"></i><div><h3>Plasmid Analysis – APT (Acinetobacter Plasmid Typing)</h3>
+        <p>Species‑specific plasmid typing using rep genes (thresholds: identity ≥ 95%, subject coverage ≥ 70%). 
+        Each rep type is assigned to a family (Rep1, Rep3, RepPriCT). This table shows the frequency of each rep type across the dataset, 
+        with the list of genomes carrying it.</p>
+        </div></div>
+        """
+        if apt_plasmid and apt_plasmid.get('rep_frequency'):
+            # APT frequency table
+            html += """
+            <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('plasmid-tab')"><i class="fas fa-print"></i> Print Section</button></div>
+            <div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-apt-rep" onkeyup="searchTable('apt-rep-table','search-apt-rep')" placeholder="🔍 Filter rep type..."><input type="text" class="search-box" id="highlight-apt-rep" onkeyup="highlightGenome('apt-rep-table','highlight-apt-rep')" placeholder="🔍 Highlight genome tags..."></div>
+            <div class="master-scrollable-container">
+            <table id="apt-rep-table" class="data-table">
+                <thead><tr><th data-sort="string">Marker</th><th data-sort="number">Frequency</th><th class="col-genomes" data-sort="string">Genomes</th></tr></thead>
+                <tbody>
+            """
+            for item in apt_plasmid['rep_frequency']:
+                rep_type = item['rep_type']
+                count = item['count']
+                percentage = (count / total_genomes) * 100 if total_genomes else 0
+                freq_disp = f"{count} ({percentage:.1f}%)"
+                tags = self._make_genome_tags(item['genomes'])
+                html += f'<tr><td><strong>{rep_type}</strong></td><td>{freq_disp}</td><td class="col-genomes"><div class="genome-list">{tags}</div></td></tr>'
+            html += "</tbody></table></div>"
+            # Per‑genome APT table
+            html += """
+            <h3>Per‑Genome Rep Types (APT)</h3>
+            <div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-apt-genome" onkeyup="searchTable('apt-genome-table','search-apt-genome')" placeholder="🔍 Filter genome..."><input type="text" class="search-box" id="highlight-apt-genome" onkeyup="highlightGenome('apt-genome-table','highlight-apt-genome')" placeholder="🔍 Highlight genome or rep types..."></div>
+            <div class="master-scrollable-container">
+            <table id="apt-genome-table" class="data-table">
+                <thead><tr><th data-sort="string">Genome</th><th data-sort="string">Rep Types</th></tr></thead>
+                <tbody>
+            """
+            for genome, reps in sorted(apt_plasmid['per_genome'].items()):
+                if reps:
+                    badges = ' '.join(f'<span class="genome-tag">{r}</span>' for r in reps)
+                    html += f'<tr><td><strong>{genome}</strong></td><td>{badges}</td></tr>'
+                else:
+                    html += f'<tr><td><strong>{genome}</strong></td><td><em>No Rep found</em></td></tr>'
+            html += "</tbody></table></div>"
+        else:
+            html += "<p>No APT plasmid summary data found. Run the AcinetoScope plasmid typing module first.</p>"
+
+        # Legacy PlasmidFinder section
+        if plasmidfinder.get('plasmid_frequencies'):
+            html += """
+            <h3>Legacy PlasmidFinder Results (for reference)</h3>
+            <p>Generalist database – not optimised for Acinetobacter. For species‑specific analysis, the APT results above are recommended.</p>
+            <div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-plasmidfinder" onkeyup="searchTable('plasmidfinder-table','search-plasmidfinder')" placeholder="🔍 Filter plasmid markers..."><input type="text" class="search-box" id="highlight-plasmidfinder" onkeyup="highlightGenome('plasmidfinder-table','highlight-plasmidfinder')" placeholder="🔍 Highlight genome tags..."></div>
+            <div class="master-scrollable-container">
+            <table id="plasmidfinder-table" class="data-table">
+                <thead><tr><th data-sort="string">Marker</th><th data-sort="string">Category</th><th data-sort="number">Frequency</th><th class="col-genomes" data-sort="string">Genomes</th></tr></thead>
+                <tbody>
+            """
+            for g in plasmidfinder.get('plasmid_frequencies', []):
+                count = g.get('count', 0)
+                percentage = (count / total_genomes) * 100 if total_genomes else 0
+                freq_disp = f"{count} ({percentage:.1f}%)"
+                tags = self._make_genome_tags(g.get('genomes', []))
+                html += f'<tr><td><strong>{g["plasmid_marker"]}</strong></td><td>{g.get("category", "Other")}</td><td>{freq_disp}</td><td class="col-genomes"><div class="genome-list">{tags}</div></td></tr>'
+            html += "</tbody></table></div>"
+        else:
+            html += "<p>No PlasmidFinder data available.</p>"
         return html
-    
-    # ------------------------------ Patterns Section ---------------------------------
+
     def _patterns_section(self, kwargs):
         patterns = kwargs['patterns']
         crab = patterns.get('high_risk_crab', [])
         html = '<div class="alert-box alert-info"><i class="fas fa-project-diagram"></i><div><h3>Pattern Discovery – CRAB (Carbapenem‑resistant A. baumannii)</h3><p>Carbapenem‑resistant A. baumannii (CRAB) isolates with last‑resistance genes (colistin/tigecycline). These represent high‑risk, difficult‑to‑treat infections.</p></div></div>'
         if crab:
-            html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'patterns-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-patterns\').value=\'\'; searchTable(\'crab-table\',\'search-patterns\')"><i class="fas fa-sync"></i> Clear Search</button></div>'
-            html += '<input type="text" class="search-box" id="search-patterns" onkeyup="searchTable(\'crab-table\',\'search-patterns\')" placeholder="🔍 Search high‑risk CRAB samples...">'
+            html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'patterns-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-patterns\').value=\'\'; searchTable(\'crab-table\',\'search-patterns\'); highlightTableCells(\'crab-table\',\'highlight-patterns\')"><i class="fas fa-sync"></i> Clear</button></div>'
+            html += '<div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-patterns" onkeyup="searchTable(\'crab-table\',\'search-patterns\')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-patterns" onkeyup="highlightTableCells(\'crab-table\',\'highlight-patterns\')" placeholder="✨ Highlight text..."></div>'
             html += '<div class="master-scrollable-container"><table id="crab-table" class="data-table"><thead><tr><th data-sort="string">Sample</th><th data-sort="string">ST</th><th data-sort="string">Capsule (K:O)</th><th data-sort="string">Carbapenemases</th><th data-sort="string">Colistin Resistance</th><th data-sort="string">Tigecycline Resistance</th></tr></thead><tbody>'
             for c in crab:
                 html += f'<tr><td><strong>{c["sample"]}</strong></td><td>{c["pasteur_st"]}</td><td>{c["capsule_type"]}</td><td>{",".join(c["carbapenemases"])}</td><td>{",".join(c["colistin_resistance"])}</td><td>{",".join(c["tigecycline_resistance"])}</td></tr>'
@@ -1593,8 +1610,7 @@ class UltimateHTMLGenerator:
         else:
             html += '<p>No high‑risk CRAB isolates detected.</p>'
         return html
-    
-    # ------------------------------ Database Metrics ---------------------------------
+
     def _databases_section(self, kwargs):
         stats = kwargs['gene_centric'].get('database_stats', {})
         html = '<div class="alert-box alert-info"><i class="fas fa-database"></i><div><h3>Database Metrics</h3><p>Number of unique genes and total occurrences per database.</p></div></div>'
@@ -1603,15 +1619,13 @@ class UltimateHTMLGenerator:
             html += f'<tr><td><strong>{db.upper()}</strong></td><td>{d["total_genes"]}</td><td>{d["total_occurrences"]}</td><td>{d["critical_genes"]}</td></tr>'
         html += '</tbody></table></div>'
         return html
-    
-    # ------------------------------ AI Guide ---------------------------------
+
     def _aiguide_section(self):
         return """
         <div class="alert-box alert-info"><i class="fas fa-robot fa-2x"></i><div><h3>AI Assistant Guide</h3><p>Upload this HTML or the JSON file to ChatGPT, Claude, or Gemini to ask questions about A. baumannii resistance.</p></div></div>
         <div class="info-text"><h4>Example questions:</h4><ul><li>Which samples carry both carbapenemase (OXA-23) and colistin resistance (mcr) genes?</li><li>List all isolates with the K3:OC1 capsule type.</li><li>What are the most common biocide resistance genes (qac) in this collection?</li><li>Show me ST-K:O combinations associated with high-risk CRAB.</li><li>Which plasmids are most prevalent and which samples carry them?</li></ul></div>
         """
-    
-    # ------------------------------ Call to Action ---------------------------------
+
     def _calltoaction_section(self):
         return """
         <div class="alert-box alert-info"><i class="fas fa-globe fa-2x"></i><div><h3>The Global Burden of AMR and Our Call to Action</h3><p>Antimicrobial resistance (AMR) kills an estimated 1.27 million people annually. Acinetobacter baumannii is a WHO critical priority pathogen, especially carbapenem-resistant strains (CRAB). This tool aims to empower researchers and clinicians to track resistance locally and globally.</p></div></div>
@@ -1624,8 +1638,7 @@ class UltimateHTMLGenerator:
             <p><i class="fas fa-chalkboard-user"></i> We welcome collaborations to adapt this tool for other pathogens and to improve AMR surveillance.</p>
         </div>
         """
-    
-    # ------------------------------ Export Section ---------------------------------
+
     def _export_section(self):
         return """
         <div class="alert-box alert-info"><i class="fas fa-download"></i><div>Export data tables as CSV or download complete JSON.</div></div>
@@ -1634,14 +1647,15 @@ class UltimateHTMLGenerator:
             <button class="action-btn btn-primary" onclick="exportTableToCSV('amr-table','amr_genes.csv')">AMR Genes CSV</button>
             <button class="action-btn btn-primary" onclick="exportTableToCSV('vir-table','virulence_genes.csv')">Virulence Genes CSV</button>
             <button class="action-btn btn-primary" onclick="exportTableToCSV('bac-table','bacmet_genes.csv')">Bacmet CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('plasmid-table','plasmid_genes.csv')">Plasmid CSV</button>
+            <button class="action-btn btn-primary" onclick="exportTableToCSV('apt-rep-table','apt_plasmid_rep_freq.csv')">APT Plasmid Rep Frequency CSV</button>
+            <button class="action-btn btn-primary" onclick="exportTableToCSV('plasmidfinder-table','plasmidfinder_markers.csv')">PlasmidFinder CSV</button>
             <button class="action-btn btn-success" onclick="location.href='genius_acinetobacter_ultimate_report.json'">Download JSON</button>
         </div>
         """
 
 
 # =============================================================================
-# MAIN REPORTER CLASS 
+# MAIN REPORTER CLASS
 # =============================================================================
 class GeniusUltimateReporter:
     def __init__(self, input_dir: Path):
@@ -1653,24 +1667,26 @@ class GeniusUltimateReporter:
         self.html_generator = UltimateHTMLGenerator(self.analyzer)
         self.metadata = {
             "tool_name": "GENIUS Acinetobacter baumannii Ultimate Reporter",
-            "version": "2.0.0",
+            "version": "2.1.0",
             "author": "Brown Beckley <brownbeckley94@gmail.com>",
             "affiliation": "University of Ghana Medical School",
             "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "input_directory": str(self.input_dir)
         }
-    
+
     def find_html_files(self) -> Dict[str, List[Path]]:
         print("🔍 Searching for AcinetoScope HTML reports...")
         html_files = {
             'pasteur_mlst': [], 'oxford_mlst': [], 'kaptive': [], 'amrfinder': [],
-            'abricate': defaultdict(list), 'plasmidfinder': [], 'qc': []
+            'abricate': defaultdict(list), 'plasmidfinder': [], 'qc': [], 'apt_plasmid': []
         }
         all_html = list(self.input_dir.glob("**/*.html"))
         print(f"  📁 Found {len(all_html)} HTML files")
         for f in all_html:
             name = f.name.lower()
-            if 'pasteur' in name and 'mlst' in name:
+            if name == 'plasmid_summary_report.html':
+                html_files['apt_plasmid'].append(f)
+            elif 'pasteur' in name and 'mlst' in name:
                 html_files['pasteur_mlst'].append(f)
             elif 'oxford' in name and 'mlst' in name:
                 html_files['oxford_mlst'].append(f)
@@ -1706,14 +1722,16 @@ class GeniusUltimateReporter:
                         html_files['abricate']['acineto_ecoh'].append(f)
                     elif 'ncbi' in name:
                         html_files['abricate']['acineto_ncbi'].append(f)
-        print(f"  ✅ Pasteur MLST: {len(html_files['pasteur_mlst'])} | Oxford MLST: {len(html_files['oxford_mlst'])} | Kaptive: {len(html_files['kaptive'])} | AMRfinder: {len(html_files['amrfinder'])} | PlasmidFinder: {len(html_files['plasmidfinder'])} | QC: {len(html_files['qc'])}")
+        print(f"  ✅ Pasteur MLST: {len(html_files['pasteur_mlst'])} | Oxford MLST: {len(html_files['oxford_mlst'])} | Kaptive: {len(html_files['kaptive'])} | AMRfinder: {len(html_files['amrfinder'])} | PlasmidFinder: {len(html_files['plasmidfinder'])} | QC: {len(html_files['qc'])} | APT plasmid: {len(html_files['apt_plasmid'])}")
         return html_files
-    
+
     def integrate_all_data(self, html_files: Dict[str, List[Path]]) -> Dict[str, Any]:
         print("\n🔗 Integrating data...")
-        integrated = {'metadata': self.metadata, 'samples': {}, 'patterns': {}, 'gene_centric': {}, 'plasmid_analysis': {}, 'qc_data': {}}
+        integrated = {'metadata': self.metadata, 'samples': {}, 'patterns': {}, 'gene_centric': {}, 'plasmid_analysis': {}, 'qc_data': {}, 'apt_plasmid': {}}
         if html_files['qc']:
             integrated['qc_data'] = self.parser.parse_qc_report(html_files['qc'][0])
+        if html_files['apt_plasmid']:
+            integrated['apt_plasmid'] = self.parser.parse_apt_plasmid_summary(html_files['apt_plasmid'][0])
         pasteur = self.parser.parse_mlst_report(html_files['pasteur_mlst'][0], "pasteur") if html_files['pasteur_mlst'] else {}
         oxford = self.parser.parse_mlst_report(html_files['oxford_mlst'][0], "oxford") if html_files['oxford_mlst'] else {}
         kaptive = self.parser.parse_kaptive_report(html_files['kaptive'][0]) if html_files['kaptive'] else {}
@@ -1756,7 +1774,7 @@ class GeniusUltimateReporter:
         integrated['patterns'] = self.analyzer.create_cross_genome_patterns(integrated, total_samples)
         integrated['plasmid_analysis'] = self.analyzer.create_plasmid_analysis(integrated, total_samples)
         return integrated
-    
+
     def generate_json_report(self, data: Dict[str, Any]) -> Path:
         print("\n📝 Generating JSON report...")
         output_file = self.output_dir / "genius_acinetobacter_ultimate_report.json"
@@ -1779,7 +1797,7 @@ class GeniusUltimateReporter:
             json.dump(serializable, f, indent=2, default=str)
         print(f"    ✅ JSON saved: {output_file}")
         return output_file
-    
+
     def generate_csv_reports(self, data: Dict[str, Any]):
         print("\n📊 Generating CSV reports...")
         samples_df = pd.DataFrame([{
@@ -1815,10 +1833,16 @@ class GeniusUltimateReporter:
                 plas_rows.append({'Marker':g['plasmid_marker'], 'Frequency':g['frequency_display'], 'Genomes':';'.join(g['genomes'])})
         if plas_rows:
             pd.DataFrame(plas_rows).to_csv(self.output_dir / "plasmid_markers.csv", index=False)
-    
+        # APT rep frequency CSV
+        if data.get('apt_plasmid') and data['apt_plasmid'].get('rep_frequency'):
+            apt_rows = []
+            for item in data['apt_plasmid']['rep_frequency']:
+                apt_rows.append({'Rep_Type': item['rep_type'], 'Count': item['count'], 'Genomes': ';'.join(item['genomes'])})
+            pd.DataFrame(apt_rows).to_csv(self.output_dir / "apt_plasmid_rep_frequency.csv", index=False)
+
     def run(self):
         print("="*80)
-        print("🧠 GENIUS ACINETOBACTER BAUMANNII ULTIMATE REPORTER v2.0.0")
+        print("🧠 GENIUS ACINETOBACTER BAUMANNII ULTIMATE REPORTER v2.1.0")
         print("="*80)
         html_files = self.find_html_files()
         if not any(html_files.values()):
@@ -1833,8 +1857,9 @@ class GeniusUltimateReporter:
         print("\n✅ Analysis complete! Open genius_acinetobacter_ultimate_report.html in your browser.")
         return True
 
+
 def main():
-    parser = argparse.ArgumentParser(description='GENIUS Acinetobacter baumannii Ultimate Reporter v2.0.0')
+    parser = argparse.ArgumentParser(description='GENIUS Acinetobacter baumannii Ultimate Reporter v2.1.0')
     parser.add_argument('-i', '--input-dir', required=True, help='Directory with AcinetoScope HTML reports')
     args = parser.parse_args()
     input_dir = Path(args.input_dir)

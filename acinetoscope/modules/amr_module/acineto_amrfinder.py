@@ -108,7 +108,7 @@ class AcinetoAMRfinderPlus:
         
         self.metadata = {
             "tool_name": "AcinetoScope AMRfinderPlus",
-            "version": "1.1.0", 
+            "version": "1.2.0", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
