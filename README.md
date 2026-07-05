@@ -508,7 +508,7 @@ If you use AcinetoScope in your research, please cite:
 ```bibtex
 @software{acinetoscope2026,
   title = {AcinetoScope: A Tool for Enhanced Outbreak Investigation and Resistance Gene Tracking in Acinetobacter baumannii},
-  author = {Beckley, B. and Amarh, V. and Lopes, B. S. and Kakah, J. and Kwarteng, A. and Olalekan, A. and Afeke, I.},
+  author = {Beckley, B. and Amarh, V. and Lopes, B. S. and A. and Olalekan, A. and Afeke, I.},
   year = {2026},
   publisher = {GitHub},
   url = {https://github.com/bbeckley-hub/acinetoscope}
