@@ -4,7 +4,7 @@ AcinetoScope Kaptive K/O Locus Analysis - A. baumannii Capsule and Lipooligosacc
 Comprehensive Kaptive analysis for A. baumannii with beautiful HTML reporting
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2026-05-29
+Date: 2026-07-18
 """
 
 import subprocess
@@ -45,7 +45,7 @@ class AcinetoKaptive:
         
         self.metadata = {
             "tool_name": "AcinetoScope Kaptive K/O Analysis",
-            "version": "1.2.0", 
+            "version": "1.3.0", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",

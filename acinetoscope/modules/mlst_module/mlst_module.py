@@ -4,7 +4,7 @@ AcinetoScope - MLST Module for Acinetobacter baumannii
 Author: Brown Beckley <brownbeckley94@gmail.com>
 GitHub: bbeckley-hub
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2025-12-29
+Date: 2026-07-18
 Need help? Reach out by mail!!!
 """
 
@@ -409,7 +409,7 @@ class AcinetoMLSTAnalyzer:
                 }
             },
 
-            "abaumannii_2": {  # Pasteur scheme – fully updated with all IC I-IX STs
+            "abaumannii_2": {  # Pasteur scheme – fully updated with  IC I-IX STs
                 # ==================== IC I (CC1, OXA-69 lineage) ====================
                 '1': {
                     "international_clone": "IC I",

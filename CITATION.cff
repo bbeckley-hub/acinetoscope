@@ -4,7 +4,7 @@ If you use AcinetoScope in your research, please cite:
 
 ```bibtex
 @software{acinetoscope2026,
-  title = {AcinetoScope: A Unified Parallelized Pipeline for Comprehensive Genomic Surveillance of Acinetobacter baumannii and Tracking of Critical Resistance Determinants},
+  title = {AcinetoScope: A species-specific computational pipeline for rapid, comprehensive Acinetobacter baumannii outbreak investigation and resistance gene tracking },
   author = {Beckley, Brown},
   year = {2026},
   publisher = {GitHub},

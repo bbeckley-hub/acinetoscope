@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-AcinetoScope AMRfinderPlus - A. baumannii AMR Analysis
-Comprehensive AMR analysis for A. baumannii with beautiful HTML reporting - INTERACTIVE ENHANCED VERSION
+AcinetoScope AMRfinderPlus - A. baumannii AMR Analysis (BUNDLED VERSION with DYNAMIC DATABASE)
+Comprehensive AMR analysis with HTML, TSV, and JSON reporting - MAXIMUM SPEED VERSION
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2026-04-28
-Enhanced with interactive search, export, print, and --force-update database handling
+Date: 2026-07-17
+Version: 1.3.0
 """
 
 import subprocess
@@ -13,90 +13,125 @@ import sys
 import os
 import glob
 import logging
+import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import argparse
 import re
 from datetime import datetime
 import psutil
-import math
 import json
-from collections import defaultdict
-import csv
-import base64
+import random
+from collections import defaultdict, Counter
+
 
 class AcinetoAMRfinderPlus:
-    """AMRfinderPlus executor for A. baumannii with comprehensive HTML reporting - INTERACTIVE ENHANCED"""
-    
+    """
+    AMRfinderPlus executor for A. baumannii with dynamic database detection,
+    maximum‑speed concurrent processing, and comprehensive reporting.
+    """
+
     def __init__(self, cpus: int = None):
-        # Setup logging FIRST
         self.logger = self._setup_logging()
-        
-        # Get module directory and set bundled paths
         self.module_dir = os.path.dirname(os.path.abspath(__file__))
-        self.bundled_amrfinder = os.path.join(self.module_dir, "bin", "amrfinder")
-        self.bundled_update = os.path.join(self.module_dir, "bin", "amrfinder_update") 
-        self.bundled_database = os.path.join(self.module_dir, "data", "amrfinder_db")
-        
-        # Initialize available_ram before calculating cpus
         self.available_ram = self._get_available_ram()
-        
-        # Then calculate resources - MAXIMUM SPEED MODE
         self.cpus = self._calculate_optimal_cpus(cpus)
-        
-        # A. baumannii specific gene sets - COMPREHENSIVE (unchanged)
+
+        self.bundled_amrfinder = os.path.join(self.module_dir, "bin", "amrfinder")
+        self.bundled_update = os.path.join(self.module_dir, "bin", "amrfinder_update")
+        self.bundled_database = self._get_latest_database()
+
+        if self.bundled_database is None:
+            self.logger.warning("No AMRfinderPlus database found. Please run with --update-db or --force-update.")
+
+        self.metadata = {
+            "tool_name": "AcinetoScope AMRfinderPlus",
+            "version": "1.3.0",
+            "authors": ["Brown Beckley"],
+            "email": "brownbeckley94@gmail.com",
+            "github": "https://github.com/bbeckley-hub",
+            "affiliation": "University of Ghana Medical School",
+            "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "amrfinder_version": "4.2.7",
+            "database_version": self._get_database_version() if self.bundled_database else "Unknown"
+        }
+
         self.critical_carbapenemases = {
-            'blaOXA-23', 'blaOXA-24', 'blaOXA-40', 'blaOXA-51', 'blaOXA-58', 'blaOXA-66', 'blaOXA-72', 
-            'blaOXA-143', 'blaOXA-235', 'blaOXA-181', 'blaOXA-232', 'blaOXA-438', 'blaOXA-48',
-            'blaKPC', 'blaNDM', 'blaVIM', 'blaIMP', 'blaSIM', 'blaGIM', 'blaSPM',
-            'OXA-23', 'OXA-24', 'OXA-40', 'OXA-51', 'OXA-58', 'OXA-66', 'OXA-72', 'OXA-143', 'OXA-235',
-            'KPC', 'NDM', 'VIM', 'IMP', 'SIM', 'GIM', 'SPM'
+            'blaOXA-23', 'blaOXA-24', 'blaOXA-40', 'blaOXA-51', 'blaOXA-58',
+            'blaOXA-66', 'blaOXA-72', 'blaOXA-143', 'blaOXA-235', 'blaOXA-181',
+            'blaOXA-232', 'blaOXA-438', 'blaOXA-48',
+            'blaKPC', 'blaNDM', 'blaVIM', 'blaIMP', 'blaSIM', 'blaGIM', 'blaSPM'
         }
-        
+
         self.critical_esbls = {
-            'blaCTX-M', 'blaSHV', 'blaTEM', 'blaPER', 'blaVEB', 'blaGES', 'blaBEL', 'blaBES',
-            'CTX-M', 'SHV', 'TEM', 'PER', 'VEB', 'GES', 'BEL', 'BES',
-            'blaADC', 'blaOXA-10', 'blaOXA-2', 'blaOXA-9',
-            'ADC', 'OXA-10', 'OXA-2', 'OXA-9'
+            'blaCTX-M', 'blaSHV', 'blaTEM', 'blaPER', 'blaVEB', 'blaGES',
+            'blaBEL', 'blaBES', 'blaADC', 'blaOXA-10', 'blaOXA-2', 'blaOXA-9'
         }
-        
+
         self.critical_colistin = {
-            'mcr-1', 'mcr-2', 'mcr-3', 'mcr-4', 'mcr-5', 'mcr-6', 'mcr-7', 'mcr-8', 'mcr-9', 'mcr-10',
-            'pmrA', 'pmrB', 'pmrC', 'lpxA', 'lpxC', 'lpxD', 'arnA', 'arnB', 'arnC', 'arnD', 'eptA'
+            'mcr-1', 'mcr-2', 'mcr-3', 'mcr-4', 'mcr-5', 'mcr-6', 'mcr-7',
+            'mcr-8', 'mcr-9', 'mcr-10',
+            'pmrA', 'pmrB', 'pmrC', 'lpxA', 'lpxC', 'lpxD',
+            'arnA', 'arnB', 'arnC', 'arnD', 'eptA'
         }
-        
+
         self.critical_aminoglycoside = {
-            'armA', 'rmtA', 'rmtB', 'rmtC', 'rmtD', 'rmtE', 'rmtF', 'rmtG', 'rmtH',
-            'APH(3\')', 'APH(3\')-VI', 'APH(6)', 'AAC(3)', 'AAC(6\')', 'ANT(2")', 'ANT(3")', 'ANT(4")',
-            'aacC1', 'aacC2', 'aacC4', 'aacA4', 'aacA7', 'aadA1', 'aadA2', 'aadA5', 'aadA7',
-            'strA', 'strB', 'aphA1', 'aphA2', 'aphA3', 'aphA6', 'aac3', 'aac6', 'aadA', 'aadB'
-        }
-        
-        self.high_risk_resistance = {
-            'tetA', 'tetB', 'tetC', 'tetD', 'tetE', 'tetG', 'tetH', 'tetK', 'tetL', 'tetM', 'tetO', 'tetQ', 'tetS', 'tetX',
-            'sul1', 'sul2', 'sul3', 'sul4',
-            'dfrA1', 'dfrA5', 'dfrA7', 'dfrA8', 'dfrA12', 'dfrA14', 'dfrA17', 'dfrA19', 'dfrA20', 'dfrA21',
-            'dfrB1', 'dfrB2', 'dfrB3', 'dfrB4', 'dfrB5', 'dfrB6', 'dfrB7',
-            'catA1', 'catA2', 'catB2', 'catB3', 'catB8', 'catI', 'catII', 'catIII',
-            'cmlA', 'cmlA1', 'cmlA5', 'cmlA6', 'cmlA7', 'floR',
-            'ermA', 'ermB', 'ermC', 'ermF', 'ermG', 'ermX', 'ermY',
-            'mphA', 'mphB', 'mphC', 'mphD', 'mphE', 'msrA', 'msrB', 'msrC', 'msrD',
-            'qnrA1', 'qnrB1', 'qnrB2', 'qnrB4', 'qnrB6', 'qnrB10', 'qnrB19', 'qnrS1', 'qnrS2', 'qnrVC1', 'qnrVC4',
-            'aac(6\')-Ib-cr', 'qepA', 'qepA1', 'qepA2', 'qepA3', 'qepA4',
-            'fosA', 'fosB', 'fosC', 'fosX',
-            'arr-2', 'arr-3', 'arr-4', 'arr-5', 'arr-6', 'arr-7',
-            'adeA', 'adeB', 'adeC', 'adeG', 'adeH', 'adeI', 'adeJ', 'adeK', 'adeL', 'adeM', 'adeN',
-            'abeM', 'abeS', 'acrA', 'acrB', 'tolC', 'mexA', 'mexB', 'mexC', 'mexD', 'mexE', 'mexF',
-            'oprM', 'oprN', 'oprJ', 'mdtA', 'mdtB', 'mdtC', 'emrA', 'emrB', 'emrD', 'emrE', 'emrK', 'emrY'
+            'armA', 'rmtA', 'rmtB', 'rmtC', 'rmtD', 'rmtE', 'rmtF', 'rmtG',
+            'APH(3\')', 'APH(3\')-VI', 'APH(6)', 'AAC(3)', 'AAC(6\')', 'ANT(2")',
+            'ANT(3")', 'ANT(4")', 'aacC1', 'aacC2', 'aacC4', 'aacA4', 'aacA7',
+            'aadA1', 'aadA2', 'aadA5', 'aadA7', 'strA', 'strB', 'aphA1', 'aphA2',
+            'aphA3', 'aphA6', 'aac3', 'aac6', 'aadA', 'aadB'
         }
 
-        self.high_risk_genes = self.critical_carbapenemases.union(
-            self.critical_esbls
-        ).union(self.critical_colistin).union(self.critical_aminoglycoside).union(self.high_risk_resistance)
+        self.high_risk_genes = (
+            self.critical_carbapenemases
+            | self.critical_esbls
+            | self.critical_colistin
+            | self.critical_aminoglycoside
+            | {
+                'tetA', 'tetB', 'tetC', 'tetD', 'tetE', 'tetG', 'tetH', 'tetK', 'tetL',
+                'tetM', 'tetO', 'tetQ', 'tetS', 'tetX',
+                'sul1', 'sul2', 'sul3', 'sul4',
+                'dfrA1', 'dfrA5', 'dfrA7', 'dfrA8', 'dfrA12', 'dfrA14', 'dfrA17',
+                'dfrA19', 'dfrA20', 'dfrA21', 'dfrB1', 'dfrB2', 'dfrB3', 'dfrB4',
+                'dfrB5', 'dfrB6', 'dfrB7',
+                'catA1', 'catA2', 'catB2', 'catB3', 'catB8', 'catI', 'catII', 'catIII',
+                'cmlA', 'cmlA1', 'cmlA5', 'cmlA6', 'cmlA7', 'floR',
+                'ermA', 'ermB', 'ermC', 'ermF', 'ermG', 'ermX', 'ermY',
+                'mphA', 'mphB', 'mphC', 'mphD', 'mphE', 'msrA', 'msrB', 'msrC', 'msrD',
+                'qnrA1', 'qnrB1', 'qnrB2', 'qnrB4', 'qnrB6', 'qnrB10', 'qnrB19',
+                'qnrS1', 'qnrS2', 'qnrVC1', 'qnrVC4',
+                'aac(6\')-Ib-cr', 'qepA', 'qepA1', 'qepA2', 'qepA3', 'qepA4',
+                'fosA', 'fosB', 'fosC', 'fosX',
+                'arr-2', 'arr-3', 'arr-4', 'arr-5', 'arr-6', 'arr-7',
+                'adeA', 'adeB', 'adeC', 'adeG', 'adeH', 'adeI', 'adeJ', 'adeK',
+                'adeL', 'adeM', 'adeN',
+                'abeM', 'abeS', 'acrA', 'acrB', 'tolC', 'mexA', 'mexB', 'mexC',
+                'mexD', 'mexE', 'mexF', 'oprM', 'oprN', 'oprJ',
+                'mdtA', 'mdtB', 'mdtC', 'emrA', 'emrB', 'emrD', 'emrE', 'emrK', 'emrY'
+            }
+        )
 
-        self.critical_risk_genes = self.critical_carbapenemases.union(self.critical_colistin)
-        
+        self.critical_risk_genes = (
+            self.critical_carbapenemases
+            | self.critical_colistin
+            | {'mcr-1', 'mcr-2', 'mcr-3', 'mcr-4', 'mcr-5'}
+        )
+
+        self.science_quotes = [
+            {"text": "The important thing is not to stop questioning. Curiosity has its own reason for existing.", "author": "Albert Einstein"},
+            {"text": "Science is not only a disciple of reason but also one of romance and passion.", "author": "Stephen Hawking"},
+            {"text": "Somewhere, something incredible is waiting to be known.", "author": "Carl Sagan"},
+            {"text": "The good thing about science is that it's true whether or not you believe in it.", "author": "Neil deGrasse Tyson"},
+            {"text": "In science, there are no shortcuts to truth.", "author": "Karl Popper"},
+            {"text": "Science knows no country, because knowledge belongs to humanity.", "author": "Louis Pasteur"},
+            {"text": "The science of today is the technology of tomorrow.", "author": "Edward Teller"},
+            {"text": "Nothing in life is to be feared, it is only to be understood.", "author": "Marie Curie"},
+            {"text": "Research is what I'm doing when I don't know what I'm doing.", "author": "Wernher von Braun"},
+            {"text": "AcinetoScope represents the convergence of genomic surveillance and clinical diagnostics.", "author": "Brown Beckley"}
+        ]
+
         self.ascii_art = r"""
  █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
 ██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
@@ -105,3578 +140,1198 @@ class AcinetoAMRfinderPlus:
 ██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
 ╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
 """
-        
-        self.metadata = {
-            "tool_name": "AcinetoScope AMRfinderPlus",
-            "version": "1.2.0", 
-            "authors": ["Brown Beckley"],
-            "email": "brownbeckley94@gmail.com",
-            "github": "https://github.com/bbeckley-hub",
-            "affiliation": "University of Ghana Medical School - Department of Medical Biochemistry",
-            "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "amrfinder_version": "4.2.7",          
-            "database_version": "auto-detected"
-        }
-        
-        self.science_quotes = [
-            "The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein",
-            "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", 
-            "Somewhere, something incredible is waiting to be known. - Carl Sagan",
-            "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson",
-            "In science, there are no shortcuts to truth. - Karl Popper",
-            "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur",
-            "The science of today is the technology of tomorrow. - Edward Teller",
-            "Nothing in life is to be feared, it is only to be understood. - Marie Curie",
-            "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun",
-            "The universe is not required to be in harmony with human ambition. - Carl Sagan"
-        ]
-        
-        # ==================== NEW: Detect actual database version ====================
-        self._detect_latest_database()
-    
+
     def _setup_logging(self):
-        """Setup logging - must be called first in __init__"""
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
         return logging.getLogger(__name__)
-    
+
     def _get_available_ram(self) -> int:
-        """Get available RAM in GB"""
         try:
-            ram_gb = psutil.virtual_memory().available / (1024 ** 3)
-            return ram_gb
-        except Exception as e:
-            self.logger.warning(f"Could not detect RAM: {e}")
-            return 8  # Assume 8GB as fallback
-    
+            return psutil.virtual_memory().available / (1024 ** 3)
+        except Exception:
+            return 8
+
     def _calculate_optimal_cpus(self, user_cpus: int = None) -> int:
-        """Calculate optimal number of CPU cores for MAXIMUM SPEED"""
         if user_cpus is not None:
             self._log_resource_info(user_cpus)
             return user_cpus
-            
         try:
-            # Get total PHYSICAL CPU cores (not logical threads)
-            total_physical_cores = psutil.cpu_count(logical=False) or os.cpu_count() or 2
-            
-            # MAXIMUM SPEED RULES - AGGRESSIVE CPU USAGE 
-            if total_physical_cores <= 4:
-                optimal_cpus = total_physical_cores  # Use ALL cores on small systems
-            elif total_physical_cores <= 8:
-                optimal_cpus = total_physical_cores - 1  # Use 7/8, 6/7, etc.
-            elif total_physical_cores <= 16:
-                optimal_cpus = max(8, total_physical_cores - 1)  # Use 15/16, 14/15, etc.
-            elif total_physical_cores <= 32:
-                optimal_cpus = max(16, total_physical_cores - 1)  # Use 31/32, 30/31, etc.
+            total_physical = psutil.cpu_count(logical=False) or os.cpu_count() or 2
+            if total_physical <= 4:
+                optimal = total_physical
+            elif total_physical <= 8:
+                optimal = total_physical - 1
+            elif total_physical <= 16:
+                optimal = max(8, total_physical - 1)
+            elif total_physical <= 32:
+                optimal = max(16, total_physical - 3)
             else:
-                optimal_cpus = min(32, int(total_physical_cores * 0.95))  # Use 95% on huge systems
-            
-            # Ensure at least 1 CPU and not more than available cores
-            optimal_cpus = max(1, min(optimal_cpus, total_physical_cores))
-            
-            self._log_resource_info(optimal_cpus, total_physical_cores)
-            return optimal_cpus
-            
-        except Exception as e:
-            # Fallback to using all available cores for maximum speed
-            self.logger.warning(f"Could not detect CPU cores, using maximum available: {e}")
+                optimal = min(32, int(total_physical * 0.95))
+            optimal = max(1, min(optimal, total_physical))
+            self._log_resource_info(optimal, total_physical)
+            return optimal
+        except Exception:
             return os.cpu_count() or 4
-    
+
     def _log_resource_info(self, cpus: int, total_cores: int = None):
-        """Log resource allocation information - KEEPING AcinetoScope STYLING"""
         self.logger.info(f"Available RAM: {self.available_ram:.1f} GB")
-        
         if total_cores:
             self.logger.info(f"System CPU cores: {total_cores}")
-            utilization = (cpus / total_cores) * 100
-            self.logger.info(f"Using CPU cores: {cpus} ({utilization:.1f}% of available cores)")
+            self.logger.info(f"Using CPU cores: {cpus} ({cpus/total_cores*100:.1f}% of available cores)")
         else:
             self.logger.info(f"Using user-specified CPU cores: {cpus}")
-        
-        # Performance recommendations - MAXIMUM SPEED FOCUS (AcinetoScope style)
-        if cpus == 1:
-            self.logger.info("💡 Performance: Single-core (max speed for 1-core systems)")
-        elif cpus <= 4:
+        if cpus <= 4:
             self.logger.info("💡 Performance: Multi-core (max speed for small systems)")
         elif cpus <= 8:
-            self.logger.info("💡 Performance: High-speed multi-core mode")
-        elif cpus <= 16:
-            self.logger.info("💡 Performance: Ultra-speed multi-core mode 🚀")
-        elif cpus <= 32:
-            self.logger.info("💡 Performance: MAXIMUM SPEED MULTI-CORE MODE 🚀🔥")
+            self.logger.info("💡 Performance: High-speed mode")
         else:
-            self.logger.info("💡 Performance: EXTREME SPEED MULTI-CORE MODE 🚀🔥💨")
-        
-        # Strategy note - UPDATED for concurrent processing
-        self.logger.info("📝 STRATEGY: Processing MULTIPLE A. baumannii samples concurrently with optimal core allocation for maximum throughput")
+            self.logger.info("💡 Performance: MAXIMUM SPEED MODE 🚀")
 
-    # ==================== NEW: Database version detection ====================
-    def _detect_latest_database(self):
-        """Update metadata with the actual database version found on disk."""
-        if not os.path.isdir(self.bundled_database):
-            self.metadata["database_version"] = "Not found"
-            return
-        version_dirs = []
-        for entry in os.listdir(self.bundled_database):
-            full_path = os.path.join(self.bundled_database, entry)
-            if os.path.isdir(full_path) and re.match(r'^\d{4}-\d{2}-\d{2}\.\d+$', entry):
-                version_dirs.append(entry)
-        if version_dirs:
-            version_dirs.sort(reverse=True)
-            self.metadata["database_version"] = version_dirs[0]
-            self.logger.info(f"Detected database version: {version_dirs[0]}")
-        else:
-            self.metadata["database_version"] = "Unknown"
-    
-    # ==================== NEW: Force database update ====================
+    def _get_latest_database(self) -> Optional[str]:
+        db_root = os.path.join(self.module_dir, "data", "amrfinder_db")
+        if not os.path.exists(db_root):
+            return None
+        candidates = []
+        for item in os.listdir(db_root):
+            full_path = os.path.join(db_root, item)
+            if os.path.isdir(full_path) and item.startswith('20'):
+                candidates.append(item)
+        if not candidates:
+            return None
+        latest = sorted(candidates)[-1]
+        return os.path.join(db_root, latest)
+
+    def _get_database_version(self) -> str:
+        if not self.bundled_database:
+            return "Unknown"
+        version_file = os.path.join(self.bundled_database, "version.txt")
+        if os.path.exists(version_file):
+            with open(version_file, 'r') as f:
+                return f.read().strip()
+        return os.path.basename(self.bundled_database)
+
     def update_database(self, force: bool = False) -> bool:
-        """Download the latest AMR database using bundled amrfinder_update.
-        
-        Args:
-            force: If True, use --force_update to overwrite existing database.
-        Returns:
-            True if update succeeded, False otherwise.
-        """
         if not os.path.exists(self.bundled_update):
             self.logger.error(f"amrfinder_update not found at {self.bundled_update}")
             return False
-        
-        os.makedirs(self.bundled_database, exist_ok=True)
-        cmd = [self.bundled_update, "--database", self.bundled_database]
+        if not os.access(self.bundled_update, os.X_OK):
+            os.chmod(self.bundled_update, 0o755)
+
+        db_dir = os.path.join(self.module_dir, "data", "amrfinder_db")
+        os.makedirs(db_dir, exist_ok=True)
+
         if force:
-            cmd.append("--force_update")
-            self.logger.info("🔨 Force update mode: existing database will be overwritten")
-        
-        self.logger.info(f"Running: {' '.join(cmd)}")
+            self.logger.info("Forcing full database update – removing old folders...")
+            for item in os.listdir(db_dir):
+                full_path = os.path.join(db_dir, item)
+                if os.path.isdir(full_path) and item.startswith('20'):
+                    self.logger.info(f"  Removing {item}")
+                    shutil.rmtree(full_path)
+
+        self.logger.info("Updating AMRfinderPlus database...")
         try:
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
-            self.logger.info("✅ AMR database successfully downloaded/updated.")
-            self._detect_latest_database()
-            return True
+            subprocess.run([self.bundled_update, "--database", db_dir], capture_output=True, text=True, check=True)
+            self.logger.info("Database update completed successfully.")
+            self.bundled_database = self._get_latest_database()
+            if self.bundled_database:
+                self.metadata['database_version'] = self._get_database_version()
+                self.logger.info(f"New database version: {self.metadata['database_version']}")
+                return True
+            else:
+                self.logger.error("Database update succeeded but no database folder found.")
+                return False
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Database update failed: {e.stderr}")
             return False
-    # ======================================================================
 
     def check_amrfinder_installed(self) -> bool:
-        """Check if bundled AMRfinderPlus is available"""
         try:
             if not os.path.exists(self.bundled_amrfinder):
-                self.logger.error(f"Bundled AMRfinderPlus not found at: {self.bundled_amrfinder}")
+                self.logger.error(f"Bundled AMRfinderPlus not found at {self.bundled_amrfinder}")
                 return False
-            
             if not os.access(self.bundled_amrfinder, os.X_OK):
-                self.logger.warning(f"Bundled AMRfinderPlus not executable, fixing permissions...")
                 os.chmod(self.bundled_amrfinder, 0o755)
-            
-            # Test the bundled version
-            result = subprocess.run(
-                [self.bundled_amrfinder, '--version'], 
-                capture_output=True, 
-                text=True, 
-                check=True
-            )
-            
-            version_line = result.stdout.strip()
-            self.logger.info(f"Bundled AMRfinderPlus version: {version_line}")
-            
-            # Check database
-            if os.path.exists(self.bundled_database):
+            subprocess.run([self.bundled_amrfinder, '--version'], capture_output=True, text=True, check=True)
+            self.logger.info(f"Bundled AMRfinderPlus: OK")
+            if self.bundled_database and os.path.exists(self.bundled_database):
                 self.logger.info(f"✅ Bundled database found: {self.bundled_database}")
-                self._detect_latest_database()
+                return True
             else:
-                self.logger.warning(f"⚠️ Bundled database not found at: {self.bundled_database}")
-            
-            return True
-            
-        except (subprocess.CalledProcessError, FileNotFoundError) as e:
-            self.logger.error(f"Bundled AMRfinderPlus check failed: {e}")
+                self.logger.warning("⚠️ Bundled database not found. Please run with --update-db or --force-update.")
+                return False
+        except Exception as e:
+            self.logger.error(f"AMRfinderPlus check failed: {e}")
             return False
 
-    def run_amrfinder_single_genome(self, genome_file: str, output_dir: str) -> Dict[str, Any]:
-        """Run AMRfinderPlus on a single A. baumannii genome - USING BUNDLED BINARY"""
+    def run_amrfinder_single_genome(self, genome_file: str, output_dir: str,
+                                     min_identity: float = None, min_coverage: float = None,
+                                     report_mutations: bool = True) -> Dict[str, Any]:
         genome_name = Path(genome_file).stem
         output_file = os.path.join(output_dir, f"{genome_name}_amrfinder.txt")
-        
-        # Check if bundled binary exists
-        if not os.path.exists(self.bundled_amrfinder):
-            self.logger.error(f"Bundled AMRfinderPlus not found at: {self.bundled_amrfinder}")
+        run_cpus = self.cpus
+
+        cmd = [
+            self.bundled_amrfinder,
+            '-n', genome_file,
+            '--output', output_file,
+            '--threads', str(run_cpus),
+            '--plus',
+            '--organism', 'Acinetobacter_baumannii'
+        ]
+
+        if self.bundled_database and os.path.exists(self.bundled_database):
+            cmd.extend(['--database', self.bundled_database])
+            self.logger.info(f"Using bundled database: {self.bundled_database}")
+        else:
+            self.logger.warning("Using default AMRfinderPlus database location")
+
+        if min_identity is not None:
+            cmd.extend(['--ident_min', str(min_identity)])
+        if min_coverage is not None:
+            cmd.extend(['--coverage_min', str(min_coverage)])
+
+        mut_file = None
+        if report_mutations:
+            mut_file = os.path.join(output_dir, f"{genome_name}_mutations.tsv")
+            cmd.extend(['--mutation_all', mut_file])
+            self.logger.info(f"Will report mutations to {mut_file}")
+
+        self.logger.info(f"Running BUNDLED AMRfinderPlus: {genome_name} (using {run_cpus} CPU cores)")
+        try:
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            hits = self._parse_amrfinder_output(output_file)
+            self._create_amrfinder_html_report(genome_name, hits, output_dir)
+
+            if mut_file and os.path.exists(mut_file):
+                self._create_mutation_html_report(genome_name, mut_file, output_dir)
+
+            return {
+                'genome': genome_name,
+                'output_file': output_file,
+                'hits': hits,
+                'hit_count': len(hits),
+                'mutations_file': mut_file,
+                'status': 'success'
+            }
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"AMRfinderPlus failed for {genome_name}")
+            self.logger.error(f"STDERR: {e.stderr}")
             return {
                 'genome': genome_name,
                 'output_file': output_file,
                 'hits': [],
                 'hit_count': 0,
                 'status': 'failed',
-                'error': 'AMRfinder binary not found'
+                'error': e.stderr
             }
-        
-        # AMRfinderPlus uses THREADS - allocate ALL available cores for maximum speed
-        run_threads = self.cpus
-        
-        # Build command with BUNDLED resources
-        cmd = [
-            self.bundled_amrfinder,
-            '-n', genome_file,  # Nucleotide mode
-            '-O', 'Acinetobacter_baumannii',  # Organism (A. baumannii)
-            '--output', output_file,
-            '--plus'
-        ]
-        
-        # Add database if available - always use the latest version
-        if os.path.exists(self.bundled_database):
-            db_versions = []
-            for item in os.listdir(self.bundled_database):
-                item_path = os.path.join(self.bundled_database, item)
-                if os.path.isdir(item_path) and re.match(r'\d{4}-\d{2}-\d{2}\.\d+', item):
-                    db_versions.append(item)
-            
-            if db_versions:
-                db_versions.sort(reverse=True)
-                latest_db = os.path.join(self.bundled_database, db_versions[0])
-                cmd.extend(['--database', latest_db])
-                self.logger.info(f"Using bundled database: {latest_db}")
-        
-        self.logger.info("🚀 MAXIMUM SPEED: Running AMRfinderPlus on %s (using ALL %d CORES)", genome_name, run_threads)
-        
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            
-            # Parse results for reporting
-            hits = self._parse_amrfinder_output(output_file)
-            
-            # Create individual HTML report
-            self._create_amrfinder_html_report(genome_name, hits, output_dir)
-            
-            # Create individual JSON report
-            self._create_amrfinder_json_report(genome_name, hits, output_dir)
-            
-            return {
-                'genome': genome_name,
-                'output_file': output_file,
-                'hits': hits,
-                'hit_count': len(hits),
-                'status': 'success'
-            }
-            
-        except subprocess.CalledProcessError as e:
-            self.logger.error("AMRfinderPlus failed for %s: %s", genome_name, e.stderr)
-            return {
-                'genome': genome_name,
-                'output_file': output_file,
-                'hits': [],
-                'hit_count': 0,
-                'status': 'failed'
-            }
-    
+
     def _parse_amrfinder_output(self, amrfinder_file: str) -> List[Dict]:
-            """Parse AMRfinderPlus 4.2.4 output file into structured data - KEEPING OLD HEADERS"""
-            hits = []
-            try:
-                with open(amrfinder_file, 'r') as f:
-                    lines = f.readlines()
-                    
-                if not lines or len(lines) < 2:
-                    return hits
-                    
-                # Parse header - AMRfinderPlus 4.2.5 uses new headers
-                headers = lines[0].strip().split('\t')
-                
-                # Parse data lines
-                for line_num, line in enumerate(lines[1:], 2):
-                    line = line.strip()
-                    if not line:
-                        continue
-                        
-                    parts = line.split('\t')
-                    if len(parts) >= len(headers):
-                        # Create hit with original headers
-                        hit = {}
-                        for i, header in enumerate(headers):
-                            if i < len(parts):
-                                hit[header] = parts[i]
-                            else:
-                                hit[header] = ''
-                        
-                        # Map to consistent field names - BOTH OLD AND NEW HEADERS
-                        processed_hit = {
-                            # NEW headers from AMRFinderPlus 4.2.5
-                            'Protein id': hit.get('Protein id', ''),
-                            'Contig id': hit.get('Contig id', ''),
-                            'Start': hit.get('Start', ''),
-                            'Stop': hit.get('Stop', ''),
-                            'Strand': hit.get('Strand', ''),
-                            'Element symbol': hit.get('Element symbol', ''),  # NEW: Element symbol
-                            'Element name': hit.get('Element name', ''),      # NEW: Element name
-                            'Scope': hit.get('Scope', ''),
-                            'Type': hit.get('Type', ''),                      # NEW: Type
-                            'Subtype': hit.get('Subtype', ''),                # NEW: Subtype
-                            'Class': hit.get('Class', ''),
-                            'Subclass': hit.get('Subclass', ''),
-                            'Method': hit.get('Method', ''),
-                            'Target length': hit.get('Target length', ''),
-                            'Reference sequence length': hit.get('Reference sequence length', ''),
-                            '% Coverage of reference': hit.get('% Coverage of reference', ''),
-                            '% Identity to reference': hit.get('% Identity to reference', ''),
-                            'Alignment length': hit.get('Alignment length', ''),
-                            'Closest reference accession': hit.get('Closest reference accession', ''),
-                            'Closest reference name': hit.get('Closest reference name', ''),
-                            'HMM accession': hit.get('HMM accession', ''),
-                            'HMM description': hit.get('HMM description', ''),
-                            
-                            # KEEP OLD HEADERS FOR BACKWARD COMPATIBILITY
-                            'protein_id': hit.get('Protein id', ''),
-                            'contig_id': hit.get('Contig id', ''),
-                            'start': hit.get('Start', ''),
-                            'stop': hit.get('Stop', ''),
-                            'strand': hit.get('Strand', ''),
-                            'gene_symbol': hit.get('Element symbol', ''),  # Map new to old
-                            'sequence_name': hit.get('Element name', ''),   # Map new to old
-                            'scope': hit.get('Scope', ''),
-                            'element_type': hit.get('Type', ''),           # Map new to old
-                            'element_subtype': hit.get('Subtype', ''),     # Map new to old
-                            'class': hit.get('Class', ''),
-                            'subclass': hit.get('Subclass', ''),
-                            'method': hit.get('Method', ''),
-                            'target_length': hit.get('Target length', ''),
-                            'ref_length': hit.get('Reference sequence length', ''),
-                            'coverage': hit.get('% Coverage of reference', '').replace('%', ''),
-                            'identity': hit.get('% Identity to reference', '').replace('%', ''),
-                            'alignment_length': hit.get('Alignment length', ''),
-                            'accession': hit.get('Closest reference accession', ''),
-                            'closest_name': hit.get('Closest reference name', ''),
-                            'hmm_id': hit.get('HMM accession', ''),
-                            'hmm_description': hit.get('HMM description', ''),
-                            
-                            # Also store original headers for reference
-                            '_original_headers': headers,
-                            '_original_values': parts
-                        }
-                        hits.append(processed_hit)
-                    else:
-                        self.logger.warning("Line %d has %d parts, expected %d: %s", 
-                                        line_num, len(parts), len(headers), line[:100] + "...")
-                        
-            except Exception as e:
-                self.logger.error("Error parsing %s: %s", amrfinder_file, e)
-                
-            self.logger.info("Parsed %d AMR hits from %s", len(hits), amrfinder_file)
-            return hits
-    
+        hits = []
+        try:
+            with open(amrfinder_file, 'r') as f:
+                lines = f.readlines()
+            if len(lines) < 2:
+                return hits
+            headers = lines[0].strip().split('\t')
+            for line in lines[1:]:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split('\t')
+                if len(parts) >= len(headers):
+                    hit = dict(zip(headers, parts))
+                    processed = {
+                        'protein_id': hit.get('Protein id', ''),
+                        'contig_id': hit.get('Contig id', ''),
+                        'start': hit.get('Start', ''),
+                        'stop': hit.get('Stop', ''),
+                        'strand': hit.get('Strand', ''),
+                        'gene_symbol': hit.get('Element symbol', ''),
+                        'sequence_name': hit.get('Element name', ''),
+                        'scope': hit.get('Scope', ''),
+                        'element_type': hit.get('Type', ''),
+                        'element_subtype': hit.get('Subtype', ''),
+                        'class': hit.get('Class', ''),
+                        'subclass': hit.get('Subclass', ''),
+                        'method': hit.get('Method', ''),
+                        'target_length': hit.get('Target length', ''),
+                        'ref_length': hit.get('Reference sequence length', ''),
+                        'coverage': hit.get('% Coverage of reference', '').replace('%', ''),
+                        'identity': hit.get('% Identity to reference', '').replace('%', ''),
+                        'alignment_length': hit.get('Alignment length', ''),
+                        'accession': hit.get('Closest reference accession', ''),
+                        'closest_name': hit.get('Closest reference name', ''),
+                        'hmm_id': hit.get('HMM accession', ''),
+                        'hmm_description': hit.get('HMM description', '')
+                    }
+                    hits.append(processed)
+        except Exception as e:
+            self.logger.error(f"Error parsing {amrfinder_file}: {e}")
+        self.logger.info(f"Parsed {len(hits)} AMR hits from {amrfinder_file}")
+        return hits
+
+    def _parse_mutations_file(self, mut_file: str) -> List[Dict]:
+        return self._parse_amrfinder_output(mut_file)
+
     def _create_amrfinder_html_report(self, genome_name: str, hits: List[Dict], output_dir: str):
-        """Create comprehensive HTML report for AMRfinderPlus results with AcinetoScope styling"""
-        
-        # Analyze AMR results for A. baumannii
         analysis = self._analyze_acineto_amr_results(hits)
-        
-        # JavaScript for interactive features
-        interactive_js = f"""
-        <script>
-            // Search functionality
-            function searchTable(tableId, searchTerm) {{
-                const table = document.getElementById(tableId);
-                const rows = table.getElementsByTagName('tr');
-                let visibleCount = 0;
-                
-                for (let i = 1; i < rows.length; i++) {{ // Skip header
-                    const row = rows[i];
-                    const text = row.textContent.toLowerCase();
-                    if (text.includes(searchTerm.toLowerCase())) {{
-                        row.style.display = '';
-                        visibleCount++;
-                    }} else {{
-                        row.style.display = 'none';
-                    }}
-                }}
-                
-                // Update result count
-                const resultCounter = document.getElementById('result-counter-' + tableId);
-                if (resultCounter) {{
-                    resultCounter.textContent = visibleCount + ' results found';
-                }}
-            }}
-            
-            // Export to CSV
-            function exportToCSV(tableId, filename) {{
-                const table = document.getElementById(tableId);
-                const rows = table.getElementsByTagName('tr');
-                let csv = [];
-                
-                // Add headers
-                const headerCells = rows[0].getElementsByTagName('th');
-                const headerRow = [];
-                for (let cell of headerCells) {{
-                    headerRow.push(cell.textContent);
-                }}
-                csv.push(headerRow.join(','));
-                
-                // Add data
-                for (let i = 1; i < rows.length; i++) {{
-                    if (rows[i].style.display !== 'none') {{
-                        const cells = rows[i].getElementsByTagName('td');
-                        const row = [];
-                        for (let cell of cells) {{
-                            // Clean up text (remove badges, etc.)
-                            let text = cell.textContent.trim();
-                            text = text.replace(/\\n/g, ' ').replace(/,/g, ';');
-                            row.push(text);
-                        }}
-                        csv.push(row.join(','));
-                    }}
-                }}
-                
-                // Create download
-                const blob = new Blob([csv.join('\\n')], {{ type: 'text/csv' }});
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }}
-            
-            // Export to JSON
-            function exportToJSON(dataVar, filename) {{
-                const data = window[dataVar];
-                const jsonStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonStr], {{ type: 'application/json' }});
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }}
-            
-            // Print report
-            function printReport() {{
-                const originalStyles = document.querySelectorAll('style, link[rel="stylesheet"]');
-                const printWindow = window.open('', '_blank');
-                
-                printWindow.document.write('<html><head><title>{genome_name} - AMR Report</title>');
-                printWindow.document.write('<style>');
-                printWindow.document.write(`
-                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                    .no-print {{ display: none !important; }}
-                    table {{ border-collapse: collapse; width: 100%; margin: 10px 0; }}
-                    th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-                    th {{ background-color: #f2f2f2; }}
-                    .critical-row {{ background-color: #f8d7da; }}
-                    .high-risk-row {{ background-color: #fff3cd; }}
-                    .header {{ text-align: center; margin-bottom: 20px; }}
-                `);
-                printWindow.document.write('</style>');
-                printWindow.document.write('</head><body>');
-                
-                // Add report content
-                const content = document.querySelector('.container').cloneNode(true);
-                const noPrintElements = content.querySelectorAll('.no-print');
-                noPrintElements.forEach(el => el.remove());
-                
-                printWindow.document.write(content.innerHTML);
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.print();
-            }}
-            
-            // Toggle all mechanisms
-            function toggleAllMechanisms() {{
-                const container = document.getElementById('all-mechanisms-container');
-                const button = document.getElementById('toggle-mechanisms-btn');
-                
-                if (container.style.display === 'none') {{
-                    container.style.display = 'block';
-                    button.textContent = 'Show Less';
-                }} else {{
-                    container.style.display = 'none';
-                    button.textContent = 'Show All Mechanisms';
-                }}
-            }}
-            
-            // Quick search across entire report
-            function quickSearch() {{
-                const searchTerm = document.getElementById('quick-search').value.toLowerCase();
-                const sections = document.querySelectorAll('.card');
-                
-                sections.forEach(section => {{
-                    const text = section.textContent.toLowerCase();
-                    if (text.includes(searchTerm)) {{
-                        section.style.border = '2px solid #3b82f6';
-                        section.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-                        section.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
-                    }} else {{
-                        section.style.border = '';
-                        section.style.backgroundColor = '';
-                    }}
-                }});
-            }}
-            
-            // Clear search highlights
-            function clearSearch() {{
-                document.getElementById('quick-search').value = '';
-                const sections = document.querySelectorAll('.card');
-                sections.forEach(section => {{
-                    section.style.border = '';
-                    section.style.backgroundColor = '';
-                }});
-            }}
-            
-            // Rotating quotes
-            let quotes = {json.dumps(self.science_quotes)};
-            let currentQuote = 0;
-            
-            function rotateQuote() {{
-                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
-                currentQuote = (currentQuote + 1) % quotes.length;
-            }}
-            
-            // Initialize
-            document.addEventListener('DOMContentLoaded', function() {{
-                rotateQuote();
-                setInterval(rotateQuote, 10000);
-            }});
-        </script>
-        """
-        
-        # Store data for JSON export
-        export_data_js = f"""
-        <script>
-            window.reportData = {{
-                metadata: {{
-                    genome: '{genome_name}',
-                    date: '{self.metadata['analysis_date']}',
-                    tool: '{self.metadata['tool_name']}',
-                    version: '{self.metadata['version']}'
-                }},
-                summary: {json.dumps(analysis, indent=2)},
-                hits: {json.dumps(hits, indent=2)}
-            }};
-        </script>
-        """
-        
-        html_content = f"""
-<!DOCTYPE html>
-<html>
+        random_quote = random.choice(self.science_quotes)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>AcinetoScope AMRfinderPlus Analysis Report</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcinetoScope - AMRfinderPlus Report: {genome_name}</title>
     <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-        
-        body {{
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #ffffff;
-            padding: 20px;
-            min-height: 100vh;
-        }}
-        
-        .container {{
-            max-width: 1400px;
-            margin: 0 auto;
-        }}
-        
-        .header {{
-            text-align: center;
-            margin-bottom: 30px;
-        }}
-        
-        .ascii-container {{
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(0, 255, 0, 0.3);
-        }}
-        
-        .ascii-art {{
-            font-family: 'Courier New', monospace;
-            font-size: 10px;
-            line-height: 1.1;
-            white-space: pre;
-            color: #00ff00;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-            overflow-x: auto;
-        }}
-        
-        .card {{
-            background: rgba(255, 255, 255, 0.95);
-            color: #1f2937;
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }}
-        
-        .gene-table, .class-table {{ 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 20px 0; 
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }}
-        
-        .gene-table th, .gene-table td, .class-table th, .class-table td {{ 
-            padding: 15px; 
-            text-align: left; 
-            border-bottom: 1px solid #e0e0e0; 
-        }}
-        
-        .gene-table th, .class-table th {{ 
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            color: white;
-            font-weight: 600;
-        }}
-        
-        tr:hover {{ background-color: #f8f9fa; }}
-        .success {{ color: #28a745; font-weight: 600; }}
-        .warning {{ color: #ffc107; font-weight: 600; }}
-        .error {{ color: #dc3545; font-weight: 600; }}
-        .summary-stats {{ 
-            display: flex; 
-            justify-content: space-around; 
-            margin: 20px 0; 
-            flex-wrap: wrap;
-        }}
-        
-        .stat-card {{ 
-            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-            color: white;
-            padding: 20px; 
-            border-radius: 12px; 
-            text-align: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            margin: 10px;
-            flex: 1;
-            min-width: 200px;
-        }}
-        
-        .critical-stat-card {{
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            padding: 20px; 
-            border-radius: 12px; 
-            text-align: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            margin: 10px;
-            flex: 1;
-            min-width: 200px;
-        }}
-        
-        .quote-container {{
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            text-align: center;
-            font-style: italic;
-            border-left: 4px solid #fff;
-        }}
-        
-        .footer {{
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-top: 40px;
-        }}
-        
-        .footer a {{
-            color: #667eea;
-            text-decoration: none;
-        }}
-        
-        .footer a:hover {{
-            text-decoration: underline;
-        }}
-        
-        .resistance-badge {{
-            display: inline-block;
-            background: #dc3545;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            margin: 2px;
-            font-size: 0.9em;
-        }}
-        
-        .critical-risk-badge {{
-            display: inline-block;
-            background: #8b0000;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            margin: 2px;
-            font-size: 0.9em;
-            font-weight: bold;
-        }}
-        
-        .warning-badge {{
-            display: inline-block;
-            background: #ffc107;
-            color: black;
-            padding: 5px 10px;
-            border-radius: 15px;
-            margin: 2px;
-            font-size: 0.9em;
-        }}
-        
-        .success-badge {{
-            display: inline-block;
-            background: #28a745;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            margin: 2px;
-            font-size: 0.9em;
-        }}
-        
-        .present {{ background-color: #d4edda; }}
-        .critical-row {{ background-color: #f8d7da; font-weight: bold; border-left: 4px solid #dc3545; }}
-        .high-risk-row {{ background-color: #fff3cd; border-left: 4px solid #ffc107; }}
-        
-        /* Interactive controls */
-        .interactive-controls {{
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }}
-        
-        .search-box {{
-            flex: 1;
-            min-width: 200px;
-        }}
-        
-        .search-box input {{
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }}
-        
-        .export-buttons {{
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }}
-        
-        .export-buttons button {{
-            padding: 8px 16px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }}
-        
-        .export-buttons button:hover {{
-            background: #2563eb;
-        }}
-        
-        .export-buttons button.print {{
-            background: #10b981;
-        }}
-        
-        .export-buttons button.print:hover {{
-            background: #059669;
-        }}
-        
-        .result-counter {{
-            font-size: 0.9em;
-            color: #666;
-            font-style: italic;
-        }}
-        
-        .sequence-name {{
-            max-width: 300px;
-            overflow-wrap: break-word;
-            word-wrap: break-word;
-            word-break: break-all;
-        }}
-        
-        .gene-list-container {{
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border: 1px solid #e0e0e0;
-        }}
-        
-        .gene-item {{
-            display: inline-block;
-            margin: 2px;
-            padding: 3px 8px;
-            background: #e9ecef;
-            border-radius: 3px;
-            font-size: 0.85em;
-        }}
-        
-        .critical-gene {{
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            font-weight: bold;
-        }}
-        
-        .high-risk-gene {{
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }}
-        
-        /* Quick search bar */
-        .quick-search-bar {{
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            display: flex;
-            gap: 10px;
-        }}
-        
-        .quick-search-bar input {{
-            flex: 1;
-            padding: 8px 12px;
-            border: 2px solid #3b82f6;
-            border-radius: 4px;
-            font-size: 14px;
-        }}
-        
-        .quick-search-bar button {{
-            padding: 8px 20px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }}
-        
-        @media print {{
-            .no-print, .interactive-controls, .quick-search-bar {{ display: none !important; }}
-            body {{ background: white !important; color: black !important; }}
-            .card {{ background: white !important; color: black !important; box-shadow: none !important; }}
-            .gene-table, .class-table {{ box-shadow: none !important; }}
-        }}
+        * {{ margin:0; padding:0; box-sizing:border-box; }}
+        body {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff; padding: 20px; min-height: 100vh; }}
+        .container {{ max-width: 1400px; margin: 0 auto; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
+        .ascii-container {{ background: rgba(0,0,0,0.7); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 2px solid rgba(0,255,0,0.3); }}
+        .ascii-art {{ font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.1; white-space: pre; color: #00ff00; text-shadow: 0 0 10px rgba(0,255,0,0.5); overflow-x: auto; }}
+        .quote-container {{ background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }}
+        .quote-text {{ font-size: 18px; font-style: italic; margin-bottom: 10px; color: #ffffff; }}
+        .quote-author {{ font-size: 14px; color: #fbbf24; font-weight: bold; }}
+        .card {{ background: rgba(255,255,255,0.95); color: #1f2937; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }}
+        .card h2 {{ color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; }}
+        .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }}
+        .stat-card {{ background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }}
+        .stat-value {{ font-size: 24px; font-weight: bold; margin-bottom: 5px; }}
+        .stat-label {{ font-size: 12px; opacity: 0.9; }}
+        .risk-badge {{ display: inline-block; background: #dc2626; color: white; padding: 5px 10px; border-radius: 15px; margin: 2px; font-size: 0.9em; }}
+        .warning-badge {{ display: inline-block; background: #f59e0b; color: black; padding: 5px 10px; border-radius: 15px; margin: 2px; font-size: 0.9em; }}
+        .safe-badge {{ display: inline-block; background: #16a34a; color: white; padding: 5px 10px; border-radius: 15px; margin: 2px; font-size: 0.9em; }}
+        .table-responsive {{ width: 100%; overflow-x: auto; margin: 20px 0; }}
+        .data-table {{ width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }}
+        .data-table th {{ background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 12px; text-align: left; font-weight: bold; }}
+        .data-table td {{ padding: 10px; border-bottom: 1px solid #e5e7eb; }}
+        .data-table tr:nth-child(even) {{ background-color: #f8fafc; }}
+        .critical-row {{ background-color: #fee2e2; font-weight: bold; border-left: 4px solid #dc2626; }}
+        .high-risk-row {{ background-color: #fef3c7; border-left: 4px solid #f59e0b; }}
+        .present {{ background-color: #d1fae5; }}
+        .footer {{ text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 14px; }}
+        .timestamp {{ color: #fbbf24; font-weight: bold; }}
+        .authorship {{ margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px; }}
+        @media (max-width: 768px) {{ .ascii-art {{ font-size: 6px; }} .stats-grid {{ grid-template-columns: 1fr; }} }}
     </style>
-    {interactive_js}
-    {export_data_js}
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="ascii-container">
-                <div class="ascii-art">{self.ascii_art}</div>
-            </div>
-            
-            <div class="card">
-                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope AMRfinderPlus Analysis Report</h1>
-                <p style="color: #666; font-size: 1.2em;">Comprehensive A. baumannii Antimicrobial Resistance Analysis</p>
-                
-                <div class="quick-search-bar no-print">
-                    <input type="text" id="quick-search" placeholder="🔍 Quick search across entire report...">
-                    <button onclick="quickSearch()">Search</button>
-                    <button onclick="clearSearch()" style="background: #6c757d;">Clear</button>
-                </div>
-                
-                <div class="export-buttons no-print" style="margin-top: 15px;">
-                    <button onclick="exportToJSON('reportData', '{genome_name}_amr_report.json')">📥 Export JSON</button>
-                    <button onclick="printReport()" class="print">🖨️ Print Report</button>
-                </div>
-            </div>
+<div class="container">
+    <div class="header">
+        <div class="ascii-container">
+            <div class="ascii-art">{self.ascii_art}</div>
         </div>
-        
         <div class="quote-container">
-            <div id="science-quote" style="font-size: 1.1em;"></div>
-        </div>
-"""
-        
-        # CRITICAL RISK ALERT - Show first if critical genes detected
-        if analysis['critical_risk_genes'] > 0:
-            html_content += f"""
-        <div class="card" style="border-left: 4px solid #dc3545; background: #f8d7da;">
-            <h2 style="color: #dc3545;">🚨 CRITICAL RISK AMR GENES DETECTED</h2>
-            <p><strong>{analysis['critical_risk_genes']} CRITICAL RISK antimicrobial resistance genes found:</strong></p>
-            <div style="margin: 10px 0;">
-                <p style="color: #721c24; font-weight: bold;">
-                    ⚠️ These genes confer resistance to last-resort antibiotics and represent 
-                    a serious public health concern requiring immediate attention.
-                </p>
-"""
-            for gene in analysis['critical_risk_list']:
-                html_content += f'<span class="critical-risk-badge" style="font-size: 1.1em;">🚨 {gene}</span>'
-            html_content += """
-            </div>
-        </div>
-"""
-        
-        html_content += f"""
-        <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 A. baumannii AMR Summary</h2>
-            <div class="summary-stats">
-                <div class="stat-card">
-                    <h3>Total AMR Genes</h3>
-                    <p style="font-size: 2em; margin: 0;">{analysis['total_genes']}</p>
-                </div>
-                <div class="stat-card">
-                    <h3>High Risk Genes</h3>
-                    <p style="font-size: 2em; margin: 0;">{analysis['high_risk_genes']}</p>
-                </div>
-                <div class="critical-stat-card">
-                    <h3>Critical Risk</h3>
-                    <p style="font-size: 2em; margin: 0;">{analysis['critical_risk_genes']}</p>
-                </div>
-            </div>
-            <p><strong>Genome:</strong> {genome_name}</p>
-            <p><strong>Date:</strong> {self.metadata['analysis_date']}</p>
-            <p><strong>Tool Version:</strong> {self.metadata['version']}</p>
-            <p><strong>AMRfinderPlus Version:</strong> {self.metadata['amrfinder_version']}</p>
-            <p><strong>Database Version:</strong> {self.metadata['database_version']}</p>
-        </div>
-"""
-        
-        # High-risk genes warning (non-critical)
-        if analysis['high_risk_genes'] > 0 and analysis['critical_risk_genes'] == 0:
-            html_content += f"""
-        <div class="card" style="border-left: 4px solid #ffc107;">
-            <h2 style="color: #856404;">⚠️ High-Risk AMR Genes Detected</h2>
-            <p><strong>{analysis['high_risk_genes']} high-risk antimicrobial resistance genes found:</strong></p>
-            <div style="margin: 10px 0;">
-"""
-            for gene in analysis['high_risk_list']:
-                html_content += f'<span class="resistance-badge">{gene}</span>'
-            html_content += """
-            </div>
-        </div>
-"""
-        
-        # Resistance Mechanism Breakdown - A. baumannii specific
-        if any(analysis['resistance_mechanisms'].values()):
-            html_content += """
-        <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔬 Resistance Mechanism Breakdown</h2>
-"""
-            
-            mechanisms = analysis['resistance_mechanisms']
-            
-            # Always show all mechanisms - NO TRUNCATION
-            all_mechanisms_html = ""
-            
-            if mechanisms['carbapenemase']:
-                all_mechanisms_html += f"""
-            <div style="margin: 10px 0; padding: 10px; background: #f8d7da; border-radius: 5px;">
-                <strong>Carbapenemase Genes (CRITICAL):</strong> {', '.join(mechanisms['carbapenemase'])}
-            </div>
-"""
-            if mechanisms['esbl']:
-                all_mechanisms_html += f"""
-            <div style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 5px;">
-                <strong>ESBL Genes:</strong> {', '.join(mechanisms['esbl'])}
-            </div>
-"""
-            if mechanisms['colistin_resistance']:
-                all_mechanisms_html += f"""
-            <div style="margin: 10px 0; padding: 10px; background: #f8d7da; border-radius: 5px;">
-                <strong>Colistin Resistance (CRITICAL):</strong> {', '.join(mechanisms['colistin_resistance'])}
-            </div>
-"""
-            if mechanisms['aminoglycoside_resistance']:
-                all_mechanisms_html += f"""
-            <div style="margin: 10px 0; padding: 10px; background: #d1ecf1; border-radius: 5px;">
-                <strong>Aminoglycoside Resistance:</strong> {', '.join(mechanisms['aminoglycoside_resistance'])}
-            </div>
-"""
-            if mechanisms['fluoroquinolone_resistance']:
-                all_mechanisms_html += f"""
-            <div style="margin: 10px 0; padding: 10px; background: #d1ecf1; border-radius: 5px;">
-                <strong>Fluoroquinolone Resistance:</strong> {', '.join(mechanisms['fluoroquinolone_resistance'])}
-            </div>
-"""
-            if mechanisms['efflux_pumps']:
-                all_mechanisms_html += f"""
-            <div style="margin: 10px 0; padding: 10px; background: #e2e3e5; border-radius: 5px;">
-                <strong>Efflux Pumps:</strong> {', '.join(mechanisms['efflux_pumps'])}
-            </div>
-"""
-            if mechanisms['other_amr']:
-                all_mechanisms_html += f"""
-            <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
-                <strong>Other AMR Genes:</strong> {', '.join(mechanisms['other_amr'])}
-            </div>
-"""
-            
-            html_content += all_mechanisms_html
-            html_content += """
-        </div>
-"""
-        
-        # Resistance classes summary
-        if analysis['resistance_classes']:
-            html_content += """
-        <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧪 Resistance Classes Detected</h2>
-            <table class="class-table" id="resistance-classes-table">
-                <thead>
-                    <tr>
-                        <th>Resistance Class</th>
-                        <th>Gene Count</th>
-                        <th>Genes</th>
-                    </tr>
-                </thead>
-                <tbody>
-"""
-            
-            for class_name, genes in analysis['resistance_classes'].items():
-                gene_list = ", ".join(genes)
-                html_content += f"""
-                    <tr>
-                        <td><strong>{class_name}</strong></td>
-                        <td>{len(genes)}</td>
-                        <td>{gene_list}</td>
-                    </tr>
-"""
-            
-            html_content += """
-                </tbody>
-            </table>
-        </div>
-"""
-        
-        # Detailed AMR genes table with interactive controls
-        if hits:
-            html_content += f"""
-        <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔬 Detailed AMR Genes Detected</h2>
-            
-            <div class="interactive-controls no-print">
-                <div class="search-box">
-                    <input type="text" id="search-detailed-amr" 
-                           placeholder="Search genes, classes, or sequence names..." 
-                           onkeyup="searchTable('detailed-amr-table', this.value)">
-                </div>
-                <div class="export-buttons">
-                    <button onclick="exportToCSV('detailed-amr-table', '{genome_name}_amr_genes.csv')">📥 Export CSV</button>
-                </div>
-                <div class="result-counter" id="result-counter-detailed-amr-table">
-                    {len(hits)} results found
-                </div>
-            </div>
-            
-            <table class="gene-table" id="detailed-amr-table">
-                <thead>
-                    <tr>
-                        <th>Gene Symbol</th>
-                        <th>Sequence Name</th>
-                        <th>Class</th>
-                        <th>Subclass</th>
-                        <th>Coverage</th>
-                        <th>Identity</th>
-                        <th>Scope</th>
-                    </tr>
-                </thead>
-                <tbody>
-"""
-            
-            for hit in hits:
-                # Determine row class based on risk level
-                row_class = "present"
-                gene_symbol = hit.get('gene_symbol', '')
-                if gene_symbol in analysis['critical_risk_list']:
-                    row_class = "critical-row"
-                elif gene_symbol in analysis['high_risk_list']:
-                    row_class = "high-risk-row"
-                
-                html_content += f"""
-                    <tr class="{row_class}">
-                        <td><strong>{gene_symbol}</strong></td>
-                        <td class="sequence-name" title="{hit.get('sequence_name', '')}">{hit.get('sequence_name', '')}</td>
-                        <td>{hit.get('class', '')}</td>
-                        <td>{hit.get('subclass', '')}</td>
-                        <td>{hit.get('coverage', '')}%</td>
-                        <td>{hit.get('identity', '')}%</td>
-                        <td>{hit.get('scope', '')}</td>
-                    </tr>
-"""
-            
-            html_content += """
-                </tbody>
-            </table>
-        </div>
-"""
-        else:
-            html_content += """
-        <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">✅ No AMR Genes Detected</h2>
-            <p>No antimicrobial resistance genes found in this A. baumannii genome.</p>
-        </div>
-"""
-        
-        # Footer
-        html_content += f"""
-        <div class="footer">
-            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
-            <p><strong>Author:</strong> Brown Beckley</p>
-            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
-            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
-            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
-            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-            </p>
+            <div class="quote-text">"{random_quote['text']}"</div>
+            <div class="quote-author">— {random_quote['author']}</div>
         </div>
     </div>
-</body>
-</html>
+
+    <div class="card">
+        <h2>🧬 AMRfinderPlus Analysis: {genome_name}</h2>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value">{analysis['total_genes']}</div><div class="stat-label">Total AMR Genes</div></div>
+            <div class="stat-card"><div class="stat-value">{analysis['high_risk_genes']}</div><div class="stat-label">High Risk Genes</div></div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);"><div class="stat-value">{analysis['critical_risk_genes']}</div><div class="stat-label">Critical Risk</div></div>
+            <div class="stat-card"><div class="stat-value">{self.metadata['database_version']}</div><div class="stat-label">Database</div></div>
+        </div>
+        <p><strong>Genome:</strong> {genome_name}</p>
+        <p><strong>Tool Version:</strong> {self.metadata['version']}</p>
+        <p><strong>AMRfinderPlus:</strong> {self.metadata['amrfinder_version']}</p>
+        <p><strong>Database:</strong> {self.metadata['database_version']}</p>
+    </div>
 """
-        
-        # Write HTML report
-        html_file = os.path.join(output_dir, f"{genome_name}_amrfinder_report.html")
-        with open(html_file, 'w') as f:
-            f.write(html_content)
-        
-        self.logger.info("A. baumannii AMRfinderPlus HTML report generated: %s", html_file)
-    
-    def _create_amrfinder_json_report(self, genome_name: str, hits: List[Dict], output_dir: str):
-        """Create JSON report for AMRfinderPlus results"""
-        analysis = self._analyze_acineto_amr_results(hits)
-        
-        json_data = {
-            'metadata': {
-                'genome': genome_name,
-                'analysis_date': self.metadata['analysis_date'],
-                'tool': self.metadata['tool_name'],
-                'version': self.metadata['version'],
-                'amrfinder_version': self.metadata['amrfinder_version'],
-                'database_version': self.metadata['database_version']
-            },
-            'summary': {
-                'total_genes': analysis['total_genes'],
-                'high_risk_genes': analysis['high_risk_genes'],
-                'critical_risk_genes': analysis['critical_risk_genes'],
-                'high_risk_list': analysis['high_risk_list'],
-                'critical_risk_list': analysis['critical_risk_list'],
-                'resistance_classes': analysis['resistance_classes'],
-                'resistance_mechanisms': analysis['resistance_mechanisms']
-            },
-            'hits': hits
-        }
-        
-        json_file = os.path.join(output_dir, f"{genome_name}_amrfinder_report.json")
-        with open(json_file, 'w') as f:
-            json.dump(json_data, f, indent=2)
-        
-        self.logger.info("A. baumannii AMRfinderPlus JSON report generated: %s", json_file)
-    
+        if analysis['critical_risk_genes'] > 0:
+            html += f"""
+    <div class="card" style="border-left: 4px solid #dc2626;">
+        <h2 style="color: #dc2626;">🚨 CRITICAL RISK AMR GENES DETECTED</h2>
+        <div style="margin: 10px 0;">
+            <p><strong>{analysis['critical_risk_genes']} critical risk genes:</strong></p>
+"""
+            for gene in analysis['critical_risk_list']:
+                html += f'<span class="risk-badge">🚨 {gene}</span>'
+            html += """
+        </div>
+    </div>
+"""
+        if analysis['high_risk_genes'] > 0 and analysis['critical_risk_genes'] == 0:
+            html += f"""
+    <div class="card" style="border-left: 4px solid #f59e0b;">
+        <h2 style="color: #f59e0b;">⚠️ High-Risk AMR Genes</h2>
+        <div style="margin: 10px 0;">
+            <p><strong>{analysis['high_risk_genes']} high-risk genes:</strong></p>
+"""
+            for gene in analysis['high_risk_list']:
+                html += f'<span class="warning-badge">{gene}</span>'
+            html += """
+        </div>
+    </div>
+"""
+        if any(analysis['resistance_mechanisms'].values()):
+            html += """
+    <div class="card">
+        <h2>🔬 Resistance Mechanism Breakdown</h2>
+"""
+            for mechanism, genes in analysis['resistance_mechanisms'].items():
+                if genes:
+                    label = mechanism.replace('_', ' ').title()
+                    color = "#fee2e2" if mechanism in ['carbapenemase', 'colistin_resistance'] else "#fef3c7"
+                    html += f"""
+        <div style="margin: 10px 0; padding: 10px; background: {color}; border-radius: 5px;">
+            <strong>{label}:</strong> {', '.join(genes)}
+        </div>
+"""
+            html += """
+    </div>
+"""
+        if analysis['resistance_classes']:
+            html += """
+    <div class="card">
+        <h2>🧪 Resistance Classes</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Class</th><th>Count</th><th>Genes</th></tr></thead>
+                <tbody>
+"""
+            for cls, genes in analysis['resistance_classes'].items():
+                html += f"""
+                    <tr><td><strong>{cls}</strong></td><td>{len(genes)}</td><td>{', '.join(genes)}</td></tr>
+"""
+            html += """
+                </tbody>
+            </table>
+        </div>
+    </div>
+"""
+        if hits:
+            html += """
+    <div class="card">
+        <h2>🔬 Detailed AMR Genes</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Gene</th><th>Sequence Name</th><th>Class</th><th>Subclass</th><th>Coverage</th><th>Identity</th><th>Scope</th></tr></thead>
+                <tbody>
+"""
+            for hit in hits:
+                row_class = "critical-row" if hit['gene_symbol'] in analysis['critical_risk_list'] else "high-risk-row" if hit['gene_symbol'] in analysis['high_risk_list'] else "present"
+                html += f"""
+                    <tr class="{row_class}">
+                        <td><strong>{hit['gene_symbol']}</strong></td>
+                        <td>{hit['sequence_name']}</td>
+                        <td>{hit['class']}</td>
+                        <td>{hit['subclass']}</td>
+                        <td>{hit['coverage']}%</td>
+                        <td>{hit['identity']}%</td>
+                        <td>{hit['scope']}</td>
+                    </tr>
+"""
+            html += """
+                </tbody>
+            </table>
+        </div>
+    </div>
+"""
+        else:
+            html += """
+    <div class="card">
+        <h2>✅ No AMR Genes Detected</h2>
+        <p>No antimicrobial resistance genes found in this A. baumannii genome.</p>
+    </div>
+"""
+        html += f"""
+    <div class="footer">
+        <p><strong>AcinetoScope</strong> - AMRfinderPlus Analysis Module</p>
+        <p class="timestamp">Generated: {current_time}</p>
+        <div class="authorship">
+            <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
+            <p>Email: brownbeckley94@gmail.com</p>
+            <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>"""
+        out_file = os.path.join(output_dir, f"{genome_name}_amrfinder_report.html")
+        with open(out_file, 'w') as f:
+            f.write(html)
+        self.logger.info(f"✓ AMR HTML report: {out_file}")
+
+    def _create_mutation_html_report(self, genome_name: str, mutations_file: str, output_dir: str):
+        mutations = self._parse_mutations_file(mutations_file)
+        if not mutations:
+            self.logger.info(f"No mutations found for {genome_name}, skipping mutation HTML.")
+            return
+
+        random_quote = random.choice(self.science_quotes)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcinetoScope - Mutation Report: {genome_name}</title>
+    <style>
+        * {{ margin:0; padding:0; box-sizing:border-box; }}
+        body {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff; padding: 20px; min-height: 100vh; }}
+        .container {{ max-width: 1400px; margin: 0 auto; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
+        .ascii-container {{ background: rgba(0,0,0,0.7); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 2px solid rgba(0,255,0,0.3); }}
+        .ascii-art {{ font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.1; white-space: pre; color: #00ff00; text-shadow: 0 0 10px rgba(0,255,0,0.5); overflow-x: auto; }}
+        .quote-container {{ background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }}
+        .quote-text {{ font-size: 18px; font-style: italic; margin-bottom: 10px; color: #ffffff; }}
+        .quote-author {{ font-size: 14px; color: #fbbf24; font-weight: bold; }}
+        .card {{ background: rgba(255,255,255,0.95); color: #1f2937; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }}
+        .card h2 {{ color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; }}
+        .table-responsive {{ width: 100%; overflow-x: auto; margin: 20px 0; }}
+        .data-table {{ width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1200px; }}
+        .data-table th {{ background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 12px; text-align: left; font-weight: bold; }}
+        .data-table td {{ padding: 10px; border-bottom: 1px solid #e5e7eb; }}
+        .data-table tr:nth-child(even) {{ background-color: #f8fafc; }}
+        .footer {{ text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 14px; }}
+        .timestamp {{ color: #fbbf24; font-weight: bold; }}
+        .authorship {{ margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px; }}
+        @media (max-width: 768px) {{ .ascii-art {{ font-size: 6px; }} }}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="ascii-container">
+            <div class="ascii-art">{self.ascii_art}</div>
+        </div>
+        <div class="quote-container">
+            <div class="quote-text">"{random_quote['text']}"</div>
+            <div class="quote-author">— {random_quote['author']}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🧬 Point Mutation Report: {genome_name}</h2>
+        <p>All point mutations detected by AMRfinderPlus (including synonymous variants).</p>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Gene Symbol</th><th>Mutation</th><th>Class</th><th>Subclass</th><th>Contig</th><th>Start</th><th>Stop</th><th>Strand</th><th>Coverage (%)</th><th>Identity (%)</th><th>Accession</th></tr>
+                </thead>
+                <tbody>
+"""
+        for m in mutations:
+            html += f"""
+                    <tr>
+                        <td>{m.get('gene_symbol', '')}</td>
+                        <td>{m.get('element_name', '')}</td>
+                        <td>{m.get('class', '')}</td>
+                        <td>{m.get('subclass', '')}</td>
+                        <td>{m.get('contig_id', '')}</td>
+                        <td>{m.get('start', '')}</td>
+                        <td>{m.get('stop', '')}</td>
+                        <td>{m.get('strand', '')}</td>
+                        <td>{m.get('coverage', '')}</td>
+                        <td>{m.get('identity', '')}</td>
+                        <td>{m.get('accession', '')}</td>
+                    </tr>
+"""
+        html += f"""
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>AcinetoScope</strong> - Mutation Analysis Module</p>
+        <p class="timestamp">Generated: {current_time}</p>
+        <div class="authorship">
+            <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
+            <p>Email: brownbeckley94@gmail.com</p>
+            <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>"""
+        out_file = os.path.join(output_dir, f"{genome_name}_mutations.html")
+        with open(out_file, 'w') as f:
+            f.write(html)
+        self.logger.info(f"✓ Mutation HTML report: {out_file}")
+
     def _analyze_acineto_amr_results(self, hits: List[Dict]) -> Dict[str, Any]:
-        """Analyze AMR results specifically for A. baumannii with enhanced risk assessment"""
-        
         analysis = {
             'total_genes': len(hits),
             'resistance_classes': {},
-            'total_classes': 0,
             'high_risk_genes': 0,
             'critical_risk_genes': 0,
             'high_risk_list': [],
             'critical_risk_list': [],
             'resistance_mechanisms': {
-                'carbapenemase': [],      # Carbapenemases (CRITICAL for A. baumannii)
-                'esbl': [],               # Extended Spectrum Beta-lactamases
-                'colistin_resistance': [], # Colistin resistance
-                'fluoroquinolone_resistance': [], # Fluoroquinolone resistance
-                'aminoglycoside_resistance': [], # Aminoglycoside resistance
-                'efflux_pumps': [],       # Multi-drug efflux pumps
-                'other_amr': []           # Other resistance mechanisms
+                'carbapenemase': [],
+                'esbl': [],
+                'colistin_resistance': [],
+                'fluoroquinolone_resistance': [],
+                'aminoglycoside_resistance': [],
+                'efflux_pumps': [],
+                'other_amr': []
             }
         }
-        
         for hit in hits:
-            gene_symbol = hit.get('gene_symbol', '')
-            resistance_class = hit.get('class', '')
-            
-            # Categorize resistance mechanism for A. baumannii
-            self._categorize_acineto_resistance_mechanism(gene_symbol, resistance_class, analysis)
-            
-            # Check for critical risk genes (carbapenemases and colistin resistance)
-            if gene_symbol in self.critical_risk_genes:
+            gene = hit.get('gene_symbol', '')
+            class_name = hit.get('class', '')
+            if not gene:
+                continue
+            self._categorize_acineto_mechanism(gene, class_name, analysis)
+            if gene in self.critical_risk_genes:
                 analysis['critical_risk_genes'] += 1
-                if gene_symbol not in analysis['critical_risk_list']:
-                    analysis['critical_risk_list'].append(gene_symbol)
-            
-            # Check for high-risk genes (includes critical ones plus all other high-risk)
-            if gene_symbol in self.high_risk_genes:
+                if gene not in analysis['critical_risk_list']:
+                    analysis['critical_risk_list'].append(gene)
+            if gene in self.high_risk_genes:
                 analysis['high_risk_genes'] += 1
-                if gene_symbol not in analysis['high_risk_list']:
-                    analysis['high_risk_list'].append(gene_symbol)
-            
-            # Group by resistance class
-            if resistance_class:
-                if resistance_class not in analysis['resistance_classes']:
-                    analysis['resistance_classes'][resistance_class] = []
-                if gene_symbol not in analysis['resistance_classes'][resistance_class]:
-                    analysis['resistance_classes'][resistance_class].append(gene_symbol)
-        
-        analysis['total_classes'] = len(analysis['resistance_classes'])
+                if gene not in analysis['high_risk_list']:
+                    analysis['high_risk_list'].append(gene)
+            if class_name:
+                analysis['resistance_classes'].setdefault(class_name, []).append(gene)
         return analysis
 
-    def _categorize_acineto_resistance_mechanism(self, gene_symbol: str, resistance_class: str, analysis: Dict[str, Any]):
-        """Categorize A. baumannii genes by resistance mechanism"""
-        
+    def _categorize_acineto_mechanism(self, gene_symbol: str, resistance_class: str, analysis: Dict):
         gene_lower = gene_symbol.lower()
-        
-        # Carbapenemase genes (HIGHEST PRIORITY for A. baumannii)
-        if any(carba in gene_lower for carba in ['oxa', 'kpc', 'ndm', 'vim', 'imp', 'sim']):
-            if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_carbapenemases]):
+        if any(c in gene_lower for c in ['oxa', 'kpc', 'ndm', 'vim', 'imp', 'sim']):
+            if gene_symbol in self.critical_carbapenemases:
                 analysis['resistance_mechanisms']['carbapenemase'].append(gene_symbol)
-                return
-        
-        # ESBL genes
-        if any(esbl in gene_lower for esbl in ['ctx', 'shv', 'tem', 'per', 'veb', 'ges']):
-            if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_esbls]):
+        elif any(c in gene_lower for c in ['ctx', 'shv', 'tem', 'per', 'veb', 'ges']):
+            if gene_symbol in self.critical_esbls:
                 analysis['resistance_mechanisms']['esbl'].append(gene_symbol)
-                return
-        
-        # Colistin resistance genes
-        if any(mcr in gene_lower for mcr in ['mcr']):
-            if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_colistin]):
+        elif 'mcr' in gene_lower:
+            if gene_symbol in self.critical_colistin:
                 analysis['resistance_mechanisms']['colistin_resistance'].append(gene_symbol)
-                return
-        
-        # Aminoglycoside resistance genes
-        if any(ag in gene_lower for ag in ['arm', 'rmt', 'aph', 'aac', 'aad', 'str', 'ant']):
-            if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_aminoglycoside]):
+        elif any(c in gene_lower for c in ['arm', 'rmt', 'aph', 'aac', 'aad', 'str', 'ant']):
+            if gene_symbol in self.critical_aminoglycoside:
                 analysis['resistance_mechanisms']['aminoglycoside_resistance'].append(gene_symbol)
-                return
-        
-        # Fluoroquinolone resistance genes
-        fluoroquinolone_genes = {'qnrA', 'qnrB', 'qnrC', 'qnrD', 'qnrS', 'qnrVC', 'qepA'}
-        if any(qnr in gene_lower for qnr in ['qnr', 'qep']):
+        elif any(c in gene_lower for c in ['qnr', 'qep', 'gyra', 'parc']):
             analysis['resistance_mechanisms']['fluoroquinolone_resistance'].append(gene_symbol)
-            return
-        
-        # Efflux pumps (CRITICAL for A. baumannii)
-        if any(efflux in gene_lower for efflux in ['ade', 'abe', 'mex', 'acr', 'emr', 'mdt']):
+        elif any(c in gene_lower for c in ['ade', 'abe', 'mex', 'acr', 'emr', 'mdt']):
             analysis['resistance_mechanisms']['efflux_pumps'].append(gene_symbol)
-            return
-        
-        # Other resistance mechanisms
-        analysis['resistance_mechanisms']['other_amr'].append(gene_symbol)
-    
-    def _parse_amrfinder_output(self, amrfinder_file: str) -> List[Dict]:
-                """Parse AMRfinderPlus 4.2.4 output file into structured data - KEEPING OLD HEADERS"""
-                hits = []
-                try:
-                    with open(amrfinder_file, 'r') as f:
-                        lines = f.readlines()
-                        
-                    if not lines or len(lines) < 2:
-                        return hits
-                        
-                    # Parse header - AMRfinderPlus 4.2.5 uses new headers
-                    headers = lines[0].strip().split('\t')
-                    
-                    # Parse data lines
-                    for line_num, line in enumerate(lines[1:], 2):
-                        line = line.strip()
-                        if not line:
-                            continue
-                            
-                        parts = line.split('\t')
-                        if len(parts) >= len(headers):
-                            # Create hit with original headers
-                            hit = {}
-                            for i, header in enumerate(headers):
-                                if i < len(parts):
-                                    hit[header] = parts[i]
-                                else:
-                                    hit[header] = ''
-                            
-                            # Map to consistent field names - BOTH OLD AND NEW HEADERS
-                            processed_hit = {
-                                # NEW headers from AMRFinderPlus 4.2.5
-                                'Protein id': hit.get('Protein id', ''),
-                                'Contig id': hit.get('Contig id', ''),
-                                'Start': hit.get('Start', ''),
-                                'Stop': hit.get('Stop', ''),
-                                'Strand': hit.get('Strand', ''),
-                                'Element symbol': hit.get('Element symbol', ''),  # NEW: Element symbol
-                                'Element name': hit.get('Element name', ''),      # NEW: Element name
-                                'Scope': hit.get('Scope', ''),
-                                'Type': hit.get('Type', ''),                      # NEW: Type
-                                'Subtype': hit.get('Subtype', ''),                # NEW: Subtype
-                                'Class': hit.get('Class', ''),
-                                'Subclass': hit.get('Subclass', ''),
-                                'Method': hit.get('Method', ''),
-                                'Target length': hit.get('Target length', ''),
-                                'Reference sequence length': hit.get('Reference sequence length', ''),
-                                '% Coverage of reference': hit.get('% Coverage of reference', ''),
-                                '% Identity to reference': hit.get('% Identity to reference', ''),
-                                'Alignment length': hit.get('Alignment length', ''),
-                                'Closest reference accession': hit.get('Closest reference accession', ''),
-                                'Closest reference name': hit.get('Closest reference name', ''),
-                                'HMM accession': hit.get('HMM accession', ''),
-                                'HMM description': hit.get('HMM description', ''),
-                                
-                                # KEEP OLD HEADERS FOR BACKWARD COMPATIBILITY
-                                'protein_id': hit.get('Protein id', ''),
-                                'contig_id': hit.get('Contig id', ''),
-                                'start': hit.get('Start', ''),
-                                'stop': hit.get('Stop', ''),
-                                'strand': hit.get('Strand', ''),
-                                'gene_symbol': hit.get('Element symbol', ''),  # Map new to old
-                                'sequence_name': hit.get('Element name', ''),   # Map new to old
-                                'scope': hit.get('Scope', ''),
-                                'element_type': hit.get('Type', ''),           # Map new to old
-                                'element_subtype': hit.get('Subtype', ''),     # Map new to old
-                                'class': hit.get('Class', ''),
-                                'subclass': hit.get('Subclass', ''),
-                                'method': hit.get('Method', ''),
-                                'target_length': hit.get('Target length', ''),
-                                'ref_length': hit.get('Reference sequence length', ''),
-                                'coverage': hit.get('% Coverage of reference', '').replace('%', ''),
-                                'identity': hit.get('% Identity to reference', '').replace('%', ''),
-                                'alignment_length': hit.get('Alignment length', ''),
-                                'accession': hit.get('Closest reference accession', ''),
-                                'closest_name': hit.get('Closest reference name', ''),
-                                'hmm_id': hit.get('HMM accession', ''),
-                                'hmm_description': hit.get('HMM description', ''),
-                                
-                                # Also store original headers for reference
-                                '_original_headers': headers,
-                                '_original_values': parts
-                            }
-                            hits.append(processed_hit)
-                        else:
-                            self.logger.warning("Line %d has %d parts, expected %d: %s", 
-                                            line_num, len(parts), len(headers), line[:100] + "...")
-                            
-                except Exception as e:
-                    self.logger.error("Error parsing %s: %s", amrfinder_file, e)
-                    
-                self.logger.info("Parsed %d AMR hits from %s", len(hits), amrfinder_file)
-                return hits
-        
-    def _create_amrfinder_html_report(self, genome_name: str, hits: List[Dict], output_dir: str):
-                """Create comprehensive HTML report for AMRfinderPlus results with AcinetoScope styling"""
-                
-                # Analyze AMR results for A. baumannii
-                analysis = self._analyze_acineto_amr_results(hits)
-                
-                # JavaScript for interactive features
-                interactive_js = f"""
-                <script>
-                    // Search functionality
-                    function searchTable(tableId, searchTerm) {{
-                        const table = document.getElementById(tableId);
-                        const rows = table.getElementsByTagName('tr');
-                        let visibleCount = 0;
-                        
-                        for (let i = 1; i < rows.length; i++) {{ // Skip header
-                            const row = rows[i];
-                            const text = row.textContent.toLowerCase();
-                            if (text.includes(searchTerm.toLowerCase())) {{
-                                row.style.display = '';
-                                visibleCount++;
-                            }} else {{
-                                row.style.display = 'none';
-                            }}
-                        }}
-                        
-                        // Update result count
-                        const resultCounter = document.getElementById('result-counter-' + tableId);
-                        if (resultCounter) {{
-                            resultCounter.textContent = visibleCount + ' results found';
-                        }}
-                    }}
-                    
-                    // Export to CSV
-                    function exportToCSV(tableId, filename) {{
-                        const table = document.getElementById(tableId);
-                        const rows = table.getElementsByTagName('tr');
-                        let csv = [];
-                        
-                        // Add headers
-                        const headerCells = rows[0].getElementsByTagName('th');
-                        const headerRow = [];
-                        for (let cell of headerCells) {{
-                            headerRow.push(cell.textContent);
-                        }}
-                        csv.push(headerRow.join(','));
-                        
-                        // Add data
-                        for (let i = 1; i < rows.length; i++) {{
-                            if (rows[i].style.display !== 'none') {{
-                                const cells = rows[i].getElementsByTagName('td');
-                                const row = [];
-                                for (let cell of cells) {{
-                                    // Clean up text (remove badges, etc.)
-                                    let text = cell.textContent.trim();
-                                    text = text.replace(/\\n/g, ' ').replace(/,/g, ';');
-                                    row.push(text);
-                                }}
-                                csv.push(row.join(','));
-                            }}
-                        }}
-                        
-                        // Create download
-                        const blob = new Blob([csv.join('\\n')], {{ type: 'text/csv' }});
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }}
-                    
-                    // Export to JSON
-                    function exportToJSON(dataVar, filename) {{
-                        const data = window[dataVar];
-                        const jsonStr = JSON.stringify(data, null, 2);
-                        const blob = new Blob([jsonStr], {{ type: 'application/json' }});
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }}
-                    
-                    // Print report
-                    function printReport() {{
-                        const originalStyles = document.querySelectorAll('style, link[rel="stylesheet"]');
-                        const printWindow = window.open('', '_blank');
-                        
-                        printWindow.document.write('<html><head><title>{genome_name} - AMR Report</title>');
-                        printWindow.document.write('<style>');
-                        printWindow.document.write(`
-                            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                            .no-print {{ display: none !important; }}
-                            table {{ border-collapse: collapse; width: 100%; margin: 10px 0; }}
-                            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-                            th {{ background-color: #f2f2f2; }}
-                            .critical-row {{ background-color: #f8d7da; }}
-                            .high-risk-row {{ background-color: #fff3cd; }}
-                            .header {{ text-align: center; margin-bottom: 20px; }}
-                        `);
-                        printWindow.document.write('</style>');
-                        printWindow.document.write('</head><body>');
-                        
-                        // Add report content
-                        const content = document.querySelector('.container').cloneNode(true);
-                        const noPrintElements = content.querySelectorAll('.no-print');
-                        noPrintElements.forEach(el => el.remove());
-                        
-                        printWindow.document.write(content.innerHTML);
-                        printWindow.document.write('</body></html>');
-                        printWindow.document.close();
-                        printWindow.print();
-                    }}
-                    
-                    // Toggle all mechanisms
-                    function toggleAllMechanisms() {{
-                        const container = document.getElementById('all-mechanisms-container');
-                        const button = document.getElementById('toggle-mechanisms-btn');
-                        
-                        if (container.style.display === 'none') {{
-                            container.style.display = 'block';
-                            button.textContent = 'Show Less';
-                        }} else {{
-                            container.style.display = 'none';
-                            button.textContent = 'Show All Mechanisms';
-                        }}
-                    }}
-                    
-                    // Quick search across entire report
-                    function quickSearch() {{
-                        const searchTerm = document.getElementById('quick-search').value.toLowerCase();
-                        const sections = document.querySelectorAll('.card');
-                        
-                        sections.forEach(section => {{
-                            const text = section.textContent.toLowerCase();
-                            if (text.includes(searchTerm)) {{
-                                section.style.border = '2px solid #3b82f6';
-                                section.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-                                section.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
-                            }} else {{
-                                section.style.border = '';
-                                section.style.backgroundColor = '';
-                            }}
-                        }});
-                    }}
-                    
-                    // Clear search highlights
-                    function clearSearch() {{
-                        document.getElementById('quick-search').value = '';
-                        const sections = document.querySelectorAll('.card');
-                        sections.forEach(section => {{
-                            section.style.border = '';
-                            section.style.backgroundColor = '';
-                        }});
-                    }}
-                    
-                    // Rotating quotes
-                    let quotes = {json.dumps(self.science_quotes)};
-                    let currentQuote = 0;
-                    
-                    function rotateQuote() {{
-                        document.getElementById('science-quote').innerHTML = quotes[currentQuote];
-                        currentQuote = (currentQuote + 1) % quotes.length;
-                    }}
-                    
-                    // Initialize
-                    document.addEventListener('DOMContentLoaded', function() {{
-                        rotateQuote();
-                        setInterval(rotateQuote, 10000);
-                    }});
-                </script>
-                """
-                
-                # Store data for JSON export
-                export_data_js = f"""
-                <script>
-                    window.reportData = {{
-                        metadata: {{
-                            genome: '{genome_name}',
-                            date: '{self.metadata['analysis_date']}',
-                            tool: '{self.metadata['tool_name']}',
-                            version: '{self.metadata['version']}'
-                        }},
-                        summary: {json.dumps(analysis, indent=2)},
-                        hits: {json.dumps(hits, indent=2)}
-                    }};
-                </script>
-                """
-                
-                html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>AcinetoScope AMRfinderPlus Analysis Report</title>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                * {{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }}
-                
-                body {{
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #ffffff;
-                    padding: 20px;
-                    min-height: 100vh;
-                }}
-                
-                .container {{
-                    max-width: 1400px;
-                    margin: 0 auto;
-                }}
-                
-                .header {{
-                    text-align: center;
-                    margin-bottom: 30px;
-                }}
-                
-                .ascii-container {{
-                    background: rgba(0, 0, 0, 0.7);
-                    padding: 20px;
-                    border-radius: 15px;
-                    margin-bottom: 20px;
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                    border: 2px solid rgba(0, 255, 0, 0.3);
-                }}
-                
-                .ascii-art {{
-                    font-family: 'Courier New', monospace;
-                    font-size: 10px;
-                    line-height: 1.1;
-                    white-space: pre;
-                    color: #00ff00;
-                    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-                    overflow-x: auto;
-                }}
-                
-                .card {{
-                    background: rgba(255, 255, 255, 0.95);
-                    color: #1f2937;
-                    padding: 25px;
-                    margin: 20px 0;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-                }}
-                
-                .gene-table, .class-table {{ 
-                    width: 100%; 
-                    border-collapse: collapse; 
-                    margin: 20px 0; 
-                    background: white;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                }}
-                
-                .gene-table th, .gene-table td, .class-table th, .class-table td {{ 
-                    padding: 15px; 
-                    text-align: left; 
-                    border-bottom: 1px solid #e0e0e0; 
-                }}
-                
-                .gene-table th, .class-table th {{ 
-                    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-                    color: white;
-                    font-weight: 600;
-                }}
-                
-                tr:hover {{ background-color: #f8f9fa; }}
-                .success {{ color: #28a745; font-weight: 600; }}
-                .warning {{ color: #ffc107; font-weight: 600; }}
-                .error {{ color: #dc3545; font-weight: 600; }}
-                .summary-stats {{ 
-                    display: flex; 
-                    justify-content: space-around; 
-                    margin: 20px 0; 
-                    flex-wrap: wrap;
-                }}
-                
-                .stat-card {{ 
-                    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-                    color: white;
-                    padding: 20px; 
-                    border-radius: 12px; 
-                    text-align: center; 
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    margin: 10px;
-                    flex: 1;
-                    min-width: 200px;
-                }}
-                
-                .critical-stat-card {{
-                    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-                    color: white;
-                    padding: 20px; 
-                    border-radius: 12px; 
-                    text-align: center; 
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    margin: 10px;
-                    flex: 1;
-                    min-width: 200px;
-                }}
-                
-                .quote-container {{
-                    background: rgba(255, 255, 255, 0.1);
-                    color: white;
-                    padding: 20px;
-                    border-radius: 12px;
-                    margin: 20px 0;
-                    text-align: center;
-                    font-style: italic;
-                    border-left: 4px solid #fff;
-                }}
-                
-                .footer {{
-                    background: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 30px;
-                    border-radius: 12px;
-                    margin-top: 40px;
-                }}
-                
-                .footer a {{
-                    color: #667eea;
-                    text-decoration: none;
-                }}
-                
-                .footer a:hover {{
-                    text-decoration: underline;
-                }}
-                
-                .resistance-badge {{
-                    display: inline-block;
-                    background: #dc3545;
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                }}
-                
-                .critical-risk-badge {{
-                    display: inline-block;
-                    background: #8b0000;
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                    font-weight: bold;
-                }}
-                
-                .warning-badge {{
-                    display: inline-block;
-                    background: #ffc107;
-                    color: black;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                }}
-                
-                .success-badge {{
-                    display: inline-block;
-                    background: #28a745;
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                }}
-                
-                .present {{ background-color: #d4edda; }}
-                .critical-row {{ background-color: #f8d7da; font-weight: bold; border-left: 4px solid #dc3545; }}
-                .high-risk-row {{ background-color: #fff3cd; border-left: 4px solid #ffc107; }}
-                
-                /* Interactive controls */
-                .interactive-controls {{
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin: 15px 0;
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 10px;
-                    align-items: center;
-                }}
-                
-                .search-box {{
-                    flex: 1;
-                    min-width: 200px;
-                }}
-                
-                .search-box input {{
-                    width: 100%;
-                    padding: 8px 12px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    font-size: 14px;
-                }}
-                
-                .export-buttons {{
-                    display: flex;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                }}
-                
-                .export-buttons button {{
-                    padding: 8px 16px;
-                    background: #3b82f6;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    transition: background 0.3s;
-                }}
-                
-                .export-buttons button:hover {{
-                    background: #2563eb;
-                }}
-                
-                .export-buttons button.print {{
-                    background: #10b981;
-                }}
-                
-                .export-buttons button.print:hover {{
-                    background: #059669;
-                }}
-                
-                .result-counter {{
-                    font-size: 0.9em;
-                    color: #666;
-                    font-style: italic;
-                }}
-                
-                .sequence-name {{
-                    max-width: 300px;
-                    overflow-wrap: break-word;
-                    word-wrap: break-word;
-                    word-break: break-all;
-                }}
-                
-                .gene-list-container {{
-                    max-height: 300px;
-                    overflow-y: auto;
-                    padding: 10px;
-                    background: #f8f9fa;
-                    border-radius: 5px;
-                    border: 1px solid #e0e0e0;
-                }}
-                
-                .gene-item {{
-                    display: inline-block;
-                    margin: 2px;
-                    padding: 3px 8px;
-                    background: #e9ecef;
-                    border-radius: 3px;
-                    font-size: 0.85em;
-                }}
-                
-                .critical-gene {{
-                    background: #f8d7da;
-                    color: #721c24;
-                    border: 1px solid #f5c6cb;
-                    font-weight: bold;
-                }}
-                
-                .high-risk-gene {{
-                    background: #fff3cd;
-                    color: #856404;
-                    border: 1px solid #ffeaa7;
-                }}
-                
-                /* Quick search bar */
-                .quick-search-bar {{
-                    background: rgba(255, 255, 255, 0.95);
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin: 10px 0;
-                    display: flex;
-                    gap: 10px;
-                }}
-                
-                .quick-search-bar input {{
-                    flex: 1;
-                    padding: 8px 12px;
-                    border: 2px solid #3b82f6;
-                    border-radius: 4px;
-                    font-size: 14px;
-                }}
-                
-                .quick-search-bar button {{
-                    padding: 8px 20px;
-                    background: #3b82f6;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }}
-                
-                @media print {{
-                    .no-print, .interactive-controls, .quick-search-bar {{ display: none !important; }}
-                    body {{ background: white !important; color: black !important; }}
-                    .card {{ background: white !important; color: black !important; box-shadow: none !important; }}
-                    .gene-table, .class-table {{ box-shadow: none !important; }}
-                }}
-            </style>
-            {interactive_js}
-            {export_data_js}
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div class="ascii-container">
-                        <div class="ascii-art">{self.ascii_art}</div>
-                    </div>
-                    
-                    <div class="card">
-                        <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope AMRfinderPlus Analysis Report</h1>
-                        <p style="color: #666; font-size: 1.2em;">Comprehensive A. baumannii Antimicrobial Resistance Analysis</p>
-                        
-                        <div class="quick-search-bar no-print">
-                            <input type="text" id="quick-search" placeholder="🔍 Quick search across entire report...">
-                            <button onclick="quickSearch()">Search</button>
-                            <button onclick="clearSearch()" style="background: #6c757d;">Clear</button>
-                        </div>
-                        
-                        <div class="export-buttons no-print" style="margin-top: 15px;">
-                            <button onclick="exportToJSON('reportData', '{genome_name}_amr_report.json')">📥 Export JSON</button>
-                            <button onclick="printReport()" class="print">🖨️ Print Report</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="quote-container">
-                    <div id="science-quote" style="font-size: 1.1em;"></div>
-                </div>
-        """
-                
-                # CRITICAL RISK ALERT - Show first if critical genes detected
-                if analysis['critical_risk_genes'] > 0:
-                    html_content += f"""
-                <div class="card" style="border-left: 4px solid #dc3545; background: #f8d7da;">
-                    <h2 style="color: #dc3545;">🚨 CRITICAL RISK AMR GENES DETECTED</h2>
-                    <p><strong>{analysis['critical_risk_genes']} CRITICAL RISK antimicrobial resistance genes found:</strong></p>
-                    <div style="margin: 10px 0;">
-                        <p style="color: #721c24; font-weight: bold;">
-                            ⚠️ These genes confer resistance to last-resort antibiotics and represent 
-                            a serious public health concern requiring immediate attention.
-                        </p>
-        """
-                    for gene in analysis['critical_risk_list']:
-                        html_content += f'<span class="critical-risk-badge" style="font-size: 1.1em;">🚨 {gene}</span>'
-                    html_content += """
-                    </div>
-                </div>
-        """
-                
-                html_content += f"""
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 A. baumannii AMR Summary</h2>
-                    <div class="summary-stats">
-                        <div class="stat-card">
-                            <h3>Total AMR Genes</h3>
-                            <p style="font-size: 2em; margin: 0;">{analysis['total_genes']}</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>High Risk Genes</h3>
-                            <p style="font-size: 2em; margin: 0;">{analysis['high_risk_genes']}</p>
-                        </div>
-                        <div class="critical-stat-card">
-                            <h3>Critical Risk</h3>
-                            <p style="font-size: 2em; margin: 0;">{analysis['critical_risk_genes']}</p>
-                        </div>
-                    </div>
-                    <p><strong>Genome:</strong> {genome_name}</p>
-                    <p><strong>Date:</strong> {self.metadata['analysis_date']}</p>
-                    <p><strong>Tool Version:</strong> {self.metadata['version']}</p>
-                    <p><strong>AMRfinderPlus Version:</strong> {self.metadata['amrfinder_version']}</p>
-                    <p><strong>Database Version:</strong> {self.metadata['database_version']}</p>
-                </div>
-        """
-                
-                # High-risk genes warning (non-critical)
-                if analysis['high_risk_genes'] > 0 and analysis['critical_risk_genes'] == 0:
-                    html_content += f"""
-                <div class="card" style="border-left: 4px solid #ffc107;">
-                    <h2 style="color: #856404;">⚠️ High-Risk AMR Genes Detected</h2>
-                    <p><strong>{analysis['high_risk_genes']} high-risk antimicrobial resistance genes found:</strong></p>
-                    <div style="margin: 10px 0;">
-        """
-                    for gene in analysis['high_risk_list']:
-                        html_content += f'<span class="resistance-badge">{gene}</span>'
-                    html_content += """
-                    </div>
-                </div>
-        """
-                
-                # Resistance Mechanism Breakdown - A. baumannii specific
-                if any(analysis['resistance_mechanisms'].values()):
-                    html_content += """
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔬 Resistance Mechanism Breakdown</h2>
-        """
-                    
-                    mechanisms = analysis['resistance_mechanisms']
-                    
-                    # Always show all mechanisms - NO TRUNCATION
-                    all_mechanisms_html = ""
-                    
-                    if mechanisms['carbapenemase']:
-                        all_mechanisms_html += f"""
-                    <div style="margin: 10px 0; padding: 10px; background: #f8d7da; border-radius: 5px;">
-                        <strong>Carbapenemase Genes (CRITICAL):</strong> {', '.join(mechanisms['carbapenemase'])}
-                    </div>
-        """
-                    if mechanisms['esbl']:
-                        all_mechanisms_html += f"""
-                    <div style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 5px;">
-                        <strong>ESBL Genes:</strong> {', '.join(mechanisms['esbl'])}
-                    </div>
-        """
-                    if mechanisms['colistin_resistance']:
-                        all_mechanisms_html += f"""
-                    <div style="margin: 10px 0; padding: 10px; background: #f8d7da; border-radius: 5px;">
-                        <strong>Colistin Resistance (CRITICAL):</strong> {', '.join(mechanisms['colistin_resistance'])}
-                    </div>
-        """
-                    if mechanisms['aminoglycoside_resistance']:
-                        all_mechanisms_html += f"""
-                    <div style="margin: 10px 0; padding: 10px; background: #d1ecf1; border-radius: 5px;">
-                        <strong>Aminoglycoside Resistance:</strong> {', '.join(mechanisms['aminoglycoside_resistance'])}
-                    </div>
-        """
-                    if mechanisms['fluoroquinolone_resistance']:
-                        all_mechanisms_html += f"""
-                    <div style="margin: 10px 0; padding: 10px; background: #d1ecf1; border-radius: 5px;">
-                        <strong>Fluoroquinolone Resistance:</strong> {', '.join(mechanisms['fluoroquinolone_resistance'])}
-                    </div>
-        """
-                    if mechanisms['efflux_pumps']:
-                        all_mechanisms_html += f"""
-                    <div style="margin: 10px 0; padding: 10px; background: #e2e3e5; border-radius: 5px;">
-                        <strong>Efflux Pumps:</strong> {', '.join(mechanisms['efflux_pumps'])}
-                    </div>
-        """
-                    if mechanisms['other_amr']:
-                        all_mechanisms_html += f"""
-                    <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
-                        <strong>Other AMR Genes:</strong> {', '.join(mechanisms['other_amr'])}
-                    </div>
-        """
-                    
-                    html_content += all_mechanisms_html
-                    html_content += """
-                </div>
-        """
-                
-                # Resistance classes summary
-                if analysis['resistance_classes']:
-                    html_content += """
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧪 Resistance Classes Detected</h2>
-                    <table class="class-table" id="resistance-classes-table">
-                        <thead>
-                            <tr>
-                                <th>Resistance Class</th>
-                                <th>Gene Count</th>
-                                <th>Genes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        """
-                    
-                    for class_name, genes in analysis['resistance_classes'].items():
-                        gene_list = ", ".join(genes)
-                        html_content += f"""
-                            <tr>
-                                <td><strong>{class_name}</strong></td>
-                                <td>{len(genes)}</td>
-                                <td>{gene_list}</td>
-                            </tr>
-        """
-                    
-                    html_content += """
-                        </tbody>
-                    </table>
-                </div>
-        """
-                
-                # Detailed AMR genes table with interactive controls
-                if hits:
-                    html_content += f"""
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔬 Detailed AMR Genes Detected</h2>
-                    
-                    <div class="interactive-controls no-print">
-                        <div class="search-box">
-                            <input type="text" id="search-detailed-amr" 
-                                placeholder="Search genes, classes, or sequence names..." 
-                                onkeyup="searchTable('detailed-amr-table', this.value)">
-                        </div>
-                        <div class="export-buttons">
-                            <button onclick="exportToCSV('detailed-amr-table', '{genome_name}_amr_genes.csv')">📥 Export CSV</button>
-                        </div>
-                        <div class="result-counter" id="result-counter-detailed-amr-table">
-                            {len(hits)} results found
-                        </div>
-                    </div>
-                    
-                    <table class="gene-table" id="detailed-amr-table">
-                        <thead>
-                            <tr>
-                                <th>Gene Symbol</th>
-                                <th>Sequence Name</th>
-                                <th>Class</th>
-                                <th>Subclass</th>
-                                <th>Coverage</th>
-                                <th>Identity</th>
-                                <th>Scope</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        """
-                    
-                    for hit in hits:
-                        # Determine row class based on risk level
-                        row_class = "present"
-                        gene_symbol = hit.get('gene_symbol', '')
-                        if gene_symbol in analysis['critical_risk_list']:
-                            row_class = "critical-row"
-                        elif gene_symbol in analysis['high_risk_list']:
-                            row_class = "high-risk-row"
-                        
-                        html_content += f"""
-                            <tr class="{row_class}">
-                                <td><strong>{gene_symbol}</strong></td>
-                                <td class="sequence-name" title="{hit.get('sequence_name', '')}">{hit.get('sequence_name', '')}</td>
-                                <td>{hit.get('class', '')}</td>
-                                <td>{hit.get('subclass', '')}</td>
-                                <td>{hit.get('coverage', '')}%</td>
-                                <td>{hit.get('identity', '')}%</td>
-                                <td>{hit.get('scope', '')}</td>
-                            </tr>
-        """
-                    
-                    html_content += """
-                        </tbody>
-                    </table>
-                </div>
-        """
-                else:
-                    html_content += """
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">✅ No AMR Genes Detected</h2>
-                    <p>No antimicrobial resistance genes found in this A. baumannii genome.</p>
-                </div>
-        """
-                
-                # Footer
-                html_content += f"""
-                <div class="footer">
-                    <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
-                    <p><strong>Author:</strong> Brown Beckley</p>
-                    <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
-                    <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
-                    <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
-                    <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                    </p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-                
-                # Write HTML report
-                html_file = os.path.join(output_dir, f"{genome_name}_amrfinder_report.html")
-                with open(html_file, 'w') as f:
-                    f.write(html_content)
-                
-                self.logger.info("A. baumannii AMRfinderPlus HTML report generated: %s", html_file)
-        
-    def _create_amrfinder_json_report(self, genome_name: str, hits: List[Dict], output_dir: str):
-                """Create JSON report for AMRfinderPlus results"""
-                analysis = self._analyze_acineto_amr_results(hits)
-                
-                json_data = {
-                    'metadata': {
-                        'genome': genome_name,
-                        'analysis_date': self.metadata['analysis_date'],
-                        'tool': self.metadata['tool_name'],
-                        'version': self.metadata['version'],
-                        'amrfinder_version': self.metadata['amrfinder_version'],
-                        'database_version': self.metadata['database_version']
-                    },
-                    'summary': {
-                        'total_genes': analysis['total_genes'],
-                        'high_risk_genes': analysis['high_risk_genes'],
-                        'critical_risk_genes': analysis['critical_risk_genes'],
-                        'high_risk_list': analysis['high_risk_list'],
-                        'critical_risk_list': analysis['critical_risk_list'],
-                        'resistance_classes': analysis['resistance_classes'],
-                        'resistance_mechanisms': analysis['resistance_mechanisms']
-                    },
-                    'hits': hits
-                }
-                
-                json_file = os.path.join(output_dir, f"{genome_name}_amrfinder_report.json")
-                with open(json_file, 'w') as f:
-                    json.dump(json_data, f, indent=2)
-                
-                self.logger.info("A. baumannii AMRfinderPlus JSON report generated: %s", json_file)
-        
-    def _analyze_acineto_amr_results(self, hits: List[Dict]) -> Dict[str, Any]:
-                """Analyze AMR results specifically for A. baumannii with enhanced risk assessment"""
-                
-                analysis = {
-                    'total_genes': len(hits),
-                    'resistance_classes': {},
-                    'total_classes': 0,
-                    'high_risk_genes': 0,
-                    'critical_risk_genes': 0,
-                    'high_risk_list': [],
-                    'critical_risk_list': [],
-                    'resistance_mechanisms': {
-                        'carbapenemase': [],      # Carbapenemases (CRITICAL for A. baumannii)
-                        'esbl': [],               # Extended Spectrum Beta-lactamases
-                        'colistin_resistance': [], # Colistin resistance
-                        'fluoroquinolone_resistance': [], # Fluoroquinolone resistance
-                        'aminoglycoside_resistance': [], # Aminoglycoside resistance
-                        'efflux_pumps': [],       # Multi-drug efflux pumps
-                        'other_amr': []           # Other resistance mechanisms
-                    }
-                }
-                
-                for hit in hits:
-                    gene_symbol = hit.get('gene_symbol', '')
-                    resistance_class = hit.get('class', '')
-                    
-                    # Categorize resistance mechanism for A. baumannii
-                    self._categorize_acineto_resistance_mechanism(gene_symbol, resistance_class, analysis)
-                    
-                    # Check for critical risk genes (carbapenemases and colistin resistance)
-                    if gene_symbol in self.critical_risk_genes:
-                        analysis['critical_risk_genes'] += 1
-                        if gene_symbol not in analysis['critical_risk_list']:
-                            analysis['critical_risk_list'].append(gene_symbol)
-                    
-                    # Check for high-risk genes (includes critical ones plus all other high-risk)
-                    if gene_symbol in self.high_risk_genes:
-                        analysis['high_risk_genes'] += 1
-                        if gene_symbol not in analysis['high_risk_list']:
-                            analysis['high_risk_list'].append(gene_symbol)
-                    
-                    # Group by resistance class
-                    if resistance_class:
-                        if resistance_class not in analysis['resistance_classes']:
-                            analysis['resistance_classes'][resistance_class] = []
-                        if gene_symbol not in analysis['resistance_classes'][resistance_class]:
-                            analysis['resistance_classes'][resistance_class].append(gene_symbol)
-                
-                analysis['total_classes'] = len(analysis['resistance_classes'])
-                return analysis
+        else:
+            analysis['resistance_mechanisms']['other_amr'].append(gene_symbol)
 
-    def _categorize_acineto_resistance_mechanism(self, gene_symbol: str, resistance_class: str, analysis: Dict[str, Any]):
-                """Categorize A. baumannii genes by resistance mechanism"""
-                
-                gene_lower = gene_symbol.lower()
-                
-                # Carbapenemase genes (HIGHEST PRIORITY for A. baumannii)
-                if any(carba in gene_lower for carba in ['oxa', 'kpc', 'ndm', 'vim', 'imp', 'sim']):
-                    if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_carbapenemases]):
-                        analysis['resistance_mechanisms']['carbapenemase'].append(gene_symbol)
-                        return
-                
-                # ESBL genes
-                if any(esbl in gene_lower for esbl in ['ctx', 'shv', 'tem', 'per', 'veb', 'ges']):
-                    if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_esbls]):
-                        analysis['resistance_mechanisms']['esbl'].append(gene_symbol)
-                        return
-                
-                # Colistin resistance genes
-                if any(mcr in gene_lower for mcr in ['mcr']):
-                    if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_colistin]):
-                        analysis['resistance_mechanisms']['colistin_resistance'].append(gene_symbol)
-                        return
-                
-                # Aminoglycoside resistance genes
-                if any(ag in gene_lower for ag in ['arm', 'rmt', 'aph', 'aac', 'aad', 'str', 'ant']):
-                    if any(crit_gene in gene_lower for crit_gene in [g.lower() for g in self.critical_aminoglycoside]):
-                        analysis['resistance_mechanisms']['aminoglycoside_resistance'].append(gene_symbol)
-                        return
-                
-                # Fluoroquinolone resistance genes
-                fluoroquinolone_genes = {'qnrA', 'qnrB', 'qnrC', 'qnrD', 'qnrS', 'qnrVC', 'qepA'}
-                if any(qnr in gene_lower for qnr in ['qnr', 'qep']):
-                    analysis['resistance_mechanisms']['fluoroquinolone_resistance'].append(gene_symbol)
-                    return
-                
-                # Efflux pumps (CRITICAL for A. baumannii)
-                if any(efflux in gene_lower for efflux in ['ade', 'abe', 'mex', 'acr', 'emr', 'mdt']):
-                    analysis['resistance_mechanisms']['efflux_pumps'].append(gene_symbol)
-                    return
-                
-                # Other resistance mechanisms
-                analysis['resistance_mechanisms']['other_amr'].append(gene_symbol)
-        
-    def create_amr_summary(self, all_results: Dict[str, Any], output_base: str):
-                """Create comprehensive AMR summary files and HTML reports for all A. baumannii samples"""
-                self.logger.info("Creating A. baumannii AMR summary files and HTML reports...")
-                
-                # Create TSV summary files
-                summary_file = os.path.join(output_base, "acineto_amrfinder_summary.tsv")
-                
-                with open(summary_file, 'w') as f:
-                    # Write header with NEW headers
-                    f.write("Genome\tProtein id\tContig id\tStart\tStop\tStrand\tElement symbol\tElement name\tScope\tType\tSubtype\tClass\tSubclass\tMethod\tTarget length\tReference sequence length\t% Coverage of reference\t% Identity to reference\tAlignment length\tClosest reference accession\tClosest reference name\tHMM accession\tHMM description\n")
-                    
-                    # Write data for all genomes
-                    for genome_name, result in all_results.items():
-                        for hit in result['hits']:
-                            row = [
-                                genome_name,
-                                hit.get('Protein id', ''),
-                                hit.get('Contig id', ''),
-                                hit.get('Start', ''),
-                                hit.get('Stop', ''),
-                                hit.get('Strand', ''),
-                                hit.get('Element symbol', ''),
-                                hit.get('Element name', ''),
-                                hit.get('Scope', ''),
-                                hit.get('Type', ''),
-                                hit.get('Subtype', ''),
-                                hit.get('Class', ''),
-                                hit.get('Subclass', ''),
-                                hit.get('Method', ''),
-                                hit.get('Target length', ''),
-                                hit.get('Reference sequence length', ''),
-                                hit.get('% Coverage of reference', ''),
-                                hit.get('% Identity to reference', ''),
-                                hit.get('Alignment length', ''),
-                                hit.get('Closest reference accession', ''),
-                                hit.get('Closest reference name', ''),
-                                hit.get('HMM accession', ''),
-                                hit.get('HMM description', '')
-                            ]
-                            f.write('\t'.join(str(x) for x in row) + '\n')
-                
-                self.logger.info("✓ A. baumannii AMR summary file created: %s", summary_file)
-                
-                # Create statistics summary
-                stats_file = os.path.join(output_base, "acineto_amrfinder_statistics_summary.tsv")
-                with open(stats_file, 'w') as f:
-                    f.write("Genome\tTotal_AMR_Genes\tHigh_Risk_Genes\tCritical_Risk_Genes\tResistance_Classes\tGene_List\n")
-                    
-                    for genome_name, result in all_results.items():
-                        # Get unique genes
-                        genes = list(set(hit.get('gene_symbol', '') for hit in result['hits'] if hit.get('gene_symbol')))
-                        gene_list = ",".join(genes)
-                        
-                        # Count high-risk and critical genes
-                        high_risk_count = sum(1 for gene in genes if gene in self.high_risk_genes)
-                        critical_risk_count = sum(1 for gene in genes if gene in self.critical_risk_genes)
-                        
-                        # Get resistance classes
-                        classes = list(set(hit.get('class', '') for hit in result['hits'] if hit.get('class')))
-                        class_list = ",".join(classes)
-                        
-                        f.write(f"{genome_name}\t{result['hit_count']}\t{high_risk_count}\t{critical_risk_count}\t{class_list}\t{gene_list}\n")
-                
-                self.logger.info("✓ A. baumannii AMR statistics summary created: %s", stats_file)
-                
-                # Create JSON summaries
-                self.create_json_summaries(all_results, output_base)
-                
-                # Create comprehensive HTML summary report
-                self._create_summary_html_report(all_results, output_base)
-        
-    def create_json_summaries(self, all_results: Dict[str, Any], output_base: str):
-                """Create JSON summary files"""
-                self.logger.info("Creating JSON summaries...")
-                
-                # Create master JSON summary
-                master_summary = {
-                    'metadata': {
-                        'tool': self.metadata['tool_name'],
-                        'version': self.metadata['version'],
-                        'amrfinder_version': self.metadata['amrfinder_version'],
-                        'database_version': self.metadata['database_version'],
-                        'analysis_date': self.metadata['analysis_date'],
-                        'total_genomes': len(all_results)
-                    },
-                    'genome_summaries': {},
-                    'cross_genome_patterns': {}
-                }
-                
-                # Collect all data for cross-genome analysis
-                all_hits_by_gene = defaultdict(lambda: {'count': 0, 'genomes': set()})
-                genomes_with_critical = 0
-                genomes_with_high_risk = 0
-                
-                for genome_name, result in all_results.items():
-                    # Create genome-specific summary
-                    hits = result['hits']
-                    genes = [hit.get('gene_symbol', '') for hit in hits if hit.get('gene_symbol', '')]
-                    unique_genes = set(genes)
-                    
-                    critical_genes = [g for g in unique_genes if g in self.critical_risk_genes]
-                    high_risk_genes = [g for g in unique_genes if g in self.high_risk_genes and g not in self.critical_risk_genes]
-                    
-                    if critical_genes:
-                        genomes_with_critical += 1
-                    if high_risk_genes:
-                        genomes_with_high_risk += 1
-                    
-                    # Add to genome summaries
-                    master_summary['genome_summaries'][genome_name] = {
-                        'total_hits': result['hit_count'],
-                        'unique_genes': len(unique_genes),
-                        'critical_genes': critical_genes,
-                        'high_risk_genes': high_risk_genes,
-                        'genes': list(unique_genes),
-                        'status': result['status']
-                    }
-                    
-                    # Update gene frequency
-                    for gene in unique_genes:
-                        all_hits_by_gene[gene]['count'] += 1
-                        all_hits_by_gene[gene]['genomes'].add(genome_name)
-                
-                # Prepare cross-genome patterns
-                cross_genome_data = {}
-                for gene, data in all_hits_by_gene.items():
-                    cross_genome_data[gene] = {
-                        'frequency': data['count'],
-                        'genomes': list(data['genomes']),
-                        'risk_level': 'CRITICAL' if gene in self.critical_risk_genes else 'HIGH' if gene in self.high_risk_genes else 'STANDARD'
-                    }
-                
-                master_summary['cross_genome_patterns'] = {
-                    'total_unique_genes': len(all_hits_by_gene),
-                    'genomes_with_critical': genomes_with_critical,
-                    'genomes_with_high_risk': genomes_with_high_risk,
-                    'gene_frequency': cross_genome_data
-                }
-                
-                # Write master JSON
-                master_json_file = os.path.join(output_base, "acineto_amrfinder_master_summary.json")
-                with open(master_json_file, 'w') as f:
-                    json.dump(master_summary, f, indent=2)
-                
-                self.logger.info("✓ Master JSON summary created: %s", master_json_file)
-                
-                # Create individual genome JSON files in their directories
-                for genome_name, result in all_results.items():
-                    genome_dir = os.path.join(output_base, genome_name)
-                    if os.path.exists(genome_dir):
-                        json_file = os.path.join(genome_dir, f"{genome_name}_amrfinder_summary.json")
-                        with open(json_file, 'w') as f:
-                            json.dump({
-                                'metadata': {
-                                    'genome': genome_name,
-                                    'analysis_date': self.metadata['analysis_date']
-                                },
-                                'summary': {
-                                    'total_hits': result['hit_count'],
-                                    'genes': list(set(hit.get('gene_symbol', '') for hit in result['hits'] if hit.get('gene_symbol', '')))
-                                },
-                                'hits': result['hits'][:10000]  # Limit to first 1000 hits to keep file manageable
-                            }, f, indent=2)
-        
-    def _create_summary_html_report(self, all_results: Dict[str, Any], output_base: str):
-                """Create comprehensive HTML summary report with interactive features"""
-                
-                # Collect all data for pattern analysis
-                all_hits = []
-                for genome_name, result in all_results.items():
-                    for hit in result['hits']:
-                        hit_with_genome = hit.copy()
-                        hit_with_genome['genome'] = genome_name
-                        all_hits.append(hit_with_genome)
-                
-                # Calculate statistics
-                total_genomes = len(all_results)
-                total_hits = len(all_hits)
-                
-                # Track critical and high-risk genes across all genomes
-                critical_genes_found = set()
-                high_risk_genes_found = set()
-                genomes_with_critical = 0
-                genomes_with_high_risk = 0
-                
-                # Calculate genes per genome and gene frequency
-                genes_per_genome = {}
-                gene_frequency = {}
-                
-                for genome_name, result in all_results.items():
-                    genome_genes = set()
-                    for hit in result['hits']:
-                        gene = hit.get('gene_symbol', '')
-                        if gene:
-                            genome_genes.add(gene)
-                            
-                            # Track gene frequency
-                            if gene not in gene_frequency:
-                                gene_frequency[gene] = set()
-                            gene_frequency[gene].add(genome_name)
-                    
-                    genes_per_genome[genome_name] = genome_genes
-                    
-                    # Check for critical and high-risk genes
-                    has_critical = any(gene in genome_genes for gene in self.critical_risk_genes)
-                    has_high_risk = any(gene in genome_genes for gene in self.high_risk_genes)
-                    
-                    if has_critical:
-                        genomes_with_critical += 1
-                        critical_genes_found.update(genome_genes.intersection(self.critical_risk_genes))
-                    
-                    if has_high_risk:
-                        genomes_with_high_risk += 1
-                        high_risk_genes_found.update(genome_genes.intersection(self.high_risk_genes))
-                
-                # JavaScript for interactive features
-                interactive_js = f"""
-                <script>
-                    // Search functionality
-                    function searchTable(tableId, searchTerm) {{
-                        const table = document.getElementById(tableId);
-                        const rows = table.getElementsByTagName('tr');
-                        let visibleCount = 0;
-                        
-                        for (let i = 1; i < rows.length; i++) {{ // Skip header
-                            const row = rows[i];
-                            const text = row.textContent.toLowerCase();
-                            if (text.includes(searchTerm.toLowerCase())) {{
-                                row.style.display = '';
-                                visibleCount++;
-                            }} else {{
-                                row.style.display = 'none';
-                            }}
-                        }}
-                        
-                        // Update result count
-                        const resultCounter = document.getElementById('result-counter-' + tableId);
-                        if (resultCounter) {{
-                            resultCounter.textContent = visibleCount + ' results found';
-                        }}
-                    }}
-                    
-                    // Export to CSV
-                    function exportToCSV(tableId, filename) {{
-                        const table = document.getElementById(tableId);
-                        const rows = table.getElementsByTagName('tr');
-                        let csv = [];
-                        
-                        // Add headers
-                        const headerCells = rows[0].getElementsByTagName('th');
-                        const headerRow = [];
-                        for (let cell of headerCells) {{
-                            headerRow.push(cell.textContent);
-                        }}
-                        csv.push(headerRow.join(','));
-                        
-                        // Add data
-                        for (let i = 1; i < rows.length; i++) {{
-                            if (rows[i].style.display !== 'none') {{
-                                const cells = rows[i].getElementsByTagName('td');
-                                const row = [];
-                                for (let cell of cells) {{
-                                    // Clean up text (remove badges, etc.)
-                                    let text = cell.textContent.trim();
-                                    text = text.replace(/\\n/g, ' ').replace(/,/g, ';');
-                                    row.push(text);
-                                }}
-                                csv.push(row.join(','));
-                            }}
-                        }}
-                        
-                        // Create download
-                        const blob = new Blob([csv.join('\\n')], {{ type: 'text/csv' }});
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }}
-                    
-                    // Export to JSON
-                    function exportToJSON(dataVar, filename) {{
-                        const data = window[dataVar];
-                        const jsonStr = JSON.stringify(data, null, 2);
-                        const blob = new Blob([jsonStr], {{ type: 'application/json' }});
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }}
-                    
-                    // Print report
-                    function printReport() {{
-                        const originalStyles = document.querySelectorAll('style, link[rel="stylesheet"]');
-                        const printWindow = window.open('', '_blank');
-                        
-                        printWindow.document.write('<html><head><title>Summary AMR Report</title>');
-                        printWindow.document.write('<style>');
-                        printWindow.document.write(`
-                            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                            .no-print {{ display: none !important; }}
-                            table {{ border-collapse: collapse; width: 100%; margin: 10px 0; }}
-                            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-                            th {{ background-color: #f2f2f2; }}
-                            .critical-row {{ background-color: #f8d7da; }}
-                            .high-risk-row {{ background-color: #fff3cd; }}
-                            .header {{ text-align: center; margin-bottom: 20px; }}
-                        `);
-                        printWindow.document.write('</style>');
-                        printWindow.document.write('</head><body>');
-                        
-                        // Add report content
-                        const content = document.querySelector('.container').cloneNode(true);
-                        const noPrintElements = content.querySelectorAll('.no-print');
-                        noPrintElements.forEach(el => el.remove());
-                        
-                        printWindow.document.write(content.innerHTML);
-                        printWindow.document.write('</body></html>');
-                        printWindow.document.close();
-                        printWindow.print();
-                    }}
-                    
-                    // Quick search across entire report
-                    function quickSearch() {{
-                        const searchTerm = document.getElementById('quick-search').value.toLowerCase();
-                        const sections = document.querySelectorAll('.card');
-                        
-                        sections.forEach(section => {{
-                            const text = section.textContent.toLowerCase();
-                            if (text.includes(searchTerm)) {{
-                                section.style.border = '2px solid #3b82f6';
-                                section.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-                                section.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
-                            }} else {{
-                                section.style.border = '';
-                                section.style.backgroundColor = '';
-                            }}
-                        }});
-                    }}
-                    
-                    // Clear search highlights
-                    function clearSearch() {{
-                        document.getElementById('quick-search').value = '';
-                        const sections = document.querySelectorAll('.card');
-                        sections.forEach(section => {{
-                            section.style.border = '';
-                            section.style.backgroundColor = '';
-                        }});
-                    }}
-                    
-                    // Filter genes by risk level
-                    function filterByRisk(riskLevel) {{
-                        const table = document.getElementById('gene-frequency-table');
-                        const rows = table.getElementsByTagName('tr');
-                        
-                        for (let i = 1; i < rows.length; i++) {{
-                            const row = rows[i];
-                            const riskCell = row.cells[3]; // Risk level column
-                            
-                            if (riskLevel === 'all' || riskCell.textContent.includes(riskLevel.toUpperCase())) {{
-                                row.style.display = '';
-                            }} else {{
-                                row.style.display = 'none';
-                            }}
-                        }}
-                    }}
-                    
-                    // Rotating quotes
-                    let quotes = {json.dumps(self.science_quotes)};
-                    let currentQuote = 0;
-                    
-                    function rotateQuote() {{
-                        document.getElementById('science-quote').innerHTML = quotes[currentQuote];
-                        currentQuote = (currentQuote + 1) % quotes.length;
-                    }}
-                    
-                    // Initialize
-                    document.addEventListener('DOMContentLoaded', function() {{
-                        rotateQuote();
-                        setInterval(rotateQuote, 10000);
-                    }});
-                </script>
-                """
-                
-                # Store data for JSON export
-                export_data_js = f"""
-                <script>
-                    window.summaryData = {{
-                        metadata: {{
-                            total_genomes: {total_genomes},
-                            total_hits: {total_hits},
-                            date: '{self.metadata['analysis_date']}',
-                            tool: '{self.metadata['tool_name']}',
-                            version: '{self.metadata['version']}'
-                        }},
-                        critical_genes: {json.dumps(list(critical_genes_found))},
-                        high_risk_genes: {json.dumps(list(high_risk_genes_found))},
-                        genomes_with_critical: {genomes_with_critical},
-                        genomes_with_high_risk: {genomes_with_high_risk},
-                        gene_frequency: {json.dumps({gene: list(genomes) for gene, genomes in gene_frequency.items()})}
-                    }};
-                </script>
-                """
-                
-                html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>AcinetoScope AMRfinderPlus - Summary Report</title>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                * {{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }}
-                
-                body {{
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #ffffff;
-                    padding: 20px;
-                    min-height: 100vh;
-                }}
-                
-                .container {{
-                    max-width: 1400px;
-                    margin: 0 auto;
-                }}
-                
-                .header {{
-                    text-align: center;
-                    margin-bottom: 30px;
-                }}
-                
-                .ascii-container {{
-                    background: rgba(0, 0, 0, 0.7);
-                    padding: 20px;
-                    border-radius: 15px;
-                    margin-bottom: 20px;
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                    border: 2px solid rgba(0, 255, 0, 0.3);
-                }}
-                
-                .ascii-art {{
-                    font-family: 'Courier New', monospace;
-                    font-size: 10px;
-                    line-height: 1.1;
-                    white-space: pre;
-                    color: #00ff00;
-                    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-                    overflow-x: auto;
-                }}
-                
-                .card {{
-                    background: rgba(255, 255, 255, 0.95);
-                    color: #1f2937;
-                    padding: 25px;
-                    margin: 20px 0;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-                }}
-                
-                .gene-table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                    background: white;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                }}
-                
-                .gene-table th, .gene-table td {{
-                    padding: 12px;
-                    text-align: left;
-                    border-bottom: 1px solid #e0e0e0;
-                }}
-                
-                .gene-table th {{
-                    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-                    color: white;
-                    font-weight: 600;
-                }}
-                
-                tr:hover {{ background-color: #f8f9fa; }}
-                .summary-stats {{
-                    display: flex;
-                    justify-content: space-around;
-                    margin: 20px 0;
-                    flex-wrap: wrap;
-                }}
-                
-                .stat-card {{
-                    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-                    color: white;
-                    padding: 20px;
-                    border-radius: 12px;
-                    text-align: center;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                    margin: 10px;
-                    flex: 1;
-                    min-width: 200px;
-                }}
-                
-                .critical-stat-card {{
-                    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-                    color: white;
-                    padding: 20px;
-                    border-radius: 12px;
-                    text-align: center;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                    margin: 10px;
-                    flex: 1;
-                    min-width: 200px;
-                }}
-                
-                .quote-container {{
-                    background: rgba(255, 255, 255, 0.1);
-                    color: white;
-                    padding: 20px;
-                    border-radius: 12px;
-                    margin: 20px 0;
-                    text-align: center;
-                    font-style: italic;
-                    border-left: 4px solid #fff;
-                }}
-                
-                .footer {{
-                    background: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 30px;
-                    border-radius: 12px;
-                    margin-top: 40px;
-                }}
-                
-                .footer a {{
-                    color: #667eea;
-                    text-decoration: none;
-                }}
-                
-                .footer a:hover {{
-                    text-decoration: underline;
-                }}
-                
-                .resistance-badge {{
-                    display: inline-block;
-                    background: #dc3545;
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                }}
-                
-                .critical-resistance-badge {{
-                    display: inline-block;
-                    background: #8b0000;
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                    font-weight: bold;
-                }}
-                
-                .warning-badge {{
-                    display: inline-block;
-                    background: #ffc107;
-                    color: black;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                }}
-                
-                .success-badge {{
-                    display: inline-block;
-                    background: #28a745;
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin: 2px;
-                    font-size: 0.9em;
-                }}
-                
-                /* Interactive controls */
-                .interactive-controls {{
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin: 15px 0;
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 10px;
-                    align-items: center;
-                }}
-                
-                .search-box {{
-                    flex: 1;
-                    min-width: 200px;
-                }}
-                
-                .search-box input {{
-                    width: 100%;
-                    padding: 8px 12px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    font-size: 14px;
-                }}
-                
-                .export-buttons {{
-                    display: flex;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                }}
-                
-                .export-buttons button {{
-                    padding: 8px 16px;
-                    background: #3b82f6;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    transition: background 0.3s;
-                }}
-                
-                .export-buttons button:hover {{
-                    background: #2563eb;
-                }}
-                
-                .export-buttons button.print {{
-                    background: #10b981;
-                }}
-                
-                .export-buttons button.print:hover {{
-                    background: #059669;
-                }}
-                
-                .risk-filter {{
-                    display: flex;
-                    gap: 5px;
-                    margin: 10px 0;
-                }}
-                
-                .risk-filter button {{
-                    padding: 5px 10px;
-                    border: 1px solid #ddd;
-                    background: white;
-                    border-radius: 3px;
-                    cursor: pointer;
-                }}
-                
-                .risk-filter button.active {{
-                    background: #3b82f6;
-                    color: white;
-                }}
-                
-                .result-counter {{
-                    font-size: 0.9em;
-                    color: #666;
-                    font-style: italic;
-                }}
-                
-                /* Gene list styling - NO SCROLLBARS */
-                .gene-list-container {{
-                    padding: 10px;
-                    background: #f8f9fa;
-                    border-radius: 5px;
-                    border: 1px solid #e0e0e0;
-                }}
-                
-                .gene-item {{
-                    display: inline-block;
-                    margin: 2px 4px 2px 0;
-                    padding: 2px 6px;
-                    background: #e9ecef;
-                    border-radius: 3px;
-                    font-size: 0.85em;
-                }}
-                
-                .critical-gene {{
-                    background: #f8d7da;
-                    color: #721c24;
-                    border: 1px solid #f5c6cb;
-                    font-weight: bold;
-                }}
-                
-                .high-risk-gene {{
-                    background: #fff3cd;
-                    color: #856404;
-                    border: 1px solid #ffeaa7;
-                }}
-                
-                /* Sequence cell styling - for comma-separated genomes  */
-                .sequence-cell {{
-                    white-space: normal !important;
-                    word-wrap: break-word;
-                    max-width: none !important;
-                    min-width: 300px;
-                }}
-                
-                /* Quick search bar */
-                .quick-search-bar {{
-                    background: rgba(255, 255, 255, 0.95);
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin: 10px 0;
-                    display: flex;
-                    gap: 10px;
-                }}
-                
-                .quick-search-bar input {{
-                    flex: 1;
-                    padding: 8px 12px;
-                    border: 2px solid #3b82f6;
-                    border-radius: 4px;
-                    font-size: 14px;
-                }}
-                
-                .quick-search-bar button {{
-                    padding: 8px 20px;
-                    background: #3b82f6;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }}
-                
-                /* Row styling */
-                .critical-row {{ background-color: #f8d7da; font-weight: bold; border-left: 4px solid #dc3545; }}
-                .high-risk-row {{ background-color: #fff3cd; border-left: 4px solid #ffc107; }}
-                .frequency-high {{ background-color: #f8d7da; font-weight: bold; border-left: 4px solid #dc3545; }}
-                .frequency-medium-high {{ background-color: #ffeaa7; border-left: 4px solid #fdcb6e; }}
-                .frequency-medium {{ background-color: #fff3cd; border-left: 4px solid #ffc107; }}
-                .frequency-low-medium {{ background-color: #d1ecf1; border-left: 4px solid #17a2b8; }}
-                .frequency-low {{ background-color: #d4edda; border-left: 4px solid #28a745; }}
-                
-                @media print {{
-                    .no-print, .interactive-controls, .quick-search-bar, .risk-filter {{ display: none !important; }}
-                    body {{ background: white !important; color: black !important; }}
-                    .card {{ background: white !important; color: black !important; box-shadow: none !important; }}
-                    .gene-table {{ box-shadow: none !important; }}
-                }}
-            </style>
-            {interactive_js}
-            {export_data_js}
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div class="ascii-container">
-                        <div class="ascii-art">{self.ascii_art}</div>
-                    </div>
-                    
-                    <div class="card">
-                        <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope AMRfinderPlus - Summary Report</h1>
-                        <p style="color: #666; font-size: 1.2em;">Comprehensive A. baumannii Antimicrobial Resistance Analysis Across All Genomes</p>
-                        <p style="color: #666; font-size: 1.1em;">AMRfinderPlus 4.2.7</p>
-                        
-                        <div class="quick-search-bar no-print">
-                            <input type="text" id="quick-search" 
-                                placeholder="🔍 Quick search across entire report (genes, genomes, classes)...">
-                            <button onclick="quickSearch()">Search</button>
-                            <button onclick="clearSearch()" style="background: #6c757d;">Clear</button>
-                        </div>
-                        
-                        <div class="export-buttons no-print" style="margin-top: 15px;">
-                            <button onclick="exportToJSON('summaryData', 'amr_summary_data.json')">📥 Export JSON</button>
-                            <button onclick="printReport()" class="print">🖨️ Print Report</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="quote-container">
-                    <div id="science-quote" style="font-size: 1.1em;"></div>
-                </div>
-        """
-                
-                # CRITICAL RISK ALERT - Show first if critical genes detected
-                if critical_genes_found:
-                    html_content += f"""
-                <div class="card" style="border-left: 4px solid #dc3545; background: #f8d7da;">
-                    <h2 style="color: #dc3545;">🚨 CRITICAL RISK AMR GENES ACROSS ALL GENOMES</h2>
-                    <p><strong>{len(critical_genes_found)} unique critical risk genes found in {genomes_with_critical} genomes:</strong></p>
-                    <div style="margin: 10px 0;">
-                        <p style="color: #721c24; font-weight: bold;">
-                            ⚠️ IMMEDIATE ATTENTION REQUIRED: These genes confer resistance to last-resort antibiotics
-                        </p>
-        """
-                    for gene in sorted(critical_genes_found):
-                        html_content += f'<span class="critical-resistance-badge">🚨 {gene}</span>'
-                    html_content += """
-                    </div>
-                </div>
-        """
-                
-                html_content += f"""
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Overall Summary</h2>
-                    <div class="summary-stats">
-                        <div class="stat-card">
-                            <h3>Total Genomes</h3>
-                            <p style="font-size: 2em; margin: 0;">{total_genomes}</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Total AMR Genes</h3>
-                            <p style="font-size: 2em; margin: 0;">{total_hits}</p>
-                        </div>
-                        <div class="critical-stat-card">
-                            <h3>High-Risk Genomes</h3>
-                            <p style="font-size: 2em; margin: 0;">{genomes_with_high_risk}</p>
-                        </div>
-                    </div>
-                    <p><strong>Date:</strong> {self.metadata['analysis_date']}</p>
-                    <p><strong>Tool Version:</strong> {self.metadata['version']}</p>
-                    <p><strong>AMRfinderPlus:</strong> {self.metadata['amrfinder_version']}</p>
-                    <p><strong>Database:</strong> {self.metadata['database_version']}</p>
-                </div>
-        """
-                
-                # High-risk genes summary (non-critical)
-                if high_risk_genes_found and not critical_genes_found:
-                    html_content += f"""
-                <div class="card" style="border-left: 4px solid #ffc107;">
-                    <h2 style="color: #856404;">⚠️ High-Risk AMR Genes Detected</h2>
-                    <p><strong>{len(high_risk_genes_found)} unique high-risk genes found across {genomes_with_high_risk} genomes:</strong></p>
-                    <div style="margin: 10px 0;">
-        """
-                    for gene in sorted(high_risk_genes_found):
-                        html_content += f'<span class="resistance-badge">{gene}</span>'
-                    html_content += """
-                    </div>
-                </div>
-        """
-                
-                # Enhanced Genes by Genome table with interactive controls
-                html_content += """
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔍 Genes by Genome</h2>
-                    <p style="color: #666; margin-bottom: 15px;">Complete list of AMR genes detected in each genome:</p>
-                    
-                    <div class="interactive-controls no-print">
-                        <div class="search-box">
-                            <input type="text" id="search-genes-by-genome" 
-                                placeholder="Search genomes or genes..." 
-                                onkeyup="searchTable('genes-by-genome-table', this.value)">
-                        </div>
-                        <div class="export-buttons">
-                            <button onclick="exportToCSV('genes-by-genome-table', 'genes_by_genome.csv')">📥 Export CSV</button>
-                        </div>
-                        <div class="result-counter" id="result-counter-genes-by-genome-table">
-                            """ + str(len(genes_per_genome)) + """ results found
-                        </div>
-                    </div>
-                    
-                    <table class="gene-table" id="genes-by-genome-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 20%;">Genome</th>
-                                <th style="width: 10%;">Gene Count</th>
-                                <th style="width: 70%;">Genes Detected</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        """
-                
-                for genome in sorted(genes_per_genome.keys()):
-                    genes = sorted(genes_per_genome.get(genome, set()))
-                    
-                    # Create formatted gene list with highlighting - NO TRUNCATION
-                    formatted_genes = ""
-                    for gene in genes:
-                        if gene in self.critical_risk_genes:
-                            formatted_genes += f'<span class="gene-item critical-gene">{gene}</span>'
-                        elif gene in self.high_risk_genes:
-                            formatted_genes += f'<span class="gene-item high-risk-gene">{gene}</span>'
-                        else:
-                            formatted_genes += f'<span class="gene-item">{gene}</span>'
-                    
-                    # Highlight rows with critical genes
-                    critical_genes = [g for g in genes if g in self.critical_risk_genes]
-                    high_risk_genes_list = [g for g in genes if g in self.high_risk_genes and g not in self.critical_risk_genes]
-                    
-                    row_class = "critical-row" if critical_genes else "high-risk-row" if high_risk_genes_list else ""
-                    
-                    html_content += f"""
-                            <tr class="{row_class}">
-                                <td><strong>{genome}</strong></td>
-                                <td><span style="font-weight: bold; font-size: 1.1em;">{len(genes)}</span></td>
-                                <td>
-                                    <div class="gene-list-container">
-                                        {formatted_genes}
-                                    </div>
-                                </td>
-                            </tr>
-        """
-                
-                html_content += """
-                        </tbody>
-                    </table>
-                    <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
-                        <p><span style="display: inline-block; width: 10px; height: 10px; background: #f8d7da; margin-right: 5px;"></span> Critical Risk Genes</p>
-                        <p><span style="display: inline-block; width: 10px; height: 10px; background: #fff3cd; margin-right: 5px;"></span> High Risk Genes</p>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Gene Frequency</h2>
-                    <p style="color: #666; margin-bottom: 15px;">Frequency of each AMR gene across all genomes:</p>
-                    
-                    <div class="interactive-controls no-print">
-                        <div class="search-box">
-                            <input type="text" id="search-gene-frequency" 
-                                placeholder="Search genes, genomes, or risk levels..." 
-                                onkeyup="searchTable('gene-frequency-table', this.value)">
-                        </div>
-                        <div class="risk-filter">
-                            <button onclick="filterByRisk('all')" class="active">All</button>
-                            <button onclick="filterByRisk('critical')">Critical</button>
-                            <button onclick="filterByRisk('high')">High</button>
-                            <button onclick="filterByRisk('standard')">Standard</button>
-                        </div>
-                        <div class="export-buttons">
-                            <button onclick="exportToCSV('gene-frequency-table', 'gene_frequency.csv')">📥 Export CSV</button>
-                        </div>
-                        <div class="result-counter" id="result-counter-gene-frequency-table">
-                            """ + str(len(gene_frequency)) + """ results found
-                        </div>
-                    </div>
-                    
-                    <table class="gene-table" id="gene-frequency-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 20%;">Gene</th>
-                                <th style="width: 15%;">Frequency</th>
-                                <th style="width: 15%;">Prevalence</th>
-                                <th style="width: 15%;">Risk Level</th>
-                                <th style="width: 35%;">Genomes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        """
-                
-                # Calculate gene frequency -(comma-separated)
-                for gene, genomes in sorted(gene_frequency.items(), key=lambda x: len(x[1]), reverse=True):
-                    frequency = len(genomes)
-                    genome_list = ", ".join(sorted(genomes))  
-                    frequency_percent = (frequency / total_genomes) * 100 if total_genomes > 0 else 0
-                    
-                    # Determine risk level
-                    if gene in self.critical_risk_genes:
-                        risk_level = '<span class="critical-resistance-badge">CRITICAL</span>'
-                        risk_class = 'CRITICAL'
-                    elif gene in self.high_risk_genes:
-                        risk_level = '<span class="resistance-badge">HIGH</span>'
-                        risk_class = 'HIGH'
-                    else:
-                        risk_level = '<span class="success-badge">Standard</span>'
-                        risk_class = 'STANDARD'
-                    
-                    # Frequency color coding
-                    if frequency_percent >= 75:
-                        frequency_class = "frequency-high"
-                        prevalence_badge = '<span class="resistance-badge">Very High</span>'
-                    elif frequency_percent >= 50:
-                        frequency_class = "frequency-medium-high"
-                        prevalence_badge = '<span class="warning-badge">High</span>'
-                    elif frequency_percent >= 25:
-                        frequency_class = "frequency-medium"
-                        prevalence_badge = '<span class="warning-badge">Medium</span>'
-                    elif frequency_percent >= 10:
-                        frequency_class = "frequency-low-medium"
-                        prevalence_badge = '<span class="success-badge">Low</span>'
-                    else:
-                        frequency_class = "frequency-low"
-                        prevalence_badge = '<span class="success-badge">Rare</span>'
-                    
-                    html_content += f"""
-                            <tr class="{frequency_class}" data-risk="{risk_class}">
-                                <td><strong>{gene}</strong></td>
-                                <td>{frequency} ({frequency_percent:.1f}%)</td>
-                                <td>{prevalence_badge}</td>
-                                <td>{risk_level}</td>
-                                <td class="sequence-cell">{genome_list}</td>
-                            </tr>
-        """
-                
-                html_content += """
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="card">
-                    <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📁 Generated Files</h2>
-                    <ul style="color: #666; font-size: 1.1em;">
-                        <li><strong>acineto_amrfinder_summary.tsv</strong> - Complete AMR data for all genomes</li>
-                        <li><strong>acineto_amrfinder_statistics_summary.tsv</strong> - Statistical summary</li>
-                        <li><strong>acineto_amrfinder_master_summary.json</strong> - Master JSON summary</li>
-                        <li><strong>Individual genome HTML reports</strong> - Detailed analysis per genome</li>
-                        <li><strong>Individual genome JSON reports</strong> - JSON data per genome</li>
-                        <li><strong>This summary report</strong> - Cross-genome analysis with pattern discovery</li>
-                    </ul>
-                    
-                    <div class="export-buttons no-print" style="margin-top: 20px;">
-                        <button onclick="window.open('acineto_amrfinder_summary.tsv')">📄 View TSV Summary</button>
-                        <button onclick="window.open('acineto_amrfinder_master_summary.json')">📄 View JSON Summary</button>
-                    </div>
-                </div>
-                
-                <div class="footer">
-                    <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
-                    <p><strong>Author:</strong> Brown Beckley</p>
-                    <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
-                    <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
-                    <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
-                    <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-                    </p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-                
-                # Write summary HTML report
-                html_file = os.path.join(output_base, "acineto_amrfinder_summary_report.html")
-                with open(html_file, 'w') as f:
-                    f.write(html_content)
-                
-                self.logger.info("✓ A. baumannii AMRfinderPlus summary HTML report created: %s", html_file)        
-            
-        
-    def process_single_genome(self, genome_file: str, output_base: str = "acineto_amrfinder_results") -> Dict[str, Any]:
-                """Process a single A. baumannii genome with AMRfinderPlus"""
-                genome_name = Path(genome_file).stem
-                results_dir = os.path.join(output_base, genome_name)
-                
-                self.logger.info("=== PROCESSING A. BAUMANNII GENOME: %s ===", genome_name)
-                
-                # Create output directory
-                os.makedirs(results_dir, exist_ok=True)
-                
-                # Check bundled AMRfinderPlus before running
-                if not self.check_amrfinder_installed():
-                    self.logger.error("Bundled AMRfinderPlus not available!")
-                    return {
-                        'genome': genome_name,
+    def process_single_genome(self, genome_file: str, output_base: str = "acineto_amrfinder_results",
+                              min_identity: float = None, min_coverage: float = None,
+                              report_mutations: bool = True) -> Dict[str, Any]:
+        genome_name = Path(genome_file).stem
+        results_dir = os.path.join(output_base, genome_name)
+        os.makedirs(results_dir, exist_ok=True)
+        self.logger.info(f"=== PROCESSING GENOME: {genome_name} ===")
+        result = self.run_amrfinder_single_genome(genome_file, results_dir,
+                                                  min_identity, min_coverage, report_mutations)
+        status = "✓" if result['status'] == 'success' else "✗"
+        self.logger.info(f"{status} {genome_name}: {result['hit_count']} AMR hits")
+        return result
+
+    def process_multiple_genomes(self, genome_pattern: str, output_base: str = "acineto_amrfinder_results",
+                                 min_identity: float = None, min_coverage: float = None,
+                                 report_mutations: bool = True) -> Dict[str, Any]:
+        if not self.check_amrfinder_installed():
+            raise RuntimeError("BUNDLED AMRfinderPlus not properly installed")
+
+        fasta_patterns = [genome_pattern, f"{genome_pattern}.fasta", f"{genome_pattern}.fa",
+                          f"{genome_pattern}.fna", f"{genome_pattern}.faa"]
+        genome_files = []
+        for pattern in fasta_patterns:
+            genome_files.extend(glob.glob(pattern))
+        genome_files = list(set(genome_files))
+
+        if not genome_files:
+            raise FileNotFoundError(f"No FASTA files found matching pattern: {genome_pattern}")
+
+        self.logger.info(f"Found {len(genome_files)} genomes: {[Path(f).name for f in genome_files]}")
+        os.makedirs(output_base, exist_ok=True)
+
+        all_results = {}
+        max_concurrent = max(1, min(self.cpus, len(genome_files), int(self.available_ram / 2.5)))
+        self.logger.info(f"🚀 MAXIMUM SPEED: Using {max_concurrent} concurrent jobs")
+        self.logger.info(f"   Each AMRfinderPlus instance uses {self.cpus} threads internally")
+
+        with ThreadPoolExecutor(max_workers=max_concurrent) as executor:
+            futures = {
+                executor.submit(self.process_single_genome, genome, output_base,
+                                min_identity, min_coverage, report_mutations): genome
+                for genome in genome_files
+            }
+            for future in as_completed(futures):
+                genome = futures[future]
+                try:
+                    result = future.result()
+                    all_results[result['genome']] = result
+                    self.logger.info(f"✓ COMPLETED: {result['genome']} ({result['hit_count']} AMR hits)")
+                except Exception as e:
+                    self.logger.error(f"✗ FAILED: {genome} - {e}")
+                    all_results[Path(genome).stem] = {
+                        'genome': Path(genome).stem,
                         'hits': [],
                         'hit_count': 0,
-                        'status': 'failed',
-                        'error': 'Bundled AMRfinderPlus not available'
+                        'status': 'failed'
                     }
-                
-                # Run AMRfinderPlus
-                result = self.run_amrfinder_single_genome(genome_file, results_dir)
-                
-                status_icon = "✓" if result['status'] == 'success' else "✗"
-                self.logger.info("%s %s: %d AMR hits", status_icon, genome_name, result['hit_count'])
-                
-                return result
-        
-    def process_multiple_genomes(self, genome_pattern: str, output_base: str = "acineto_amrfinder_results") -> Dict[str, Any]:
-                """Process multiple A. baumannii genomes using wildcard pattern - MAXIMUM SPEED"""
-                
-                # Find genome files (support all FASTA extensions)
-                fasta_patterns = [genome_pattern, f"{genome_pattern}.fasta", f"{genome_pattern}.fa", 
-                                f"{genome_pattern}.fna", f"{genome_pattern}.faa"]
-                
-                genome_files = []
-                for pattern in fasta_patterns:
-                    genome_files.extend(glob.glob(pattern))
-                
-                # Remove duplicates
-                genome_files = list(set(genome_files))
-                
-                if not genome_files:
-                    raise FileNotFoundError(f"No FASTA files found matching pattern: {genome_pattern}")
-                
-                self.logger.info("Found %d A. baumannii genomes: %s", len(genome_files), [Path(f).name for f in genome_files])
-                
-                # Create output directory
-                os.makedirs(output_base, exist_ok=True)
-                
-                # Process genomes with threading - MAXIMUM SPEED CONFIGURATION 
-                all_results = {}
-                
-                # Calculate optimal concurrent genomes - BE AGGRESSIVE FOR SPEED
-                max_concurrent = max(1, min(self.cpus, len(genome_files), int(self.available_ram / 2.5)))  # 2.5GB per genome
-                
-                self.logger.info("🚀 MAXIMUM SPEED: Using %d concurrent genome processing jobs", max_concurrent)
-                self.logger.info("   Using BUNDLED AMRfinderPlus: %s", self.bundled_amrfinder)
-                self.logger.info("   Using BUNDLED database: %s", self.bundled_database)
-                
-                with ThreadPoolExecutor(max_workers=max_concurrent) as executor:
-                    # Submit all tasks
-                    future_to_genome = {
-                        executor.submit(self.process_single_genome, genome, output_base): genome 
-                        for genome in genome_files
-                    }
-                    
-                    # Collect results as they complete
-                    for future in as_completed(future_to_genome):
-                        genome = future_to_genome[future]
-                        try:
-                            result = future.result()
-                            all_results[result['genome']] = result
-                            self.logger.info("✓ COMPLETED: %s (%d AMR hits)", result['genome'], result['hit_count'])
-                        except Exception as e:
-                            self.logger.error("✗ FAILED: %s - %s", genome, e)
-                            all_results[Path(genome).stem] = {
-                                'genome': Path(genome).stem,
-                                'hits': [],
-                                'hit_count': 0,
-                                'status': 'failed'
-                            }
-                
-                # Create AMR summary files and HTML reports after processing all genomes
-                self.create_amr_summary(all_results, output_base)
-                
-                self.logger.info("=== A. BAUMANNII AMR ANALYSIS COMPLETE ===")
-                self.logger.info("Processed %d genomes", len(all_results))
-                self.logger.info("Results saved to: %s", output_base)
-                self.logger.info("Bundled AMRfinderPlus used: %s", self.bundled_amrfinder)
-                self.logger.info("Bundled database used: %s", self.bundled_database)
-                
-                return all_results
+
+        self.create_amr_summary(all_results, output_base)
+        self.create_mutation_summary(all_results, output_base)
+
+        self.logger.info("=== A. BAUMANNII AMR ANALYSIS COMPLETE ===")
+        self.logger.info(f"Processed {len(all_results)} genomes")
+        self.logger.info(f"Results saved to: {output_base}")
+        return all_results
+
+    def create_amr_summary(self, all_results: Dict[str, Any], output_base: str):
+        self.logger.info("Creating A. baumannii AMR summary files...")
+        summary_file = os.path.join(output_base, "acineto_amrfinder_summary.tsv")
+        with open(summary_file, 'w') as f:
+            f.write("Genome\tProtein id\tContig id\tStart\tStop\tStrand\tElement symbol\tElement name\tScope\tType\tSubtype\tClass\tSubclass\tMethod\tTarget length\tReference sequence length\t% Coverage of reference\t% Identity to reference\tAlignment length\tClosest reference accession\tClosest reference name\tHMM accession\tHMM description\n")
+            for genome_name, result in all_results.items():
+                for hit in result['hits']:
+                    row = [
+                        genome_name,
+                        hit.get('protein_id', ''),
+                        hit.get('contig_id', ''),
+                        hit.get('start', ''),
+                        hit.get('stop', ''),
+                        hit.get('strand', ''),
+                        hit.get('gene_symbol', ''),
+                        hit.get('sequence_name', ''),
+                        hit.get('scope', ''),
+                        hit.get('element_type', ''),
+                        hit.get('element_subtype', ''),
+                        hit.get('class', ''),
+                        hit.get('subclass', ''),
+                        hit.get('method', ''),
+                        hit.get('target_length', ''),
+                        hit.get('ref_length', ''),
+                        hit.get('coverage', ''),
+                        hit.get('identity', ''),
+                        hit.get('alignment_length', ''),
+                        hit.get('accession', ''),
+                        hit.get('closest_name', ''),
+                        hit.get('hmm_id', ''),
+                        hit.get('hmm_description', '')
+                    ]
+                    f.write('\t'.join(str(x) for x in row) + '\n')
+        self.logger.info(f"✓ AMR summary TSV: {summary_file}")
+
+        stats_file = os.path.join(output_base, "acineto_amrfinder_statistics_summary.tsv")
+        with open(stats_file, 'w') as f:
+            f.write("Genome\tTotal_AMR_Genes\tHigh_Risk_Genes\tCritical_Risk_Genes\tResistance_Classes\tGene_List\n")
+            for genome_name, result in all_results.items():
+                genes = list(set(hit.get('gene_symbol', '') for hit in result['hits'] if hit.get('gene_symbol')))
+                gene_list = ",".join(genes)
+                high_risk_count = sum(1 for g in genes if g in self.high_risk_genes)
+                critical_risk_count = sum(1 for g in genes if g in self.critical_risk_genes)
+                classes = list(set(hit.get('class', '') for hit in result['hits'] if hit.get('class')))
+                class_list = ",".join(classes)
+                f.write(f"{genome_name}\t{result['hit_count']}\t{high_risk_count}\t{critical_risk_count}\t{class_list}\t{gene_list}\n")
+        self.logger.info(f"✓ Statistics summary: {stats_file}")
+
+        self._create_amr_summary_html(all_results, output_base)
+        self._create_amr_master_json(all_results, output_base)
+
+    def _create_amr_summary_html(self, all_results: Dict[str, Any], output_base: str):
+        all_hits = []
+        for genome_name, result in all_results.items():
+            for hit in result['hits']:
+                hit_with_genome = hit.copy()
+                hit_with_genome['genome'] = genome_name
+                all_hits.append(hit_with_genome)
+
+        total_genomes = len(all_results)
+        total_hits = len(all_hits)
+
+        critical_genes_found = set()
+        high_risk_genes_found = set()
+        genomes_with_critical = 0
+        genomes_with_high_risk = 0
+
+        gene_frequency = {}
+        for hit in all_hits:
+            gene = hit.get('gene_symbol', '')
+            if not gene:
+                continue
+            gene_frequency.setdefault(gene, set()).add(hit['genome'])
+
+        for genome_name, result in all_results.items():
+            genome_genes = {hit['gene_symbol'] for hit in result['hits'] if hit['gene_symbol']}
+            if any(g in genome_genes for g in self.critical_risk_genes):
+                genomes_with_critical += 1
+                critical_genes_found.update(genome_genes.intersection(self.critical_risk_genes))
+            if any(g in genome_genes for g in self.high_risk_genes):
+                genomes_with_high_risk += 1
+                high_risk_genes_found.update(genome_genes.intersection(self.high_risk_genes))
+
+        random_quote = random.choice(self.science_quotes)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcinetoScope - AMR Summary Report</title>
+    <style>
+        * {{ margin:0; padding:0; box-sizing:border-box; }}
+        body {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff; padding: 20px; min-height: 100vh; }}
+        .container {{ max-width: 1400px; margin: 0 auto; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
+        .ascii-container {{ background: rgba(0,0,0,0.7); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 2px solid rgba(0,255,0,0.3); }}
+        .ascii-art {{ font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.1; white-space: pre; color: #00ff00; text-shadow: 0 0 10px rgba(0,255,0,0.5); overflow-x: auto; }}
+        .quote-container {{ background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }}
+        .quote-text {{ font-size: 18px; font-style: italic; margin-bottom: 10px; color: #ffffff; }}
+        .quote-author {{ font-size: 14px; color: #fbbf24; font-weight: bold; }}
+        .card {{ background: rgba(255,255,255,0.95); color: #1f2937; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }}
+        .card h2 {{ color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; }}
+        .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }}
+        .stat-card {{ background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }}
+        .stat-value {{ font-size: 24px; font-weight: bold; }}
+        .stat-label {{ font-size: 12px; opacity: 0.9; }}
+        .risk-badge {{ display: inline-block; background: #dc2626; color: white; padding: 5px 10px; border-radius: 15px; margin: 2px; font-size: 0.9em; }}
+        .warning-badge {{ display: inline-block; background: #f59e0b; color: black; padding: 5px 10px; border-radius: 15px; margin: 2px; font-size: 0.9em; }}
+        .success-badge {{ display: inline-block; background: #16a34a; color: white; padding: 5px 10px; border-radius: 15px; margin: 2px; font-size: 0.9em; }}
+        .table-responsive {{ width: 100%; overflow-x: auto; margin: 20px 0; }}
+        .data-table {{ width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }}
+        .data-table th {{ background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 12px; text-align: left; font-weight: bold; }}
+        .data-table td {{ padding: 10px; border-bottom: 1px solid #e5e7eb; }}
+        .data-table tr:nth-child(even) {{ background-color: #f8fafc; }}
+        .frequency-high {{ background-color: #fee2e2; font-weight: bold; border-left: 4px solid #dc2626; }}
+        .frequency-medium-high {{ background-color: #fef3c7; border-left: 4px solid #f59e0b; }}
+        .frequency-medium {{ background-color: #d1fae5; border-left: 4px solid #10b981; }}
+        .frequency-low-medium {{ background-color: #dbeafe; border-left: 4px solid #3b82f6; }}
+        .frequency-low {{ background-color: #f0f9ff; border-left: 4px solid #0ea5e9; }}
+        .footer {{ text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 14px; }}
+        .timestamp {{ color: #fbbf24; font-weight: bold; }}
+        .authorship {{ margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px; }}
+        @media (max-width: 768px) {{ .ascii-art {{ font-size: 6px; }} .stats-grid {{ grid-template-columns: 1fr; }} }}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="ascii-container">
+            <div class="ascii-art">{self.ascii_art}</div>
+        </div>
+        <div class="quote-container">
+            <div class="quote-text">"{random_quote['text']}"</div>
+            <div class="quote-author">— {random_quote['author']}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📊 Batch AMR Summary</h2>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value">{total_genomes}</div><div class="stat-label">Total Genomes</div></div>
+            <div class="stat-card"><div class="stat-value">{total_hits}</div><div class="stat-label">Total AMR Genes</div></div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);"><div class="stat-value">{genomes_with_critical}</div><div class="stat-label">Critical Risk Genomes</div></div>
+            <div class="stat-card"><div class="stat-value">{self.metadata['database_version']}</div><div class="stat-label">Database</div></div>
+        </div>
+    </div>
+"""
+        if critical_genes_found:
+            html += f"""
+    <div class="card" style="border-left: 4px solid #dc2626;">
+        <h2 style="color: #dc2626;">🚨 CRITICAL RISK GENES ACROSS ALL GENOMES</h2>
+        <p><strong>{len(critical_genes_found)} unique critical genes in {genomes_with_critical} genomes:</strong></p>
+        <div style="margin: 10px 0;">
+"""
+            for gene in sorted(critical_genes_found):
+                html += f'<span class="risk-badge">🚨 {gene}</span>'
+            html += """
+        </div>
+    </div>
+"""
+        if high_risk_genes_found and not critical_genes_found:
+            html += f"""
+    <div class="card" style="border-left: 4px solid #f59e0b;">
+        <h2 style="color: #f59e0b;">⚠️ High-Risk Genes</h2>
+        <p><strong>{len(high_risk_genes_found)} unique high-risk genes:</strong></p>
+        <div style="margin: 10px 0;">
+"""
+            for gene in sorted(high_risk_genes_found):
+                html += f'<span class="warning-badge">{gene}</span>'
+            html += """
+        </div>
+    </div>
+"""
+        html += """
+    <div class="card">
+        <h2>📈 Gene Frequency</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Gene</th><th>Frequency</th><th>Genomes</th></tr></thead>
+                <tbody>
+"""
+        for gene, genomes in sorted(gene_frequency.items(), key=lambda x: len(x[1]), reverse=True):
+            freq = len(genomes)
+            pct = freq / total_genomes * 100 if total_genomes else 0
+            freq_display = f"{freq} ({pct:.1f}%)"
+            genome_list = ', '.join(sorted(genomes))
+            html += f"""
+                    <tr>
+                        <td><strong>{gene}</strong></td>
+                        <td>{freq_display}</td>
+                        <td class="sequence-cell">{genome_list}</td>
+                    </tr>
+"""
+        html += """
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>AcinetoScope</strong> - AMRfinderPlus Batch Analysis</p>
+        <p class="timestamp">""" + current_time + """</p>
+        <div class="authorship">
+            <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
+            <p>Email: brownbeckley94@gmail.com</p>
+            <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>"""
+        out_file = os.path.join(output_base, "acineto_amrfinder_summary_report.html")
+        with open(out_file, 'w') as f:
+            f.write(html)
+        self.logger.info(f"✓ AMR summary HTML: {out_file}")
+
+    def _create_amr_master_json(self, all_results: Dict[str, Any], output_base: str):
+        gene_freq = defaultdict(lambda: {'count': 0, 'genomes': set()})
+        for genome_name, result in all_results.items():
+            for hit in result['hits']:
+                gene = hit.get('gene_symbol', '')
+                if gene:
+                    gene_freq[gene]['count'] += 1
+                    gene_freq[gene]['genomes'].add(genome_name)
+        for gene in gene_freq:
+            gene_freq[gene]['genomes'] = list(gene_freq[gene]['genomes'])
+
+        master = {
+            'metadata': {
+                'tool': self.metadata['tool_name'],
+                'version': self.metadata['version'],
+                'analysis_date': self.metadata['analysis_date'],
+                'total_genomes': len(all_results),
+                'database_version': self.metadata['database_version']
+            },
+            'gene_frequency': gene_freq,
+            'genome_summaries': {
+                genome: {
+                    'total_hits': result['hit_count'],
+                    'genes': list({hit['gene_symbol'] for hit in result['hits'] if hit['gene_symbol']})
+                } for genome, result in all_results.items()
+            }
+        }
+        json_file = os.path.join(output_base, "acineto_amrfinder_master_summary.json")
+        with open(json_file, 'w') as f:
+            json.dump(master, f, indent=2, default=str)
+        self.logger.info(f"✓ Master JSON: {json_file}")
+
+    def create_mutation_summary(self, all_results: Dict[str, Any], output_base: str):
+        self.logger.info("Creating mutation batch summaries...")
+        all_mutations = []
+        genome_mutation_counts = {}
+        for genome_name, result in all_results.items():
+            if 'mutations_file' in result and result['mutations_file'] and os.path.exists(result['mutations_file']):
+                muts = self._parse_mutations_file(result['mutations_file'])
+                if muts:
+                    genome_mutation_counts[genome_name] = len(muts)
+                    for m in muts:
+                        m_copy = m.copy()
+                        m_copy['genome'] = genome_name
+                        all_mutations.append(m_copy)
+                else:
+                    genome_mutation_counts[genome_name] = 0
+            else:
+                genome_mutation_counts[genome_name] = 0
+
+        if not all_mutations:
+            self.logger.info("No mutations found in any genome; skipping mutation summaries.")
+            return
+
+        tsv_file = os.path.join(output_base, "mutation_summary.tsv")
+        with open(tsv_file, 'w') as f:
+            f.write("genome\tgene_symbol\telement_name\tclass\tsubclass\tcontig_id\tstart\tstop\tstrand\tcoverage\tidentity\taccession\n")
+            for m in all_mutations:
+                row = [
+                    m.get('genome', ''),
+                    m.get('gene_symbol', ''),
+                    m.get('element_name', ''),
+                    m.get('class', ''),
+                    m.get('subclass', ''),
+                    m.get('contig_id', ''),
+                    m.get('start', ''),
+                    m.get('stop', ''),
+                    m.get('strand', ''),
+                    m.get('coverage', ''),
+                    m.get('identity', ''),
+                    m.get('accession', '')
+                ]
+                f.write('\t'.join(str(x) for x in row) + '\n')
+        self.logger.info(f"✓ Mutation TSV: {tsv_file}")
+
+        self._create_mutation_summary_html(all_mutations, genome_mutation_counts, output_base)
+        self._create_mutation_master_json(all_mutations, genome_mutation_counts, output_base)
+
+    def _create_mutation_summary_html(self, all_mutations: List[Dict], genome_counts: Dict[str, int], output_base: str):
+        gene_freq = {}
+        for m in all_mutations:
+            gene = m.get('gene_symbol', 'unknown')
+            mut = m.get('element_name', '')
+            key = f"{gene}_{mut}"
+            if key not in gene_freq:
+                gene_freq[key] = {'count': 0, 'genomes': set(), 'gene': gene, 'mutation': mut,
+                                  'class': m.get('class', ''), 'subclass': m.get('subclass', '')}
+            gene_freq[key]['count'] += 1
+            gene_freq[key]['genomes'].add(m.get('genome', ''))
+        for k in gene_freq:
+            gene_freq[k]['genomes'] = ', '.join(sorted(gene_freq[k]['genomes']))
+        sorted_freq = sorted(gene_freq.values(), key=lambda x: x['count'], reverse=True)
+
+        random_quote = random.choice(self.science_quotes)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcinetoScope - Mutation Batch Summary</title>
+    <style>
+        * {{ margin:0; padding:0; box-sizing:border-box; }}
+        body {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff; padding: 20px; min-height: 100vh; }}
+        .container {{ max-width: 1400px; margin: 0 auto; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
+        .ascii-container {{ background: rgba(0,0,0,0.7); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 2px solid rgba(0,255,0,0.3); }}
+        .ascii-art {{ font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.1; white-space: pre; color: #00ff00; text-shadow: 0 0 10px rgba(0,255,0,0.5); overflow-x: auto; }}
+        .quote-container {{ background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }}
+        .quote-text {{ font-size: 18px; font-style: italic; margin-bottom: 10px; color: #ffffff; }}
+        .quote-author {{ font-size: 14px; color: #fbbf24; font-weight: bold; }}
+        .card {{ background: rgba(255,255,255,0.95); color: #1f2937; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }}
+        .card h2 {{ color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; }}
+        .table-responsive {{ width: 100%; overflow-x: auto; margin: 20px 0; }}
+        .data-table {{ width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }}
+        .data-table th {{ background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 12px; text-align: left; font-weight: bold; }}
+        .data-table td {{ padding: 10px; border-bottom: 1px solid #e5e7eb; }}
+        .data-table tr:nth-child(even) {{ background-color: #f8fafc; }}
+        .footer {{ text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 14px; }}
+        .timestamp {{ color: #fbbf24; font-weight: bold; }}
+        .authorship {{ margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px; }}
+        @media (max-width: 768px) {{ .ascii-art {{ font-size: 6px; }} }}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="ascii-container">
+            <div class="ascii-art">{self.ascii_art}</div>
+        </div>
+        <div class="quote-container">
+            <div class="quote-text">"{random_quote['text']}"</div>
+            <div class="quote-author">— {random_quote['author']}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🧬 Mutation Summary Across All Genomes</h2>
+        <p>Total genomes with mutations: {len([c for c in genome_counts.values() if c > 0])} / {len(genome_counts)}<br>
+        Total mutation events: {len(all_mutations)}</p>
+    </div>
+
+    <div class="card">
+        <h2>📊 Mutation Frequency</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Gene</th><th>Mutation</th><th>Count</th><th>Genomes</th><th>Class</th><th>Subclass</th></tr></thead>
+                <tbody>
+"""
+        for item in sorted_freq:
+            html += f"""
+                    <tr>
+                        <td><strong>{item['gene']}</strong></td>
+                        <td>{item['mutation']}</td>
+                        <td>{item['count']}</td>
+                        <td class="sequence-cell">{item['genomes']}</td>
+                        <td>{item['class']}</td>
+                        <td>{item['subclass']}</td>
+                    </tr>
+"""
+        html += f"""
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>AcinetoScope</strong> - Mutation Batch Summary</p>
+        <p class="timestamp">Generated: {current_time}</p>
+        <div class="authorship">
+            <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
+            <p>Email: brownbeckley94@gmail.com</p>
+            <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>"""
+        out_file = os.path.join(output_base, "mutation_summary.html")
+        with open(out_file, 'w') as f:
+            f.write(html)
+        self.logger.info(f"✓ Mutation summary HTML: {out_file}")
+
+    def _create_mutation_master_json(self, all_mutations: List[Dict], genome_counts: Dict[str, int], output_base: str):
+        gene_mut_map = defaultdict(lambda: {'count': 0, 'genomes': set()})
+        for m in all_mutations:
+            gene = m.get('gene_symbol', 'unknown')
+            mut = m.get('element_name', '')
+            key = f"{gene}_{mut}"
+            gene_mut_map[key]['count'] += 1
+            gene_mut_map[key]['genomes'].add(m.get('genome', ''))
+        for k in gene_mut_map:
+            gene_mut_map[k]['genomes'] = list(gene_mut_map[k]['genomes'])
+
+        master = {
+            'metadata': {
+                'tool': self.metadata['tool_name'],
+                'version': self.metadata['version'],
+                'analysis_date': self.metadata['analysis_date'],
+                'total_genomes': len(genome_counts),
+                'total_mutations': len(all_mutations)
+            },
+            'genome_mutation_counts': genome_counts,
+            'mutation_frequency': gene_mut_map,
+            'all_mutations': all_mutations
+        }
+        json_file = os.path.join(output_base, "mutation_master_summary.json")
+        with open(json_file, 'w') as f:
+            json.dump(master, f, indent=2, default=str)
+        self.logger.info(f"✓ Mutation master JSON: {json_file}")
+
 
 def main():
-    """Command line interface for A. baumannii AMR analysis"""
     parser = argparse.ArgumentParser(
-        description='AcinetoScope AMRfinderPlus Analysis - A. baumannii Antimicrobial Resistance - INTERACTIVE ENHANCED VERSION',
+        description='AcinetoScope AMRfinderPlus - A. baumannii AMR Analysis (BUNDLED VERSION)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run on all A. baumannii FASTA files (auto-detect optimal CPU cores - MAXIMUM SPEED)
+  # Run on all A. baumannii FASTA files (auto‑detect optimal CPU cores - MAXIMUM SPEED)
   python acineto_amrfinder.py "*.fna"
-  
-  # Run on specific pattern with auto CPU detection
-  python acineto_amrfinder.py "AB_*.fasta"
-  
-  # Run with custom output directory
-  python acineto_amrfinder.py "*.fa" --output my_acineto_amr_results
 
-  # Force specific number of CPU cores
-  python acineto_amrfinder.py "*.fna" --cpus 16
-  
-  # Force‑update the AMR database (overwrites existing)
+  # Run with custom identity and coverage thresholds
+  python acineto_amrfinder.py "*.fna" --min-identity 0.95 --min-coverage 0.9
+
+  # Skip mutation reporting (mutations are reported by default)
+  python acineto_amrfinder.py "*.fna" --skip-mutations
+
+  # Force update database to the latest version (overwrites old)
   python acineto_amrfinder.py --force-update
 
-INTERACTIVE FEATURES:
-  • Search across entire report (genes, genomes, classes)
-  • Export to CSV, JSON with one click
-  • Print-friendly reports
-  • Filter by risk level (Critical, High, Standard)
-  • No truncation - all data visible
-  • Quick navigation with highlighted search results
-
-Supported FASTA extensions: .fasta, .fa, .fna, .faa
+  # Show current database version
+  python acineto_amrfinder.py --db-version
         """
     )
-    
+
     parser.add_argument('pattern', nargs='?', help='File pattern for A. baumannii genomes (e.g., "*.fasta", "genomes/*.fna")')
-    parser.add_argument('--cpus', '-c', type=int, default=None, 
-                       help='Number of CPU cores to use (default: auto-detect optimal for MAXIMUM SPEED)')
-    parser.add_argument('--output', '-o', default='acineto_amrfinder_results', 
-                       help='Output directory (default: acineto_amrfinder_results)')
+    parser.add_argument('--cpus', '-c', type=int, default=None,
+                        help='Number of CPU cores to use (default: auto-detect optimal for MAXIMUM SPEED)')
+    parser.add_argument('--output', '-o', default='acineto_amrfinder_results',
+                        help='Output directory (default: acineto_amrfinder_results)')
+    parser.add_argument('--min-identity', type=float, default=None,
+                        help='Minimum identity (0..1) for hits. Default: AMRfinder auto threshold')
+    parser.add_argument('--min-coverage', type=float, default=None,
+                        help='Minimum coverage of reference (0..1). Default: 0.5')
+    parser.add_argument('--skip-mutations', action='store_true',
+                        help='Skip point mutation reporting (mutations are reported by default)')
+    parser.add_argument('--update-db', action='store_true',
+                        help='Update AMRfinderPlus database to latest version (incremental) and exit')
     parser.add_argument('--force-update', action='store_true',
-                       help='Force update of AMR database (overwrites existing)')
-    
+                        help='Force complete database update (overwrites existing folders) and exit')
+    parser.add_argument('--db-version', action='store_true',
+                        help='Show current database version and exit')
+
     args = parser.parse_args()
-    
-    # Handle force-update separately (no pattern needed)
-    if args.force_update:
-        # We need an instance to call update_database
-        executor = AcinetoAMRfinderPlus(cpus=args.cpus)
-        success = executor.update_database(force=True)
-        sys.exit(0 if success else 1)
-    
-    if not args.pattern:
-        parser.error("Please provide a file pattern for genomes (or use --force-update)")
-    
-    # Print AcinetoScope banner
-    print("\n" + "="*80)
-    print(r"""
- █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
-██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
-███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
-██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
-██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
-╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
-""")
-    print("A. baumannii AMRfinderPlus Analysis - INTERACTIVE ENHANCED VERSION")
-    print("="*80)
-    print(f"Author: Brown Beckley | Email: brownbeckley94@gmail.com")
-    print(f"Affiliation: University of Ghana Medical School - Department of Medical Biochemistry")
-    print("="*80)
-    
+
     executor = AcinetoAMRfinderPlus(cpus=args.cpus)
-    
+
+    if args.update_db or args.force_update or args.db_version:
+        if args.force_update:
+            print("Forcing full database update (this will overwrite existing database)...")
+            success = executor.update_database(force=True)
+            sys.exit(0 if success else 1)
+        if args.update_db:
+            print("Updating AMRfinderPlus database (incremental)...")
+            success = executor.update_database(force=False)
+            sys.exit(0 if success else 1)
+        if args.db_version:
+            print(f"Database version: {executor.metadata['database_version']}")
+            print(f"Database path: {executor.bundled_database or 'Not found'}")
+            sys.exit(0)
+
+    if not args.pattern:
+        parser.error("Please provide a file pattern for genomes (or use --update-db / --force-update / --db-version)")
+
     try:
-        results = executor.process_multiple_genomes(args.pattern, args.output)
-        
-        # Print summary
+        results = executor.process_multiple_genomes(
+            args.pattern,
+            args.output,
+            min_identity=args.min_identity,
+            min_coverage=args.min_coverage,
+            report_mutations=not args.skip_mutations
+        )
+
         executor.logger.info("\n" + "="*50)
         executor.logger.info("🧬 AcinetoScope AMRfinderPlus FINAL SUMMARY")
         executor.logger.info("="*50)
-        
-        total_hits = 0
+
+        total_hits = sum(r['hit_count'] for r in results.values())
         high_risk_count = 0
         critical_risk_count = 0
-        carbapenemase_count = 0
-        colistin_count = 0
-        
         for genome_name, result in results.items():
-            total_hits += result['hit_count']
-            
-            # Count high-risk and critical genes
-            genes = [hit.get('gene_symbol') for hit in result['hits'] if hit.get('gene_symbol')]
-            high_risk_count += sum(1 for gene in genes if gene in executor.high_risk_genes)
-            critical_risk_count += sum(1 for gene in genes if gene in executor.critical_risk_genes)
-            
-            # Count specific critical categories
-            for gene in genes:
-                gene_lower = gene.lower()
-                if any(carba in gene_lower for carba in ['oxa', 'kpc', 'ndm', 'vim', 'imp', 'sim']):
-                    carbapenemase_count += 1
-                if any(mcr in gene_lower for mcr in ['mcr']):
-                    colistin_count += 1
-            
-            executor.logger.info("✓ %s: %d AMR hits", genome_name, result['hit_count'])
-        
+            genes = [hit['gene_symbol'] for hit in result['hits'] if hit['gene_symbol']]
+            high_risk_count += sum(1 for g in genes if g in executor.high_risk_genes)
+            critical_risk_count += sum(1 for g in genes if g in executor.critical_risk_genes)
+            executor.logger.info(f"✓ {genome_name}: {result['hit_count']} AMR hits")
+
         executor.logger.info("\n📊 A. BAUMANNII SUMMARY STATISTICS:")
-        executor.logger.info("   Total genomes processed: %d", len(results))
-        executor.logger.info("   Total AMR hits: %d", total_hits)
-        executor.logger.info("   High-risk genes detected: %d", high_risk_count)
-        executor.logger.info("   CRITICAL RISK genes detected: %d", critical_risk_count)
-        executor.logger.info("   Carbapenemase genes: %d", carbapenemase_count)
-        executor.logger.info("   Colistin resistance genes: %d", colistin_count)
-        executor.logger.info("   Average AMR hits per genome: %.1f", total_hits / len(results) if results else 0)
-        
-        # Show summary file locations
+        executor.logger.info(f"   Total genomes processed: {len(results)}")
+        executor.logger.info(f"   Total AMR hits: {total_hits}")
+        executor.logger.info(f"   High-risk genes detected: {high_risk_count}")
+        executor.logger.info(f"   CRITICAL RISK genes detected: {critical_risk_count}")
+        executor.logger.info(f"   Average AMR hits per genome: {total_hits / len(results) if results else 0:.1f}")
+
         executor.logger.info("\n📁 SUMMARY FILES CREATED:")
-        executor.logger.info("   Comprehensive AMR data: %s/acineto_amrfinder_summary.tsv", args.output)
-        executor.logger.info("   Statistics summary: %s/acineto_amrfinder_statistics_summary.tsv", args.output)
-        executor.logger.info("   Master JSON summary: %s/acineto_amrfinder_master_summary.json", args.output)
-        executor.logger.info("   Summary HTML report: %s/acineto_amrfinder_summary_report.html", args.output)
-        executor.logger.info("   Individual genome reports in: %s/*/", args.output)
-        
-        # Interactive features summary
-        executor.logger.info("\n🚀 INTERACTIVE FEATURES:")
-        executor.logger.info("   • Search across entire reports (genes, genomes, classes)")
-        executor.logger.info("   • Export to CSV/JSON with one click")
-        executor.logger.info("   • Print-friendly reports")
-        executor.logger.info("   • Filter by risk level (Critical, High, Standard)")
-        executor.logger.info("   • No data truncation - all information visible")
-        executor.logger.info("   • Quick navigation with highlighted search results")
-        
-        # Performance summary
-        executor.logger.info("\n⚡ MAXIMUM SPEED PERFORMANCE SUMMARY:")
-        executor.logger.info("   CPU cores utilized: %d cores", executor.cpus)
-        executor.logger.info("   Available RAM: %.1f GB", executor.available_ram)
-        executor.logger.info("   Processing mode: MAXIMUM SPEED CONCURRENT MODE 🚀")
-        executor.logger.info("   Strategy: Process multiple A. baumannii genomes concurrently with optimal core allocation")
-        executor.logger.info("   Bundled AMRfinderPlus: %s", executor.metadata['amrfinder_version'])
-        executor.logger.info("   Bundled database: %s", executor.metadata['database_version'])
-        
-        # Critical risk warning if detected
+        executor.logger.info(f"   Comprehensive AMR data: {args.output}/acineto_amrfinder_summary.tsv")
+        executor.logger.info(f"   Statistics summary: {args.output}/acineto_amrfinder_statistics_summary.tsv")
+        executor.logger.info(f"   Master JSON: {args.output}/acineto_amrfinder_master_summary.json")
+        executor.logger.info(f"   Summary HTML: {args.output}/acineto_amrfinder_summary_report.html")
+        executor.logger.info(f"   Mutation TSV: {args.output}/mutation_summary.tsv")
+        executor.logger.info(f"   Mutation HTML: {args.output}/mutation_summary.html")
+        executor.logger.info(f"   Mutation master JSON: {args.output}/mutation_master_summary.json")
+
+        executor.logger.info("\n⚡ PERFORMANCE SUMMARY:")
+        executor.logger.info(f"   CPU cores utilized: {executor.cpus}")
+        executor.logger.info(f"   Available RAM: {executor.available_ram:.1f} GB")
+        executor.logger.info(f"   Processing mode: MAXIMUM SPEED CONCURRENT MODE 🚀")
+        executor.logger.info(f"   Bundled AMRfinderPlus: {executor.metadata['amrfinder_version']}")
+        executor.logger.info(f"   Bundled database: {executor.metadata['database_version']}")
+
         if critical_risk_count > 0:
             executor.logger.info("\n🚨 CRITICAL RISK ALERT: Last-resort antibiotic resistance genes detected!")
             executor.logger.info("   Immediate clinical attention and infection control measures required.")
-        
-        import random
-        executor.logger.info("\n💡 %s", random.choice(executor.science_quotes))
-        
+
+        random_quote = random.choice(executor.science_quotes)
+        executor.logger.info(f"\n💡 \"{random_quote['text']}\" - {random_quote['author']}")
+
     except Exception as e:
-        executor.logger.error("A. baumannii AMR analysis failed: %s", e)
+        executor.logger.error(f"A. baumannii AMR analysis failed: {e}")
+        import traceback
+        executor.logger.error(traceback.format_exc())
         sys.exit(1)
 
 

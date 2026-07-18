@@ -1,0 +1,1135 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope ABRicate Analysis Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gene-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gene-table th, .gene-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .gene-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        
+        .success { color: #28a745; font-weight: 600; }
+        .warning { color: #ffc107; font-weight: 600; }
+        .error { color: #dc3545; font-weight: 600; }
+        .critical { background-color: #f8d7da; font-weight: bold; }
+        .high-risk { background-color: #fff3cd; }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .risk-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 0.9em;
+        }
+        
+        .warning-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 0.9em;
+        }
+        
+        .safe-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 0.9em;
+        }
+    </style>
+    
+        <script>
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Rotate every 10 seconds
+            setInterval(rotateQuote, 10000);
+            
+            // Initial display
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+            });
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope ABRicate Analysis Report</h1>
+                <p style="color: #666; font-size: 1.2em;">Comprehensive A. baumannii Antimicrobial Resistance & Virulence Analysis</p>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 A. baumannii AMR Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total Genes</h3>
+                    <p style="font-size: 2em; margin: 0;">396</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Critical Resistance</h3>
+                    <p style="font-size: 2em; margin: 0;">37</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Virulence Factors</h3>
+                    <p style="font-size: 2em; margin: 0;">16</p>
+                </div>
+            </div>
+            <p><strong>Genome:</strong> GCA_000498375.2</p>
+            <p><strong>Date:</strong> 2026-07-18 16:48:59</p>
+            <p><strong>Tool Version:</strong> 1.3.0</p>
+            <p><strong>Min Identity:</strong> 80%</p>
+            <p><strong>Min Coverage:</strong> 80%</p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid #dc3545;">
+            <h2 style="color: #dc3545;">⚠️ CRITICAL RESISTANCE ALERTS</h2>
+            <div style="margin: 10px 0;">
+<span class="risk-badge">🔴 CARBAPENEMASE DETECTED</span><span class="risk-badge">🟡 ESBL DETECTED</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧪 Resistance Classes Detected</h2>
+            <div style="margin: 20px 0;">
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Aminoglycoside resistance</strong> (82 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">ant(3'')-IIa, aph(6)-Id, aph(3'')-Ib, aac(6')-Ip, armA, aadA1, aac(6')-Ib', aph(3')-Ia, ANT(3'')-IIa, APH(6)-Id, APH(3'')-Ib, AAC(6')-Iaf, msrE, aadA, AAC(6')-Ib7, APH(3')-Ia, aph(6)-Id_1, aph(3'')-Ib_2, aac(6')-Iaf_1, armA_1, aph(3')-Ia_7, blaADC-25_1, (AGly)strB, (AGly)strA, (AGly)aac6-Iaf, (AGly)armA, (AGly)aadA1-pm, (AGly)aph(3'')-Ia, (Bla)blaADC-25, ANT3-DPRIME, APH6, APH3-DPRIME, AAC6-PRIME, ARMA, comR/ycfQ-BAC0076, blt-BAC0050, corR-BAC0089, dsbC-BAC0138, frnE-BAC0170, mdtN/yjcR-BAC0220, cutE/lnt-BAC0115, corC-BAC0088, adeL-BAC0508, fabI-BAC0156, sugE-BAC0378, fabL/ygaA-BAC0158, pitA-BAC0312, pbrR-BAC0301, golT-BAC0183, hmrR-BAC0190, soxR-BAC0370, fabK-BAC0157, arsC-BAC0584, arsB-BAC0573, vcaM-BAC0417, ostA/lptD-BAC0296, lmrS-BAC0535, fpvA-BAC0169, merA-BAC0651, baeR-BAC0039, emrBsm-BAC0500, fecE-BAC0164, actP/yjcG-BAC0564, zraR/hydH-BAC0467, adeN-BAC0496, mgtA-BAC0642, czcR-BAC0125, yddg/emrE-BAC0435, pmrB-BAC0488, pmrA-BAC0487, ruvB-BAC0355, ydeP-BAC0438, bcr-BAC0041, recG-BAC0356, corA-BAC0641, mdfA/cmr-BAC0208, czcD-BAC0122, czcA-BAC0119, fptA-BAC0168, hmrM-BAC0189, mexK-BAC0242, mexJ-BAC0241</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Tetracycline resistance</strong> (5 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">tet(B), tet(B)_1, basI, (Tet)tetB, TETB</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Carbapenem resistance</strong> (13 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">blaOXA-23, blaOXA-66, OXA-23, OXA-66, blaOXA-23_1, blaOXA-66_1, (Bla)blaOXA-23, (Bla)blaOXA-66, OXA, znuC/yebM-BAC0465, nikD-BAC0273, nikE-BAC0274, pstB-BAC0316</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Sulfonamide resistance</strong> (22 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">sul1, Acinetobacter_baumannii_AbaF, sul1_5, ACICU_RS00395, ACICU_RS00400, ACICU_RS00405, tviB, pseB, pseC, pseF, pseG, pseH, pseI, ACICU_RS00470*, ACICU_RS00475, galU, ACICU_RS00485, pgi, galE, ACICU_RS00500, (Sul)sul1, SULI</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Beta-lactam resistance</strong> (58 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">blaTEM-12, blaADC-31, TEM-12, adeB, adeR, adeS, Acinetobacter_baumannii_AmvA, ADC-31, blaTEM-1D_1, gspN, gspC, gspD, pilC, gspF, gspG, gspE1, vgrG/tssI, tssB, tssC, hcp/tssD, tssE, tssF, tssG, tssM, clpV/tssH, tssA, tssK, tssL, tagX, gspH, gspI, gspK, csuC, gspM, gspL, gspE2, barB, barA, bauB, bauC, bauD, (Bla)blaTEM-1D, TEM, znuB/yebI-BAC0464, abuO-BAC0758, oxyRkp-BAC0536, nreB-BAC0285, pcoA-BAC0303, cpxR-BAC0533, nikB-BAC0271, merR-BAC0689, modA-BAC0609, modB-BAC0610, fecD-BAC0163, amvA-BAC0025, sodB-BAC0706, modB-BAC0599, hefC-BAC0188</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Macrolide resistance</strong> (11 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">mph(E), msr(E), qacEdelta1, mphE, mph(E)_1, msr(E)_1, ACICU_RS16840, (MLS)mph(E), (MLS)msr(E), MPHE, MSRE</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Chloramphenicol resistance</strong> (6 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">catB8, catB8_1, adeG, pilV, (Phe)catB8, adeG-BAC0015</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Polymyxin resistance</strong> (1 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">LpsB</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Efflux pumps</strong> (43 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">adeC, adeA, adeN, abeS, adeL, adeG, adeF, adeH, adeI, adeJ, adeK, entE, MEXT, ADEC, ADEB, ADEA, ADER, ADES, ADET1, ADEN, AMVA, ABES, ADEL, ADEF, ADEG, ADEH, ADEI, ADEJ, ADEK, ADET2, mexT-BAC0244, adeC-BAC0473, adeB-BAC0472, adeA-BAC0471, adeT1-BAC0478, abeS-BAC0002, adeF-BAC0014, adeH-BAC0016, adeE-BAC0013, adeI-BAC0017, adeJ-BAC0018, adeK-BAC0019, adeT2-BAC0479</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Quinolone resistance</strong> (1 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">Acinetobacter_baumannii_AbaQ</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Other resistance</strong> (83 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">ant(3'')-Ia_1, abaI, abaR, tsaP, pilR, pilS, pbpG, gspO/pilD, pilB, fimV, lpsB, lpxL, pilF, bfmR, bfmS, pilU, pilT, ACICU_RS04565, ACICU_RS04610, lpxB, lpxA, lpxD, pgaD, pgaC, pgaB, pgaA, csuE, csuD, csuB, csuA, csuA/B, basJ, basH, basG, basD, basC, basA, lpxM, bap, pilJ, pilI, pilH, pilG, ompA, fimT, pilE, pilY1, pilX, pilW, fimU, pilA, pilQ, pilP, pilO, pilN, pilM, lpxC, (AGly)ant(3'')-IIa, (Bla)BlaA2, (Bla)Mbl, (Bla)BlaA1, (Bla)Zn-dependent_hydrolase, BLAA, ADC, galE-BAC0755, acn-BAC0003, smeF-BAC0360, bfrA-BAC0048, arsT-BAC0714, vceA-BAC0418, vceB-BAC0419, merA-BAC0652, merC-BAC0664, merP-BAC0678, merT-BAC0695, qacEdelta1-BAC0323, mdeA-BAC0207, chrA-BAC0026, pmrC-BAC0485, sitB-BAC0350, ruvB-BAC0293, G2alt-BAC0490, copR-BAC0719</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Virulence factors</strong> (6 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">plc1, plc2, bauA, bauE, bauF, plcD</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Rifampicin resistance</strong> (2 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">basF, basB</span>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong style="color: #3b82f6;">Fosfomycin resistance</strong> (2 genes)
+                    <br><span style="color: #666; font-size: 0.9em;">ABAF, ABAQ</span>
+                </div>
+</div></div>
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🔴 CRITICAL Carbapenemase Genes</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Product</th>
+                        <th>Database</th>
+                        <th>Coverage</th>
+                        <th>Identity</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="critical">
+                        <td><strong>blaOXA-23</strong></td>
+                        <td title="OXA-23 family carbapenem-hydrolyzing class D beta-lactamase OXA-23">OXA-23 family carbapenem-hydrolyzing class D beta-lactamase OXA-23</td>
+                        <td>ncbi</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>blaOXA-66</strong></td>
+                        <td title="OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66">OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66</td>
+                        <td>ncbi</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>OXA-23</strong></td>
+                        <td title="OXA-23 is a beta-lactamase found in A. baumannii.">OXA-23 is a beta-lactamase found in A. baumannii.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>OXA-66</strong></td>
+                        <td title="OXA-66 is a beta-lactamase found in A. baumannii.">OXA-66 is a beta-lactamase found in A. baumannii.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>blaOXA-23_1</strong></td>
+                        <td title="blaOXA-23">blaOXA-23</td>
+                        <td>resfinder</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>blaOXA-66_1</strong></td>
+                        <td title="blaOXA-66">blaOXA-66</td>
+                        <td>resfinder</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>(Bla)blaOXA-23</strong></td>
+                        <td title="(Bla)blaOXA-23">(Bla)blaOXA-23</td>
+                        <td>argannot</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>(Bla)blaOXA-66</strong></td>
+                        <td title="(Bla)blaOXA-66">(Bla)blaOXA-66</td>
+                        <td>argannot</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="risk-badge">CARBAPENEMASE</span></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🟡 Critical ESBL Genes</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Product</th>
+                        <th>Database</th>
+                        <th>Coverage</th>
+                        <th>Identity</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="critical">
+                        <td><strong>blaTEM-12</strong></td>
+                        <td title="extended-spectrum class A beta-lactamase TEM-12">extended-spectrum class A beta-lactamase TEM-12</td>
+                        <td>ncbi</td>
+                        <td>100.00%</td>
+                        <td>99.88%</td>
+                        <td><span class="warning-badge">ESBL</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>TEM-12</strong></td>
+                        <td title="TEM-12 is an extended-spectrum beta-lactamase found in Klebsiella oxytoca.">TEM-12 is an extended-spectrum beta-lactamase found in Klebsiella oxytoca.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>99.88%</td>
+                        <td><span class="warning-badge">ESBL</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>blaTEM-1D_1</strong></td>
+                        <td title="blaTEM-1D">blaTEM-1D</td>
+                        <td>resfinder</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">ESBL</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>(Bla)blaTEM-1D</strong></td>
+                        <td title="(Bla)blaTEM-1D">(Bla)blaTEM-1D</td>
+                        <td>argannot</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">ESBL</span></td>
+                    </tr>
+
+                    <tr class="critical">
+                        <td><strong>TEM</strong></td>
+                        <td title="Drugs:betalactams:Class_A_betalactamases:TEM">Drugs:betalactams:Class_A_betalactamases:TEM</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>99.84%</td>
+                        <td><span class="warning-badge">ESBL</span></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🟡 High-Risk Resistance Genes</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Gene</th>
+                        <th>Product</th>
+                        <th>Database</th>
+                        <th>Coverage</th>
+                        <th>Identity</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="high-risk">
+                        <td><strong>sul1</strong></td>
+                        <td title="sulfonamide-resistant dihydropteroate synthase Sul1">sulfonamide-resistant dihydropteroate synthase Sul1</td>
+                        <td>ncbi</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>sul1</strong></td>
+                        <td title="sulfonamide-resistant dihydropteroate synthase Sul1">sulfonamide-resistant dihydropteroate synthase Sul1</td>
+                        <td>ncbi</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>catB8</strong></td>
+                        <td title="type B-3 chloramphenicol O-acetyltransferase CatB8">type B-3 chloramphenicol O-acetyltransferase CatB8</td>
+                        <td>ncbi</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>sul1</strong></td>
+                        <td title="Sul1 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria. It is linked to other resistance genes of class 1 integrons.">Sul1 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria. It is linked to other resistance genes of class 1 integrons.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeC</strong></td>
+                        <td title="AdeC is the outer membrane factor of the AdeABC multidrug efflux complex. It can be replaced by other outer membrane channels and is not essential for antibiotic resistance.">AdeC is the outer membrane factor of the AdeABC multidrug efflux complex. It can be replaced by other outer membrane channels and is not essential for antibiotic resistance.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeB</strong></td>
+                        <td title="AdeB is the multidrug transporter of the adeABC efflux system.">AdeB is the multidrug transporter of the adeABC efflux system.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>99.94%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeA</strong></td>
+                        <td title="AdeA is the membrane fusion protein of the multidrug efflux complex AdeABC.">AdeA is the membrane fusion protein of the multidrug efflux complex AdeABC.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeN</strong></td>
+                        <td title="AdeN is a repressor of AdeIJK a RND-type efflux pump in Acinetobacter baumannii. Its inactivation increases expression of AdeJ.">AdeN is a repressor of AdeIJK a RND-type efflux pump in Acinetobacter baumannii. Its inactivation increases expression of AdeJ.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>98.78%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>mphE</strong></td>
+                        <td title="mphE is a macrolide phosphotransferase and resistance gene identified on a plasmid pRSB105.">mphE is a macrolide phosphotransferase and resistance gene identified on a plasmid pRSB105.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>sul1</strong></td>
+                        <td title="Sul1 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria. It is linked to other resistance genes of class 1 integrons.">Sul1 is a sulfonamide resistant dihydropteroate synthase of Gram-negative bacteria. It is linked to other resistance genes of class 1 integrons.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>catB8</strong></td>
+                        <td title="catB8 is a plasmid or integron-encoded variant of the cat gene found in Klebsiella pneumoniae Salmonella typhi and Pseudomonas aeruginosa.">catB8 is a plasmid or integron-encoded variant of the cat gene found in Klebsiella pneumoniae Salmonella typhi and Pseudomonas aeruginosa.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>abeS</strong></td>
+                        <td title="AbeS in an efflux pump of the SMR family of transporters found in Acinetobacter baumannii.">AbeS in an efflux pump of the SMR family of transporters found in Acinetobacter baumannii.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>97.88%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL</strong></td>
+                        <td title="AdeL is a regulator of AdeFGH in Acinetobacter baumannii. AdeL mutations are associated with AdeFGH overexpression and multidrug resistance.">AdeL is a regulator of AdeFGH in Acinetobacter baumannii. AdeL mutations are associated with AdeFGH overexpression and multidrug resistance.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>99.01%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeG</strong></td>
+                        <td title="AdeG is the inner membrane transporter of the AdeFGH multidrug efflux complex.">AdeG is the inner membrane transporter of the AdeFGH multidrug efflux complex.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>97.95%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeH</strong></td>
+                        <td title="AdeH is the outer membrane channel protein of the AdeFGH multidrug efflux complex.">AdeH is the outer membrane channel protein of the AdeFGH multidrug efflux complex.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>98.97%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeI</strong></td>
+                        <td title="AdeI is the membrane fusion protein of the AdeIJK multidrug efflux complex.">AdeI is the membrane fusion protein of the AdeIJK multidrug efflux complex.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>99.44%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeJ</strong></td>
+                        <td title="AdeJ is a RND efflux protein that acts as the inner membrane transporter of the AdeIJK efflux complex. It has 57% identity with E. coli AcrB.">AdeJ is a RND efflux protein that acts as the inner membrane transporter of the AdeIJK efflux complex. It has 57% identity with E. coli AcrB.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>99.97%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeK</strong></td>
+                        <td title="AdeK is the outer membrane factor protein in the adeIJK multidrug efflux complex.">AdeK is the outer membrane factor protein in the adeIJK multidrug efflux complex.</td>
+                        <td>card</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>sul1_5</strong></td>
+                        <td title="sul1">sul1</td>
+                        <td>resfinder</td>
+                        <td>100.00%</td>
+                        <td>99.89%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>sul1_5</strong></td>
+                        <td title="sul1">sul1</td>
+                        <td>resfinder</td>
+                        <td>100.00%</td>
+                        <td>99.89%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>catB8_1</strong></td>
+                        <td title="catB8">catB8</td>
+                        <td>resfinder</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeG</strong></td>
+                        <td title="(adeG) cation/multidrug efflux pump [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeG) cation/multidrug efflux pump [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>vfdb</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeH</strong></td>
+                        <td title="(adeH) outer membrane protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]">(adeH) outer membrane protein [AdeFGH efflux pump (VF0504) - Biofilm (VFC0271)] [Acinetobacter baumannii ACICU]</td>
+                        <td>vfdb</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>(Tet)tetB</strong></td>
+                        <td title="(Tet)tetB">(Tet)tetB</td>
+                        <td>argannot</td>
+                        <td>99.50%</td>
+                        <td>99.75%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>(Sul)sul1</strong></td>
+                        <td title="(Sul)sul1">(Sul)sul1</td>
+                        <td>argannot</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>(Sul)sul1</strong></td>
+                        <td title="(Sul)sul1">(Sul)sul1</td>
+                        <td>argannot</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>(Phe)catB8</strong></td>
+                        <td title="(Phe)catB8">(Phe)catB8</td>
+                        <td>argannot</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>TETB</strong></td>
+                        <td title="Drugs:Tetracyclines:Tetracycline_resistance_MFS_efflux_pumps:TETB">Drugs:Tetracyclines:Tetracycline_resistance_MFS_efflux_pumps:TETB</td>
+                        <td>megares</td>
+                        <td>99.50%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEC</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEC">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEC</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEB</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEB">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEB</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>99.94%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEA</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEA">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEA</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEN</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEN">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEN</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>98.78%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>MPHE</strong></td>
+                        <td title="Drugs:MLS:Macrolide_phosphotransferases:MPHE">Drugs:MLS:Macrolide_phosphotransferases:MPHE</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ABES</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_SMR_efflux_pumps:ABES">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_SMR_efflux_pumps:ABES</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEL</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEL">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_regulator:ADEL</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>99.70%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEG</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEG">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEG</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>97.61%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEH</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEH">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEH</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>98.97%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEI</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEI">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEI</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEJ</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEJ">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEJ</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>99.97%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>ADEK</strong></td>
+                        <td title="Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEK">Multi-compound:Drug_and_biocide_resistance:Drug_and_biocide_RND_efflux_pumps:ADEK</td>
+                        <td>megares</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>83.68%</td>
+                        <td>38.68%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>85.16%</td>
+                        <td>28.77%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>88.72%</td>
+                        <td>34.19%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>85.76%</td>
+                        <td>35.55%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>86.05%</td>
+                        <td>42.95%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>83.38%</td>
+                        <td>28.47%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeC-BAC0473</strong></td>
+                        <td title="AdeC outer membrane protein OS=Acinetobacter baumannii GN=adeC PE=4 SV=1">AdeC outer membrane protein OS=Acinetobacter baumannii GN=adeC PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeB-BAC0472</strong></td>
+                        <td title="AdeB RND protein OS=Acinetobacter baumannii GN=adeB PE=4 SV=1">AdeB RND protein OS=Acinetobacter baumannii GN=adeB PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeA-BAC0471</strong></td>
+                        <td title="AdeA membrane fusion protein OS=Acinetobacter baumannii GN=adeA PE=4 SV=1">AdeA membrane fusion protein OS=Acinetobacter baumannii GN=adeA PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>emrBsm-BAC0500</strong></td>
+                        <td title="Putative multidrug resistance protein B OS=Stenotrophomonas maltophilia (strain K279a) GN=emrB PE=4 SV=1">Putative multidrug resistance protein B OS=Stenotrophomonas maltophilia (strain K279a) GN=emrB PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>87.50%</td>
+                        <td>29.19%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeN-BAC0496</strong></td>
+                        <td title="Bacterial regulatory protein tetR family protein OS=Acinetobacter baumannii (strain AB307-0294) GN=ABBFA_001467 PE=4 SV=1">Bacterial regulatory protein tetR family protein OS=Acinetobacter baumannii (strain AB307-0294) GN=ABBFA_001467 PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>99.54%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>83.98%</td>
+                        <td>31.36%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>yddg/emrE-BAC0435</strong></td>
+                        <td title="Methyl viologen resistance protein YddG OS=Salmonella typhimurium (strain 14028s / SGSC 2262) GN=yddG PE=1 SV=1">Methyl viologen resistance protein YddG OS=Salmonella typhimurium (strain 14028s / SGSC 2262) GN=yddG PE=1 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>99.32%</td>
+                        <td>45.89%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>abeS-BAC0002</strong></td>
+                        <td title="QacEdelta1 SMR family efflux pump OS=Acinetobacter baumannii GN=qacEdelta1 PE=3 SV=1">QacEdelta1 SMR family efflux pump OS=Acinetobacter baumannii GN=qacEdelta1 PE=3 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeG-BAC0015</strong></td>
+                        <td title="Cation/multidrug efflux pump OS=Acinetobacter baumannii GN=29_167 PE=4 SV=1">Cation/multidrug efflux pump OS=Acinetobacter baumannii GN=29_167 PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>99.81%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeH-BAC0016</strong></td>
+                        <td title="Putative RND family drug transporter OS=Acinetobacter baumannii GN=29_170 PE=4 SV=1">Putative RND family drug transporter OS=Acinetobacter baumannii GN=29_170 PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>99.59%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>yddg/emrE-BAC0435</strong></td>
+                        <td title="Methyl viologen resistance protein YddG OS=Salmonella typhimurium (strain 14028s / SGSC 2262) GN=yddG PE=1 SV=1">Methyl viologen resistance protein YddG OS=Salmonella typhimurium (strain 14028s / SGSC 2262) GN=yddG PE=1 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>97.27%</td>
+                        <td>36.79%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeI-BAC0017</strong></td>
+                        <td title="AdeI OS=Acinetobacter baumannii GN=adeI PE=4 SV=1">AdeI OS=Acinetobacter baumannii GN=adeI PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeJ-BAC0018</strong></td>
+                        <td title="AdeJ OS=Acinetobacter baumannii GN=adeJ PE=4 SV=1">AdeJ OS=Acinetobacter baumannii GN=adeJ PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>99.91%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeK-BAC0019</strong></td>
+                        <td title="AdeK OS=Acinetobacter baumannii GN=adeK PE=4 SV=1">AdeK OS=Acinetobacter baumannii GN=adeK PE=4 SV=1</td>
+                        <td>bacmet2</td>
+                        <td>100.00%</td>
+                        <td>100.00%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                    <tr class="high-risk">
+                        <td><strong>adeL-BAC0508</strong></td>
+                        <td title="Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2">Transcriptional regulator LysR family OS=Acinetobacter baumannii (strain ATCC 17978 / NCDC KC 755) GN=A1S_2303 PE=4 SV=2</td>
+                        <td>bacmet2</td>
+                        <td>82.79%</td>
+                        <td>30.18%</td>
+                        <td><span class="warning-badge">HIGH-RISK</span></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🗃️ Database Results Summary</h2>
+            <table class="gene-table">
+                <thead>
+                    <tr>
+                        <th>Database</th>
+                        <th>Hits</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td>ncbi</td>
+                        <td>18</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>card</td>
+                        <td>38</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>resfinder</td>
+                        <td>16</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>vfdb</td>
+                        <td>121</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>argannot</td>
+                        <td>21</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>plasmidfinder</td>
+                        <td>0</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>megares</td>
+                        <td>39</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>ecoh</td>
+                        <td>0</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>bacmet2</td>
+                        <td>143</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                    <tr>
+                        <td>ecoli_vf</td>
+                        <td>0</td>
+                        <td>✅ success</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+            </p>
+        </div>
+    </div>
+</body>
+</html>

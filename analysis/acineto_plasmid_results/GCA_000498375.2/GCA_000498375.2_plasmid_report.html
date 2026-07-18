@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AcinetoScope Plasmid Typing Report - GCA_000498375.2</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            text-align: center;
+        }
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+            display: inline-block;
+            text-align: left;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+        }
+        tr:hover { background-color: #f8f9fa; }
+        .rep-badge {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 3px;
+            font-size: 0.9em;
+        }
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .footer a { color: #667eea; text-decoration: none; }
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        .interactive-controls {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .export-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .export-buttons button {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .export-buttons button:hover { background: #2563eb; }
+        .export-buttons button.print { background: #10b981; }
+        .export-buttons button.print:hover { background: #059669; }
+        .result-counter {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+        .no-print { }
+        @media print {
+            .no-print, .interactive-controls, .quick-search-bar, .quote-container, .ascii-container { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .card { background: white !important; color: black !important; box-shadow: none !important; }
+        }
+    </style>
+    <script>
+        function searchTable(tableId, term) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName('tr');
+            let visible = 0;
+            for (let i = 1; i < rows.length; i++) {
+                const text = rows[i].textContent.toLowerCase();
+                if (text.includes(term.toLowerCase())) {
+                    rows[i].style.display = '';
+                    visible++;
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+            const counter = document.getElementById('result-counter-' + tableId);
+            if (counter) counter.innerText = visible + ' results found';
+        }
+        function exportToCSV(tableId, filename) {
+            const table = document.getElementById(tableId);
+            let csv = [];
+            const headers = table.querySelectorAll('th');
+            const headerRow = [];
+            headers.forEach(h => headerRow.push(h.textContent));
+            csv.push(headerRow.join(','));
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const cells = row.querySelectorAll('td');
+                    const rowData = [];
+                    cells.forEach(c => rowData.push(c.textContent.trim().replace(/,/g,';')));
+                    csv.push(rowData.join(','));
+                }
+            });
+            const blob = new Blob([csv.join('\n')], {type: 'text/csv'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+        function printReport() {
+            const originalTitle = document.title;
+            const printWindow = window.open('', '_blank');
+            const content = document.querySelector('.container').cloneNode(true);
+            const noPrint = content.querySelectorAll('.no-print, .interactive-controls, .quick-search-bar, .quote-container, .ascii-container');
+            noPrint.forEach(el => el.remove());
+            printWindow.document.write('<html><head><title>' + originalTitle + '</title><style>' +
+                'body{font-family:Arial;margin:20px;} table{border-collapse:collapse;width:100%;} ' +
+                'th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background:#f2f2f2;}' +
+                '</style></head><body>' + content.innerHTML + '</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+        // Rotating quotes
+        let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+        let currentQuote = 0;
+        function rotateQuote() {
+            document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+            currentQuote = (currentQuote + 1) % quotes.length;
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            rotateQuote();
+            setInterval(rotateQuote, 10000);
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="ascii-container">
+        <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+    </div>
+    
+    <div class="quote-container">
+        <div id="science-quote" style="font-size: 1.1em;"></div>
+    </div>
+    
+    <div class="card">
+        <h1 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧬 AcinetoScope Plasmid Typing Report</h1>
+        <p><strong>Sample Name:</strong> GCA_000498375.2</p>
+        <p><strong>Analysis Date:</strong> 2026-07-18 16:51:48</p>
+        <p><strong>Database:</strong> APT v3.0 (Feb 2025)</p>
+        <p><strong>Thresholds:</strong> identity ≥ 95.0%, subject coverage ≥ 70.0%</p>
+        <div class="stats">
+            <div class="stat-card">Total Hits: 2</div>
+            <div class="stat-card">Unique Rep Types: 1</div>
+        </div>
+        <h2>Detected Rep Types</h2>
+        <div>
+<span class="rep-badge">R3-T60</span> 
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📋 All Plasmid Hits (Filtered by Coverage ≥ 70.0%)</h2>
+        <div class="interactive-controls no-print">
+            <div class="search-box">
+                <input type="text" id="search-hits" placeholder="Search rep type, contig..." onkeyup="searchTable('hits-table', this.value)">
+            </div>
+            <div class="export-buttons">
+                <button onclick="exportToCSV('hits-table', 'GCA_000498375.2_plasmid_hits.csv')">📥 Export CSV</button>
+                <button onclick="printReport()" class="print">🖨️ Print</button>
+            </div>
+            <div class="result-counter" id="result-counter-hits-table">2 results found</div>
+        </div>
+        <table id="hits-table">
+            <thead>
+                <tr><th>Query Contig</th><th>Rep Type</th><th>Identity (%)</th><th>Subject Coverage (%)</th><th>E-value</th><th>Bitscore</th></tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>ENA|CP017152|CP017152.1</td>
+                    <td><strong>R3-T60</strong></td>
+                    <td>100.00</td>
+                    <td>81.2</td>
+                    <td>0.0e+00</td>
+                    <td>1395.0</td>
+                </tr>
+
+                <tr>
+                    <td>ENA|CP017152|CP017152.1</td>
+                    <td><strong>R3-T60</strong></td>
+                    <td>99.73</td>
+                    <td>81.2</td>
+                    <td>0.0e+00</td>
+                    <td>1384.0</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+        <p><strong>Author:</strong> Brown Beckley</p>
+        <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+        <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+        <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+        <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;"></p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	263827	265026	-	tet(B)_1	1-1200/1206	===============	0/0	99.50	100.00	resfinder	AP000342	tet(B)	Doxycycline;Minocycline;Tetracycline
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	268399	269235	-	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	269235	270037	-	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	1312439	1313260	-	blaOXA-23_1	1-822/822	===============	0/0	100.00	100.00	resfinder	AY795964	blaOXA-23	Imipenem;Meropenem
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	1357129	1357995	-	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	1360551	1361102	+	aac(6')-Iaf_1	1-552/552	===============	0/0	100.00	98.01	resfinder	AB462903	aac(6')-Iaf	Amikacin;Dibekacin;Netilmicin;Sisomicin;Tobramycin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	1364565	1365425	-	blaTEM-1D_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF188200	blaTEM-1D	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	1816098	1816922	-	blaOXA-66_1	1-825/825	===============	0/0	100.00	100.00	resfinder	AY750909	blaOXA-66	
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	2754726	2755610	-	mph(E)_1	1-885/885	===============	0/0	100.00	100.00	resfinder	DQ839391	mph(E)	Erythromycin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	2755666	2757141	-	msr(E)_1	1-1476/1476	===============	0/0	100.00	100.00	resfinder	FR751518	msr(E)	Azithromycin;Erythromycin;Pristinamycin_IA;Quinupristin;Virginiamycin_S
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	2759440	2760213	-	armA_1	1-774/774	===============	0/0	100.00	100.00	resfinder	AY220558	armA	Amikacin;Gentamicin;Isepamicin;Netilmicin;Tobramycin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	2763558	2764424	-	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	2764902	2765703	-	ant(3'')-Ia_1	171-972/972	..=============	0/0	82.51	99.75	resfinder	X02340	ant(3'')-Ia	Streptomycin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	2765751	2766383	-	catB8_1	1-633/633	===============	0/0	100.00	100.00	resfinder	AF227506	catB8	Chloramphenicol
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	2768877	2769692	-	aph(3')-Ia_7	1-816/816	===============	0/0	100.00	99.88	resfinder	X62115	aph(3')-Ia	Kanamycin
+GCA_000498375.2.fasta	ENA|CP017152|CP017152.1	3026706	3027857	+	blaADC-25_1	1-1152/1152	===============	0/0	100.00	99.83	resfinder	EF016355	blaADC-25	

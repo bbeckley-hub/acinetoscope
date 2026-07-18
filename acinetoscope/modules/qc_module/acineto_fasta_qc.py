@@ -3,7 +3,7 @@
 AcinetoScope FASTA QC - Comprehensive Quality Control with Beautiful HTML Reports
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2025-12-28
+Date: 2025-07-18
 """
 
 import os
@@ -45,7 +45,7 @@ class AcinetoFASTAQC:
         # Metadata
         self.metadata = {
             "tool_name": "AcinetoScope FASTA QC Analysis",
-            "version": "1.2.0", 
+            "version": "1.3.0", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",

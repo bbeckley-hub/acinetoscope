@@ -1,0 +1,2 @@
+Sample,Original_Filename,ST,Scheme,International_Clone,Clonal_Complex,Classification,Confidence,Allele_Profile,MLST_Assigned
+GCA_000498375.2.fasta,GCA_000498375.2.fasta,UNKNOWN,OXFORD,Not Assigned,Not Assigned,MLST typing failed,LOW,Oxf_gltA(1)-Oxf_gyrB(46)-Oxf_gdhB(3(?)-189)(?)-Oxf_recA(2)-Oxf_cpn60(2)-Oxf_gpi(142)-Oxf_rpoD(3),False

@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "analysis_date": "2026-07-18T16:42:04.369187",
+    "scheme": "abaumannii",
+    "scheme_display": "OXFORD",
+    "samples_analyzed": 1,
+    "version": "1.0.0",
+    "tool": "AcinetoScope"
+  },
+  "results": [
+    {
+      "sample": "GCA_000498375.2.fasta",
+      "original_filename": "GCA_000498375.2.fasta",
+      "mlst_results": {
+        "sequence_type": "UNKNOWN",
+        "confidence": "LOW",
+        "mlst_assigned": false,
+        "allele_profile": "Oxf_gltA(1)-Oxf_gyrB(46)-Oxf_gdhB(3(?)-189)(?)-Oxf_recA(2)-Oxf_cpn60(2)-Oxf_gpi(142)-Oxf_rpoD(3)",
+        "alleles": {
+          "Oxf_gltA": "1",
+          "Oxf_gyrB": "46",
+          "Oxf_gdhB(3": "?",
+          "189)": "?",
+          "Oxf_recA": "2",
+          "Oxf_cpn60": "2",
+          "Oxf_gpi": "142",
+          "Oxf_rpoD": "3"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "Not Assigned",
+        "clonal_complex": "Not Assigned",
+        "classification": "MLST typing failed",
+        "geographic_distribution": "N/A",
+        "outbreak_potential": "UNKNOWN"
+      }
+    }
+  ],
+  "summary_statistics": {
+    "total_samples": 1,
+    "assigned_st": 0,
+    "unknown_st": 1,
+    "high_confidence": 0,
+    "low_confidence": 1
+  }
+}

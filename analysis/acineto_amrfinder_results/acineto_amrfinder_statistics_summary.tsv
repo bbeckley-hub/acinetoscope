@@ -1,0 +1,2 @@
+Genome	Total_AMR_Genes	High_Risk_Genes	Critical_Risk_Genes	Resistance_Classes	Gene_List
+GCA_000498375.2	32	7	2	FOSFOMYCIN,TETRACYCLINE,MERCURY,BETA-LACTAM,EFFLUX,PHENICOL,AMINOGLYCOSIDE,QUINOLONE,MACROLIDE,SULFONAMIDE,MACROLIDE/STREPTOGRAMIN,QUATERNARY AMMONIUM,NICKEL	qacEdelta1,blaOXA-23,aph(3')-Ia,aac(6')-Ib',merD,gyrA_S81L,catB8,mph(E),aacA16,blaTEM-1,cxpE,adeC,amvA,abaF,ant(3'')-IIa,nreB,aph(3'')-Ib,tet(B),merP,merR,sul1,msr(E),parC_E88K,blaOXA-66,aph(6)-Id,armA,aadA1,blaADC-31,merT

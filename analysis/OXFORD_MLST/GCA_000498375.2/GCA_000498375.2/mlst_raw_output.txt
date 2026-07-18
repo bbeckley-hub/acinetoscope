@@ -1,0 +1,20 @@
+STDOUT:
+GCA_000498375.2.fasta,abaumannii,-,Oxf_gltA(1),Oxf_gyrB(46),Oxf_gdhB(3,189),Oxf_recA(2),Oxf_cpn60(2),Oxf_gpi(142),Oxf_rpoD(3)
+
+STDERR:
+[16:42:02] This is mlst 2.25.0 running on linux with Perl 5.032001
+[16:42:02] Checking mlst dependencies:
+[16:42:02] Found 'blastn' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/blastn
+[16:42:02] Found 'any2fasta' => /home/brown-beckley/anaconda3/envs/klebcrispr/bin/any2fasta
+[16:42:02] Found blastn: 2.16.0+ (002016)
+[16:42:02] Setting --minscore=0 because user chose --scheme
+[16:42:04] Found exact allele match abaumannii.Oxf_rpoD-3
+[16:42:04] Found exact allele match abaumannii.Oxf_gltA-1
+[16:42:04] Found exact allele match abaumannii.Oxf_gyrB-46
+[16:42:04] Found exact allele match abaumannii.Oxf_cpn60-2
+[16:42:04] Found exact allele match abaumannii.Oxf_recA-2
+[16:42:04] Found exact allele match abaumannii.Oxf_gdhB-189
+[16:42:04] WARNING: found additional exact allele match abaumannii.Oxf_gdhB-3
+[16:42:04] Found exact allele match abaumannii.Oxf_gpi-142
+[16:42:04] Please also cite 'Jolley & Maiden 2010, BMC Bioinf, 11:595' if you use mlst.
+[16:42:04] Done.

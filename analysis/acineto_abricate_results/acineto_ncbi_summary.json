@@ -1,0 +1,238 @@
+{
+    "metadata": {
+        "database_name": "ncbi",
+        "analysis_type": "ABRicate Antimicrobial Resistance & Virulence",
+        "total_genomes": 1,
+        "total_hits": 18,
+        "analysis_date": "2026-07-18 16:48:59",
+        "tool_version": "1.3.0",
+        "min_identity": 80,
+        "min_coverage": 80
+    },
+    "summary_statistics": {
+        "unique_genes": 17,
+        "unique_genomes": 1,
+        "hits_per_genome": 18.0,
+        "risk_analysis": {
+            "critical_carbapenemase_genes": 2,
+            "critical_esbl_genes": 1,
+            "critical_colistin_genes": 0,
+            "critical_aminoglycoside_genes": 6,
+            "high_risk_resistance_genes": 2,
+            "virulence_factors": 0
+        }
+    },
+    "gene_analysis": {
+        "most_frequent_genes": {
+            "ant(3'')-IIa": 1,
+            "tet(B)": 1,
+            "aph(6)-Id": 1,
+            "aph(3'')-Ib": 1,
+            "blaOXA-23": 1,
+            "sul1": 1,
+            "aac(6')-Ip": 1,
+            "blaTEM-12": 1,
+            "blaOXA-66": 1,
+            "mph(E)": 1,
+            "msr(E)": 1,
+            "armA": 1,
+            "aadA1": 1,
+            "catB8": 1,
+            "aac(6')-Ib'": 1,
+            "aph(3')-Ia": 1,
+            "blaADC-31": 1
+        },
+        "gene_details": {
+            "ant(3'')-IIa": {
+                "product": "aminoglycoside nucleotidyltransferase ANT(3'')-IIa",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.61
+            },
+            "tet(B)": {
+                "product": "tetracycline efflux MFS transporter Tet(B)",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 99.5,
+                "avg_identity": 100.0
+            },
+            "aph(6)-Id": {
+                "product": "aminoglycoside O-phosphotransferase APH(6)-Id",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "aph(3'')-Ib": {
+                "product": "aminoglycoside O-phosphotransferase APH(3'')-Ib",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 99.88,
+                "avg_identity": 100.0
+            },
+            "blaOXA-23": {
+                "product": "OXA-23 family carbapenem-hydrolyzing class D beta-lactamase OXA-23",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "sul1": {
+                "product": "sulfonamide-resistant dihydropteroate synthase Sul1",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "aac(6')-Ip": {
+                "product": "aminoglycoside 6'-N-acetyltransferase AAC(6')-Ip",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.66
+            },
+            "blaTEM-12": {
+                "product": "extended-spectrum class A beta-lactamase TEM-12",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.88
+            },
+            "blaOXA-66": {
+                "product": "OXA-51 family carbapenem-hydrolyzing class D beta-lactamase OXA-66",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "mph(E)": {
+                "product": "Mph(E) family macrolide 2'-phosphotransferase",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "msr(E)": {
+                "product": "ABC-F type ribosomal protection protein Msr(E)",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "armA": {
+                "product": "16S rRNA (guanine(1405)-N(7))-methyltransferase ArmA",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "aadA1": {
+                "product": "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.87
+            },
+            "catB8": {
+                "product": "type B-3 chloramphenicol O-acetyltransferase CatB8",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "aac(6')-Ib'": {
+                "product": "aminoglycoside N-acetyltransferase AAC(6')-Ib'",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "aph(3')-Ia": {
+                "product": "aminoglycoside O-phosphotransferase APH(3')-Ia",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.88
+            },
+            "blaADC-31": {
+                "product": "extended-spectrum class C beta-lactamase ADC-31",
+                "databases": [
+                    "ncbi"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            }
+        }
+    },
+    "genome_analysis": {
+        "GCA_000498375.2": {
+            "total_hits": 18,
+            "unique_genes": 17,
+            "genes": [
+                "blaOXA-66",
+                "tet(B)",
+                "aadA1",
+                "blaADC-31",
+                "aph(3')-Ia",
+                "armA",
+                "aph(3'')-Ib",
+                "mph(E)",
+                "blaTEM-12",
+                "aac(6')-Ip",
+                "aac(6')-Ib'",
+                "msr(E)",
+                "aph(6)-Id",
+                "ant(3'')-IIa",
+                "sul1",
+                "catB8",
+                "blaOXA-23"
+            ]
+        }
+    },
+    "risk_genes": {
+        "critical_carbapenemase": [
+            "blaOXA-66",
+            "blaOXA-23"
+        ],
+        "critical_esbl": [
+            "blaTEM-12"
+        ],
+        "critical_colistin": [],
+        "critical_aminoglycoside": [
+            "aadA1",
+            "aph(3')-Ia",
+            "armA",
+            "aac(6')-Ip",
+            "aac(6')-Ib'",
+            "aph(6)-Id"
+        ],
+        "high_risk_resistance": [
+            "sul1",
+            "catB8"
+        ],
+        "virulence_factors": []
+    },
+    "raw_hits_summary": {
+        "total_hits": 18,
+        "hits_by_genome": {
+            "GCA_000498375.2": 18
+        }
+    }
+}

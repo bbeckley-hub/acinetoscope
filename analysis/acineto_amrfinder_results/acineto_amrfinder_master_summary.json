@@ -1,0 +1,221 @@
+{
+  "metadata": {
+    "tool": "AcinetoScope AMRfinderPlus",
+    "version": "1.3.0",
+    "analysis_date": "2026-07-18 16:42:11",
+    "total_genomes": 1,
+    "database_version": "2026-05-15.1"
+  },
+  "gene_frequency": {
+    "ant(3'')-IIa": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "parC_E88K": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "tet(B)": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "aph(6)-Id": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "aph(3'')-Ib": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "nreB": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "blaOXA-23": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "merD": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "merP": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "merT": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "merR": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "sul1": {
+      "count": 2,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "qacEdelta1": {
+      "count": 2,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "aadA1": {
+      "count": 2,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "aacA16": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "blaTEM-1": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "abaF": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "blaOXA-66": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "adeC": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "amvA": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "mph(E)": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "msr(E)": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "armA": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "catB8": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "aac(6')-Ib'": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "aph(3')-Ia": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "blaADC-31": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "cxpE": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    },
+    "gyrA_S81L": {
+      "count": 1,
+      "genomes": [
+        "GCA_000498375.2"
+      ]
+    }
+  },
+  "genome_summaries": {
+    "GCA_000498375.2": {
+      "total_hits": 32,
+      "genes": [
+        "qacEdelta1",
+        "blaOXA-23",
+        "aph(3')-Ia",
+        "aac(6')-Ib'",
+        "merD",
+        "gyrA_S81L",
+        "catB8",
+        "mph(E)",
+        "aacA16",
+        "blaTEM-1",
+        "cxpE",
+        "adeC",
+        "amvA",
+        "abaF",
+        "ant(3'')-IIa",
+        "nreB",
+        "aph(3'')-Ib",
+        "tet(B)",
+        "merP",
+        "merR",
+        "sul1",
+        "msr(E)",
+        "parC_E88K",
+        "blaOXA-66",
+        "aph(6)-Id",
+        "armA",
+        "aadA1",
+        "blaADC-31",
+        "merT"
+      ]
+    }
+  }
+}

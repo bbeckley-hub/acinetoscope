@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "analysis_date": "2026-07-18T16:42:01.268993",
+    "scheme": "abaumannii_2",
+    "scheme_display": "PASTEUR",
+    "samples_analyzed": 1,
+    "version": "1.0.0",
+    "tool": "AcinetoScope"
+  },
+  "results": [
+    {
+      "sample": "GCA_000498375.2.fasta",
+      "original_filename": "GCA_000498375.2.fasta",
+      "mlst_results": {
+        "sequence_type": "2",
+        "confidence": "HIGH",
+        "mlst_assigned": true,
+        "allele_profile": "Pas_cpn60(2)-Pas_fusA(2)-Pas_gltA(2)-Pas_pyrG(2)-Pas_recA(2)-Pas_rplB(2)-Pas_rpoB(2)",
+        "alleles": {
+          "Pas_cpn60": "2",
+          "Pas_fusA": "2",
+          "Pas_gltA": "2",
+          "Pas_pyrG": "2",
+          "Pas_recA": "2",
+          "Pas_rplB": "2",
+          "Pas_rpoB": "2"
+        }
+      },
+      "lineage_information": {
+        "international_clone": "IC II",
+        "clonal_complex": "CC2",
+        "classification": "Global Epidemic Clone",
+        "geographic_distribution": "Worldwide, particularly Asia and Middle East",
+        "outbreak_potential": "VERY HIGH"
+      }
+    }
+  ],
+  "summary_statistics": {
+    "total_samples": 1,
+    "assigned_st": 1,
+    "unknown_st": 0,
+    "high_confidence": 1,
+    "low_confidence": 0
+  }
+}

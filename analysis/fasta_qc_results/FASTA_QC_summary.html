@@ -1,0 +1,723 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AcinetoScope FASTA QC - Summary Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: pre;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            overflow-x: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .qc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+        }
+        
+        .qc-table th, .qc-table td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+        
+        .qc-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .qc-table th:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+        }
+        
+        .qc-table th.sortable::after {
+            content: "↕";
+            position: absolute;
+            right: 8px;
+            opacity: 0.6;
+        }
+        
+        tr:hover { background-color: #f8f9fa; }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .seq-stat-card {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .warning-stat-card {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: black;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            border-left: 4px solid #fff;
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Interactive controls */
+        .interactive-controls {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-buttons button {
+            padding: 6px 12px;
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .filter-buttons button.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .filter-buttons button:hover {
+            background: #dee2e6;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .export-buttons button {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .export-buttons button:hover {
+            background: #2563eb;
+        }
+        
+        .export-buttons button.print {
+            background: #10b981;
+        }
+        
+        .export-buttons button.print:hover {
+            background: #059669;
+        }
+        
+        .export-buttons button.json {
+            background: #8b5cf6;
+        }
+        
+        .export-buttons button.json:hover {
+            background: #7c3aed;
+        }
+        
+        .result-counter {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+            margin-left: auto;
+        }
+        
+        /* Table container with horizontal scroll */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .warning-count {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .warning-count.none {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .warning-count.low {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .warning-count.high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media print {
+            .interactive-controls { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .card { background: white !important; color: black !important; box-shadow: none !important; }
+            .qc-table { box-shadow: none !important; }
+            .table-container { max-height: none !important; overflow: visible !important; }
+        }
+    </style>
+    
+        <script>
+            // Search functionality
+            function searchTable(tableId, searchTerm) {
+                const table = document.getElementById(tableId);
+                const rows = table.getElementsByTagName('tr');
+                let visibleCount = 0;
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm.toLowerCase())) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+                
+                // Update result count
+                const resultCounter = document.getElementById('result-counter-' + tableId);
+                if (resultCounter) {
+                    resultCounter.textContent = visibleCount + ' files found';
+                }
+            }
+            
+            // Sort table
+            function sortTable(tableId, columnIndex) {
+                const table = document.getElementById(tableId);
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                
+                rows.sort((a, b) => {
+                    const aText = a.children[columnIndex].textContent.trim();
+                    const bText = b.children[columnIndex].textContent.trim();
+                    
+                    // Try to convert to number if possible
+                    const aNum = parseFloat(aText.replace(/,/g, '').replace('%', ''));
+                    const bNum = parseFloat(bText.replace(/,/g, '').replace('%', ''));
+                    
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return aNum - bNum;
+                    }
+                    
+                    return aText.localeCompare(bText);
+                });
+                
+                // Clear and re-add rows
+                rows.forEach(row => tbody.appendChild(row));
+            }
+            
+            // Export to CSV
+            function exportToCSV() {
+                const rows = document.querySelectorAll('#qc-summary-table tr');
+                let csv = [];
+                
+                // Add headers
+                const headerCells = rows[0].querySelectorAll('th');
+                const headerRow = [];
+                for (let cell of headerCells) {
+                    headerRow.push(cell.textContent);
+                }
+                csv.push(headerRow.join(','));
+                
+                // Add data
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i].style.display !== 'none') {
+                        const cells = rows[i].querySelectorAll('td');
+                        const row = [];
+                        for (let cell of cells) {
+                            let text = cell.textContent.trim();
+                            text = text.replace(/\n/g, ' ').replace(/,/g, ';');
+                            row.push(text);
+                        }
+                        csv.push(row.join(','));
+                    }
+                }
+                
+                // Create download
+                const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'FASTA_QC_summary.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+            
+            // Export to JSON
+            function exportToJSON() {
+                const data = {
+  "metadata": {
+    "tool": "AcinetoScope FASTA QC Analysis",
+    "version": "1.3.0",
+    "biopython_version": "1.87",
+    "analysis_date": "2026-07-18 16:41:56",
+    "total_files": 1,
+    "total_sequences": 1,
+    "total_length": 4178958
+  },
+  "statistics": {
+    "gc_content_range": {
+      "min": 39.27100966317441,
+      "max": 39.27100966317441,
+      "mean": 39.27100966317441,
+      "median": 39.27100966317441
+    },
+    "n50_range": {
+      "min": 4178958,
+      "max": 4178958,
+      "mean": 4178958,
+      "median": 4178958
+    },
+    "files_with_warnings": 1,
+    "total_warnings": 1,
+    "files_with_high_gc": 0,
+    "files_with_low_gc": 0
+  },
+  "files": [
+    {
+      "filename": "GCA_000498375.2.fasta",
+      "filepath": "GCA_000498375.2.fasta",
+      "file_size_mb": 4.051857948303223,
+      "analysis_date": "2026-07-18 16:41:58",
+      "status": "success",
+      "total_sequences": 1,
+      "total_length": 4178958,
+      "total_bases": 4178958,
+      "longest_sequence": 4178958,
+      "shortest_sequence": 4178958,
+      "mean_length": 4178958,
+      "median_length": 4178958,
+      "n50": 4178958,
+      "n75": 4178958,
+      "n90": 4178958,
+      "l50": 1,
+      "l75": 1,
+      "l90": 1,
+      "gc_percent": 39.27100966317441,
+      "at_percent": 60.72899033682559,
+      "a_percent": 30.33423642927256,
+      "t_percent": 30.394753907553028,
+      "g_percent": 19.670262299836466,
+      "c_percent": 19.60074736333794,
+      "ambiguous_percent": 0.0,
+      "sequences_with_n": 0,
+      "total_n_bases": 0,
+      "max_n_run": 0,
+      "homopolymers_count": 28808,
+      "max_homopolymer": 10,
+      "duplicate_sequences": 0,
+      "short_sequences": 0,
+      "long_sequences": 1,
+      "gc_distribution": {
+        "mean": 39.27100966317441,
+        "median": 39.27100966317441,
+        "min": 39.27100966317441,
+        "max": 39.27100966317441
+      },
+      "length_distribution": {
+        "< 100 bp": 0,
+        "100-500 bp": 0,
+        "500-1k bp": 0,
+        "1k-5k bp": 0,
+        "5k-10k bp": 0,
+        "10k-50k bp": 0,
+        "50k-100k bp": 0,
+        "100k-500k bp": 0,
+        "500k-1M bp": 0,
+        "> 1M bp": 1
+      },
+      "base_counts": {
+        "A": 1267655,
+        "T": 1270184,
+        "C": 819107,
+        "G": 822012
+      },
+      "n_runs": [],
+      "warnings": [
+        {
+          "level": "warning",
+          "message": "Very long sequences detected (1) - may indicate contamination"
+        }
+      ]
+    }
+  ]
+};
+                const jsonStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'FASTA_QC_summary.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+            
+            // Print report
+            function printReport() {
+                window.print();
+            }
+            
+            // Filter by warnings
+            function filterByWarnings(level) {
+                const table = document.getElementById('qc-summary-table');
+                const rows = table.getElementsByTagName('tr');
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    const warningsCell = row.children[row.children.length - 1];
+                    const warnings = parseInt(warningsCell.textContent);
+                    
+                    if (level === 'all') {
+                        row.style.display = '';
+                    } else if (level === 'with_warnings' && warnings > 0) {
+                        row.style.display = '';
+                    } else if (level === 'no_warnings' && warnings === 0) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Rotating quotes
+            let quotes = ["The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein", "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", "Somewhere, something incredible is waiting to be known. - Carl Sagan", "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson", "In science, there are no shortcuts to truth. - Karl Popper", "Science knows no country, because knowledge belongs to humanity. - Louis Pasteur", "The science of today is the technology of tomorrow. - Edward Teller", "Nothing in life is to be feared, it is only to be understood. - Marie Curie", "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun", "The universe is not required to be in harmony with human ambition. - Carl Sagan"];
+            let currentQuote = 0;
+            
+            function rotateQuote() {
+                document.getElementById('science-quote').innerHTML = quotes[currentQuote];
+                currentQuote = (currentQuote + 1) % quotes.length;
+            }
+            
+            // Initialize
+            document.addEventListener('DOMContentLoaded', function() {
+                rotateQuote();
+                setInterval(rotateQuote, 10000);
+            });
+        </script>
+        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ascii-container">
+                <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+            </div>
+            
+            <div class="card">
+                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope FASTA QC - Summary Report</h1>
+                <p style="color: #666; font-size: 1.2em;">Comprehensive Quality Control Analysis Across All FASTA Files</p>
+                
+                <div class="interactive-controls">
+                    <div class="search-box">
+                        <input type="text" id="search-summary" 
+                               placeholder="🔍 Search filenames or values..." 
+                               onkeyup="searchTable('qc-summary-table', this.value)">
+                    </div>
+                    
+                    <div class="filter-buttons">
+                        <button class="active" onclick="filterByWarnings('all')">All Files</button>
+                        <button onclick="filterByWarnings('with_warnings')">With Warnings</button>
+                        <button onclick="filterByWarnings('no_warnings')">No Warnings</button>
+                    </div>
+                    
+                    <div class="result-counter" id="result-counter-qc-summary-table">
+                        1 files found
+                    </div>
+                    
+                    <div class="export-buttons">
+                        <button onclick="exportToCSV()">📥 Export CSV</button>
+                        <button onclick="exportToJSON()" class="json">📥 Export JSON</button>
+                        <button onclick="printReport()" class="print">🖨️ Print</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quote-container">
+            <div id="science-quote" style="font-size: 1.1em;"></div>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Overall Statistics</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Total Files</h3>
+                    <p style="font-size: 2em; margin: 0;">1</p>
+                </div>
+                <div class="seq-stat-card">
+                    <h3>Total Sequences</h3>
+                    <p style="font-size: 2em; margin: 0;">1</p>
+                </div>
+                <div class="seq-stat-card">
+                    <h3>Total Bases</h3>
+                    <p style="font-size: 2em; margin: 0;">4,178,958</p>
+                    <p style="font-size: 0.9em; margin-top: 5px;">bp</p>
+                </div>
+                <div class="warning-stat-card">
+                    <h3>Quality Warnings</h3>
+                    <p style="font-size: 2em; margin: 0;">1</p>
+                    <p style="font-size: 0.9em; margin-top: 5px;">in 1 files</p>
+                </div>
+            </div>
+            <p><strong>Analysis Date:</strong> 2026-07-18 16:41:56</p>
+            <p><strong>Tool Version:</strong> 1.3.0</p>
+            <p><strong>BioPython Version:</strong> 1.87</p>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Detailed FASTA QC Results</h2>
+            <p style="color: #666; margin-bottom: 15px;">Scroll horizontally to view all columns. Click headers to sort.</p>
+            
+            <div class="table-container">
+                <table class="qc-table" id="qc-summary-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 0)">Filename</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 1)">Total Sequences</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 2)">Total Length</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 3)">Total Bases</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 4)">GC Content (%)</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 5)">AT Content (%)</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 6)">N50</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 7)">N75</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 8)">N90</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 9)">Median Length</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 10)">Mean Length</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 11)">Longest Sequence</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 12)">Shortest Sequence</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 13)">Ambiguous Bases (%)</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 14)">Sequences with Ns</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 15)">Max N-run</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 16)">Homopolymers</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 17)">Max Homopolymer</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 18)">Duplicate Sequences</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 19)">Short Sequences (&lt;100 bp)</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 20)">Long Sequences (&gt;1M bp)</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 21)">File Size (MB)</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 22)">Warnings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>GCA_000498375.2.fasta</strong></td>
+                            <td>1</td>
+                            <td>4,178,958</td>
+                            <td>4,178,958</td>
+                            <td>39.3</td>
+                            <td>60.7</td>
+                            <td>4,178,958</td>
+                            <td>4,178,958</td>
+                            <td>4,178,958</td>
+                            <td>4,178,958</td>
+                            <td>4178958</td>
+                            <td>4,178,958</td>
+                            <td>4,178,958</td>
+                            <td>0.00</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>28,808</td>
+                            <td>10</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>4.05</td>
+                            <td><span class="warning-count low">1</span></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
+            </p>
+        </div>
+    </div>
+</body>
+</html>

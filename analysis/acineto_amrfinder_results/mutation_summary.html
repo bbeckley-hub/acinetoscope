@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcinetoScope - Mutation Batch Summary</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff; padding: 20px; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .ascii-container { background: rgba(0,0,0,0.7); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 2px solid rgba(0,255,0,0.3); }
+        .ascii-art { font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.1; white-space: pre; color: #00ff00; text-shadow: 0 0 10px rgba(0,255,0,0.5); overflow-x: auto; }
+        .quote-container { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }
+        .quote-text { font-size: 18px; font-style: italic; margin-bottom: 10px; color: #ffffff; }
+        .quote-author { font-size: 14px; color: #fbbf24; font-weight: bold; }
+        .card { background: rgba(255,255,255,0.95); color: #1f2937; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .card h2 { color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; }
+        .table-responsive { width: 100%; overflow-x: auto; margin: 20px 0; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+        .data-table th { background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 12px; text-align: left; font-weight: bold; }
+        .data-table td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+        .data-table tr:nth-child(even) { background-color: #f8fafc; }
+        .footer { text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 14px; }
+        .timestamp { color: #fbbf24; font-weight: bold; }
+        .authorship { margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px; }
+        @media (max-width: 768px) { .ascii-art { font-size: 6px; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="ascii-container">
+            <div class="ascii-art">
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+</div>
+        </div>
+        <div class="quote-container">
+            <div class="quote-text">"The important thing is not to stop questioning. Curiosity has its own reason for existing."</div>
+            <div class="quote-author">— Albert Einstein</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🧬 Mutation Summary Across All Genomes</h2>
+        <p>Total genomes with mutations: 1 / 1<br>
+        Total mutation events: 91</p>
+    </div>
+
+    <div class="card">
+        <h2>📊 Mutation Frequency</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Gene</th><th>Mutation</th><th>Count</th><th>Genomes</th><th>Class</th><th>Subclass</th></tr></thead>
+                <tbody>
+
+                    <tr>
+                        <td><strong>pmrC_HS543SQ</strong></td>
+                        <td></td>
+                        <td>2</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_I535V</strong></td>
+                        <td></td>
+                        <td>2</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_PQ537NK</strong></td>
+                        <td></td>
+                        <td>2</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_R125R</strong></td>
+                        <td></td>
+                        <td>2</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>parC_E88K</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>QUINOLONE</td>
+                        <td>QUINOLONE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>parC_S84S</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>QUINOLONE</td>
+                        <td>QUINOLONE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>rpoB_N527D</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>rpoB_S583S</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>RIFAMYCIN</td>
+                        <td>RIFAMPIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_L238P</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_A91A</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_AA136VT</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_D20D</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_E219E</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_I14V</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_I243V</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_L192L</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_P116P</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_P56P</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeR_V228I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_F12F</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>TETRACYCLINE</td>
+                        <td>TIGECYCLINE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_G186V</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_G336G</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_GH356NN</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_H189H</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_H249R</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_I235V</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_I252I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_N125N</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_Q163Q</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_R152R</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_T153T</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>EFFLUX</td>
+                        <td>EFFLUX</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeS_V348I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxA_D233D</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxA_G68G</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxA_H159H</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxA_Q72Q</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_A54G</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_AI28LF</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_AI49SV</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_F45N</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_FM16LN</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_I131V</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_IIA21LLS</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_IL70LI</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_Q510K</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_Q533K</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_R230Q</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_S14T</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_T40Q</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_T63A</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_V100I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_V151A</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_V47I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_V61I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_YAVL65NLIF</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_YHQV35FKKI</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>adeL_G27G</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>TETRACYCLINE</td>
+                        <td>TIGECYCLINE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gyrA_G79G</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>QUINOLONE</td>
+                        <td>QUINOLONE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gyrA_S81L</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>QUINOLONE</td>
+                        <td>QUINOLONE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>gyrA_T755A</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_A226A</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_A227A</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_E301E</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_G315G</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_I164I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_L168L</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_P170P</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_P233P</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_Q270Q</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_R231R</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_R263R</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_S17S</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_T232T</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrB_T235T</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrA_E8E</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrA_M12M</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_A370S</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_F166L</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_K531T</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>pmrC_V58I</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>baeR_S104S</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>BETA-LACTAM</td>
+                        <td>CEFIDEROCOL</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>baeS_D89D</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>BETA-LACTAM</td>
+                        <td>CEFIDEROCOL</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>baeS_S437T</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>rpsJ_V57V</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>TETRACYCLINE</td>
+                        <td>TIGECYCLINE</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ftsI_A515A</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>BETA-LACTAM</td>
+                        <td>CARBAPENEM/SULBACTAM-DURLOBACTAM</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>ftsI_T526T</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>BETA-LACTAM</td>
+                        <td>SULBACTAM-DURLOBACTAM</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>lpxC_P30P</strong></td>
+                        <td></td>
+                        <td>1</td>
+                        <td class="sequence-cell">GCA_000498375.2</td>
+                        <td>COLISTIN</td>
+                        <td>COLISTIN</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>AcinetoScope</strong> - Mutation Batch Summary</p>
+        <p class="timestamp">Generated: 2026-07-18 16:48:59</p>
+        <div class="authorship">
+            <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
+            <p>Email: brownbeckley94@gmail.com</p>
+            <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

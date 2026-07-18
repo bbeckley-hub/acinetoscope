@@ -1,0 +1,268 @@
+{
+    "metadata": {
+        "database_name": "argannot",
+        "analysis_type": "ABRicate Antimicrobial Resistance & Virulence",
+        "total_genomes": 1,
+        "total_hits": 21,
+        "analysis_date": "2026-07-18 16:48:59",
+        "tool_version": "1.3.0",
+        "min_identity": 80,
+        "min_coverage": 80
+    },
+    "summary_statistics": {
+        "unique_genes": 20,
+        "unique_genomes": 1,
+        "hits_per_genome": 21.0,
+        "risk_analysis": {
+            "critical_carbapenemase_genes": 2,
+            "critical_esbl_genes": 1,
+            "critical_colistin_genes": 0,
+            "critical_aminoglycoside_genes": 5,
+            "high_risk_resistance_genes": 3,
+            "virulence_factors": 0
+        }
+    },
+    "gene_analysis": {
+        "most_frequent_genes": {
+            "(AGly)ant(3'')-IIa": 1,
+            "(Tet)tetB": 1,
+            "(AGly)strB": 1,
+            "(AGly)strA": 1,
+            "(Bla)blaOXA-23": 1,
+            "(Sul)sul1": 1,
+            "(AGly)aac6-Iaf": 1,
+            "(Bla)blaTEM-1D": 1,
+            "(Bla)BlaA2": 1,
+            "(Bla)blaOXA-66": 1,
+            "(Bla)Mbl": 1,
+            "(Bla)BlaA1": 1,
+            "(MLS)mph(E)": 1,
+            "(MLS)msr(E)": 1,
+            "(AGly)armA": 1,
+            "(AGly)aadA1-pm": 1,
+            "(Phe)catB8": 1,
+            "(AGly)aph(3'')-Ia": 1,
+            "(Bla)blaADC-25": 1,
+            "(Bla)Zn-dependent_hydrolase": 1
+        },
+        "gene_details": {
+            "(AGly)ant(3'')-IIa": {
+                "product": "(AGly)ant(3'')-IIa",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 97.97
+            },
+            "(Tet)tetB": {
+                "product": "(Tet)tetB",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 99.5,
+                "avg_identity": 99.75
+            },
+            "(AGly)strB": {
+                "product": "(AGly)strB",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)strA": {
+                "product": "(AGly)strA",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)blaOXA-23": {
+                "product": "(Bla)blaOXA-23",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Sul)sul1": {
+                "product": "(Sul)sul1",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)aac6-Iaf": {
+                "product": "(AGly)aac6-Iaf",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.01
+            },
+            "(Bla)blaTEM-1D": {
+                "product": "(Bla)blaTEM-1D",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)BlaA2": {
+                "product": "(Bla)BlaA2",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 99.29,
+                "avg_identity": 96.38
+            },
+            "(Bla)blaOXA-66": {
+                "product": "(Bla)blaOXA-66",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(Bla)Mbl": {
+                "product": "(Bla)Mbl",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.56
+            },
+            "(Bla)BlaA1": {
+                "product": "(Bla)BlaA1",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 99.8,
+                "avg_identity": 91.94
+            },
+            "(MLS)mph(E)": {
+                "product": "(MLS)mph(E)",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.89
+            },
+            "(MLS)msr(E)": {
+                "product": "(MLS)msr(E)",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)armA": {
+                "product": "(AGly)armA",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)aadA1-pm": {
+                "product": "(AGly)aadA1-pm",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 96.51,
+                "avg_identity": 99.88
+            },
+            "(Phe)catB8": {
+                "product": "(Phe)catB8",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 100.0
+            },
+            "(AGly)aph(3'')-Ia": {
+                "product": "(AGly)aph(3'')-Ia",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.88
+            },
+            "(Bla)blaADC-25": {
+                "product": "(Bla)blaADC-25",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 99.83
+            },
+            "(Bla)Zn-dependent_hydrolase": {
+                "product": "(Bla)Zn-dependent_hydrolase",
+                "databases": [
+                    "argannot"
+                ],
+                "avg_coverage": 100.0,
+                "avg_identity": 98.86
+            }
+        }
+    },
+    "genome_analysis": {
+        "GCA_000498375.2": {
+            "total_hits": 21,
+            "unique_genes": 20,
+            "genes": [
+                "(AGly)strB",
+                "(Bla)blaOXA-66",
+                "(Phe)catB8",
+                "(AGly)armA",
+                "(MLS)msr(E)",
+                "(Sul)sul1",
+                "(Bla)BlaA1",
+                "(Bla)blaTEM-1D",
+                "(Tet)tetB",
+                "(Bla)blaADC-25",
+                "(AGly)aph(3'')-Ia",
+                "(Bla)Mbl",
+                "(Bla)BlaA2",
+                "(Bla)Zn-dependent_hydrolase",
+                "(MLS)mph(E)",
+                "(AGly)strA",
+                "(AGly)aadA1-pm",
+                "(AGly)aac6-Iaf",
+                "(AGly)ant(3'')-IIa",
+                "(Bla)blaOXA-23"
+            ]
+        }
+    },
+    "risk_genes": {
+        "critical_carbapenemase": [
+            "(Bla)blaOXA-66",
+            "(Bla)blaOXA-23"
+        ],
+        "critical_esbl": [
+            "(Bla)blaTEM-1D"
+        ],
+        "critical_colistin": [],
+        "critical_aminoglycoside": [
+            "(AGly)strB",
+            "(AGly)armA",
+            "(AGly)strA",
+            "(AGly)aadA1-pm",
+            "(AGly)aac6-Iaf"
+        ],
+        "high_risk_resistance": [
+            "(Phe)catB8",
+            "(Sul)sul1",
+            "(Tet)tetB"
+        ],
+        "virulence_factors": []
+    },
+    "raw_hits_summary": {
+        "total_hits": 21,
+        "hits_by_genome": {
+            "GCA_000498375.2": 21
+        }
+    }
+}

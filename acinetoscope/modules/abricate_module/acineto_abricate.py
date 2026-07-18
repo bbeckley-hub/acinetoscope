@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-AcinetoScope ABRicate Module - MAXIMUM SPEED VERSION
+AcinetoScope ABRicate Module - MAXIMUM SPEED VERSION with configurable thresholds
 Comprehensive ABRicate analysis for Acinetobacter baumannii with HTML reporting
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2025-12-25
+Date: 2025-12-25 (updated 2026-07-18)
 Send a quick mail for any issues or further explanations.
 """
 
@@ -27,7 +27,7 @@ from collections import defaultdict, Counter
 class AcinetoAbricateExecutor:
     """ABRicate executor for A. baumannii with comprehensive HTML reporting - MAXIMUM SPEED"""
     
-    def __init__(self, cpus: int = None):
+    def __init__(self, cpus: int = None, min_identity: float = 80, min_coverage: float = 80):
         # Setup logging FIRST
         self.logger = self._setup_logging()
         
@@ -36,6 +36,10 @@ class AcinetoAbricateExecutor:
         
         # Then calculate resources - MAXIMUM SPEED MODE
         self.cpus = self._calculate_optimal_cpus(cpus)
+        
+        # Store thresholds
+        self.min_identity = min_identity
+        self.min_coverage = min_coverage
         
         # A. baumannii specific databases
         self.required_databases = [
@@ -184,12 +188,14 @@ class AcinetoAbricateExecutor:
         
         self.metadata = {
             "tool_name": "AcinetoScope ABRicate",
-            "version": "1.2.0", 
+            "version": "1.3.0", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
             "affiliation": "University of Ghana Medical School - Department of Medical Biochemistry",
-            "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "min_identity": self.min_identity,
+            "min_coverage": self.min_coverage
         }
     
     def _setup_logging(self):
@@ -329,20 +335,26 @@ class AcinetoAbricateExecutor:
         except Exception as e:
             self.logger.error("Unexpected error setting up databases: %s", e)
     
-    def run_abricate_single_db(self, genome_file: str, database: str, output_dir: str) -> Dict[str, Any]:
-        """Run ABRicate on a single genome with specific database"""
+    def run_abricate_single_db(self, genome_file: str, database: str, output_dir: str, 
+                               min_identity: float = None, min_coverage: float = None) -> Dict[str, Any]:
+        """Run ABRicate on a single genome with specific database and thresholds"""
         genome_name = Path(genome_file).stem
         output_file = os.path.join(output_dir, f"abricate_{database}.txt")
+        
+        # Use provided thresholds or fallback to instance defaults
+        min_id = min_identity if min_identity is not None else self.min_identity
+        min_cov = min_coverage if min_coverage is not None else self.min_coverage
         
         cmd = [
             'abricate', 
             genome_file, 
             '--db', database,
-            '--minid', '80',
-            '--mincov', '80'
+            '--minid', str(min_id),
+            '--mincov', str(min_cov)
         ]
         
-        self.logger.info("Running ABRicate: %s --db %s", genome_name, database)
+        self.logger.info("Running ABRicate: %s --db %s (minid=%.1f, mincov=%.1f)", 
+                         genome_name, database, min_id, min_cov)
         
         try:
             with open(output_file, 'w') as outfile:
@@ -1150,6 +1162,8 @@ class AcinetoAbricateExecutor:
             <p><strong>Genome:</strong> {genome_name}</p>
             <p><strong>Date:</strong> {self.metadata['analysis_date']}</p>
             <p><strong>Tool Version:</strong> {self.metadata['version']}</p>
+            <p><strong>Min Identity:</strong> {self.metadata['min_identity']}%</p>
+            <p><strong>Min Coverage:</strong> {self.metadata['min_coverage']}%</p>
         </div>
 """
         
@@ -1562,7 +1576,9 @@ class AcinetoAbricateExecutor:
                 "total_genomes": len(unique_genomes),
                 "total_hits": len(hits),
                 "analysis_date": self.metadata['analysis_date'],
-                "tool_version": self.metadata['version']
+                "tool_version": self.metadata['version'],
+                "min_identity": self.metadata['min_identity'],
+                "min_coverage": self.metadata['min_coverage']
             },
             "summary_statistics": {
                 "unique_genes": len(unique_genes),
@@ -1611,8 +1627,8 @@ class AcinetoAbricateExecutor:
                 "databases_analyzed": self.required_databases,
                 "total_genomes": len(all_results),
                 "analysis_parameters": {
-                    "minimum_identity": 80,
-                    "minimum_coverage": 80
+                    "minimum_identity": self.metadata['min_identity'],
+                    "minimum_coverage": self.metadata['min_coverage']
                 }
             },
             "overall_summary": {
@@ -2008,6 +2024,8 @@ class AcinetoAbricateExecutor:
             </div>
             <p><strong>Database:</strong> {database.upper()}</p>
             <p><strong>Date:</strong> {self.metadata['analysis_date']}</p>
+            <p><strong>Min Identity:</strong> {self.metadata['min_identity']}%</p>
+            <p><strong>Min Coverage:</strong> {self.metadata['min_coverage']}%</p>
         </div>
         
         <div class="card">
@@ -2211,6 +2229,9 @@ Examples:
   # Run on all A. baumannii FASTA files (auto-detect optimal CPU cores - MAXIMUM SPEED)
   python acineto_abricate.py "*.fna"
   
+  # Run with custom identity and coverage thresholds
+  python acineto_abricate.py "*.fna" --min-identity 90 --min-coverage 85
+  
   # Run on specific pattern with auto CPU detection
   python acineto_abricate.py "AB_*.fasta"
   
@@ -2236,6 +2257,10 @@ Supported FASTA extensions: .fasta, .fa, .fna, .faa
                        help='Number of CPU cores to use (default: auto-detect optimal for MAXIMUM SPEED)')
     parser.add_argument('--output', '-o', default='acineto_abricate_results', 
                        help='Output directory (default: acineto_abricate_results)')
+    parser.add_argument('--min-identity', type=float, default=80,
+                       help='Minimum identity percentage (default: 80)')
+    parser.add_argument('--min-coverage', type=float, default=80,
+                       help='Minimum coverage percentage (default: 80)')
     
     args = parser.parse_args()
     
@@ -2255,7 +2280,7 @@ Supported FASTA extensions: .fasta, .fa, .fna, .faa
     print(f"Affiliation: University of Ghana Medical School - Department of Medical Biochemistry")
     print("="*80)
     
-    executor = AcinetoAbricateExecutor(cpus=args.cpus)
+    executor = AcinetoAbricateExecutor(cpus=args.cpus, min_identity=args.min_identity, min_coverage=args.min_coverage)
     
     try:
         results = executor.process_multiple_genomes(args.pattern, args.output)
