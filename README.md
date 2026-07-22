@@ -81,7 +81,7 @@ The **sample‑centric reporter** fills this gap. It displays **each isolate** a
 
 ### 🔁 **Dynamic Grouping by Typing – From StaphScope to AcinetoScope**
 
-We ported the **grouping feature** from our sister pipelines (StaphScope, Kleboscope). In any gene‑centric table (AMR, Virulence, BACMET, Plasmids, Mutations), you can now click a button to group the genome list by:
+We ported the **grouping feature** from our ESKAPE pipelines (StaphScope, Kleboscope). In any gene‑centric table (AMR, Virulence, BACMET, Plasmids, Mutations), you can now click a button to group the genome list by:
 
 - **Pasteur ST**
 - **Oxford ST**
