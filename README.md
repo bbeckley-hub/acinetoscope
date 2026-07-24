@@ -62,6 +62,24 @@
 
 ---
 
+## 🐛 What's New in v1.3.1 (July 2026)
+
+### 🔧 **Harmless Bug Fix – AMR Database Update Logger**
+
+Running `acinetoscope --update-amr-db` or `--force-update-amr-db` would correctly update the database, but the script would crash with an `AttributeError` traceback because the logger was not initialised (no output directory was provided). The database update itself **always worked** – the error was purely in the logging layer.
+
+- **What changed:** The orchestrator now initialises a basic logger automatically when running standalone AMR database updates.
+- **What this means:** The command now runs cleanly, logs the output, and returns the correct exit code.
+- **Why it matters:** Others may have interpreted the error as a failed download – but rest assured, your AMR database was always updating correctly. This fix simply removes the confusion and ensures a smooth user experience.
+
+**Docker users:** You were always safe because you get database downloads automatically. Pull the latest image to get the fix – no configuration changes required.
+
+---
+
+**Full v1.3.0 features remain unchanged** – the sample‑centric reporter, dynamic grouping, mutation tab, HPC‑ready orchestrator, enhanced citation tab, and AI guide are all fully functional.
+
+---
+
 ## 🎉 **What's New in v1.3.0** (July 2026)
 
 ### 📊 **Sample‑Centric Reporter – The Clinical Counterpart to Gene‑Centric Analysis**
