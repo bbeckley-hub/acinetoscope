@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-AcinetoScope Main Orchestrator - v1.3.0
+AcinetoScope Main Orchestrator - v1.3.1
 All module writes happen in /tmp, final results are copied to user output.
 HPC/ Docker-friendly with full flag support.
 
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School
-Date: 2026-07-18
+Date: 2026-07-24
 """
 
 import os
@@ -24,7 +24,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 
 
 # ----------------------------------------------------------------------
@@ -249,7 +249,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             {"quote": "Genomics is a lens on biology.", "author": "Eric Lander", "theme": "genomics"},
             {"quote": "Every microbe has its own story.", "author": "Anonymous", "theme": "microbiology"},
             {"quote": "Data beats emotions.", "author": "Sean Rad", "theme": "data"},
-            {"quote": "In every walk with nature, one receives far more than he seeks.", "author": "John Muir", "theme": "discovery"},
+            {"quote": "In every walk with nature, one receives far more than one seeks.", "author": "John Muir", "theme": "discovery"},
             {"quote": "The microbe is nothing; the terrain is everything.", "author": "Louis Pasteur", "theme": "microbiology"},
             {"quote": "What we know is a drop, what we don't know is an ocean.", "author": "Isaac Newton", "theme": "knowledge"},
             {"quote": "The good physician treats the disease; the great physician treats the patient who has the disease.", "author": "William Osler", "theme": "medicine"},
@@ -451,6 +451,13 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         if not amr_script.exists():
             self.print_error(f"AMR script not found at: {amr_script}")
             return False
+
+        # Ensure logger exists for standalone commands
+        if self.logger is None:
+            import logging
+            logging.basicConfig(level=logging.INFO, format='%(message)s')
+            self.logger = logging.getLogger("AcinetoScope")
+
         self.print_info("Updating AMRfinderPlus database...")
         flag = "--force-update" if force else "--update-db"
         cmd = [sys.executable, str(amr_script), flag]

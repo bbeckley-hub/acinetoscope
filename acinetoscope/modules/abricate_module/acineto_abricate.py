@@ -188,7 +188,7 @@ class AcinetoAbricateExecutor:
         
         self.metadata = {
             "tool_name": "AcinetoScope ABRicate",
-            "version": "1.3.0", 
+            "version": "1.3.1", 
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
