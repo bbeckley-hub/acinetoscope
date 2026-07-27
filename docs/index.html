@@ -1,13 +1,372 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AcinetoScope Reports</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcinetoScope – Sample Reports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 50px 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 3.2em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2em;
+            margin-top: 8px;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+
+        .header .badge {
+            display: inline-block;
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+        }
+
+        .badge i {
+            margin-right: 6px;
+        }
+
+        /* Quote */
+        .quote-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 24px 32px;
+            margin-bottom: 40px;
+            border-left: 4px solid #f5576c;
+            transition: opacity 0.6s ease;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .quote-text {
+            font-size: 1.25em;
+            color: rgba(255, 255, 255, 0.9);
+            font-style: italic;
+            line-height: 1.6;
+            transition: opacity 0.5s;
+        }
+
+        .quote-author {
+            margin-top: 12px;
+            font-size: 1em;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 300;
+            text-align: right;
+        }
+
+        .quote-author::before {
+            content: "— ";
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 10px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 32px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.25s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f093fb, #f5576c, #4facfe);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card .icon {
+            font-size: 2.6em;
+            margin-bottom: 12px;
+        }
+
+        .card h2 {
+            font-size: 1.6em;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .card p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            flex: 1;
+            font-size: 0.95em;
+        }
+
+        .card .meta {
+            margin-top: 18px;
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .card a {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 10px 28px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+            align-self: flex-start;
+            border: none;
+            cursor: pointer;
+        }
+
+        .card a:hover {
+            transform: scale(1.04);
+            box-shadow: 0 8px 24px rgba(245, 87, 108, 0.4);
+        }
+
+        /* Sample‑centric card accent */
+        .card.sample a {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .card.sample a:hover {
+            box-shadow: 0 8px 24px rgba(79, 172, 254, 0.4);
+        }
+
+        .card.gene a {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .card.gene a:hover {
+            box-shadow: 0 8px 24px rgba(245, 87, 108, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 48px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.9em;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 28px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: #fff;
+        }
+
+        .footer .author {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .footer .author strong {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                padding: 30px 20px;
+            }
+            .header h1 {
+                font-size: 2.2em;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .quote-text {
+                font-size: 1em;
+            }
+            .footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>AcinetoScope Reports</h1>
-    <ul>
-        <li><a href="genius_acinetobacter_sample_centric_report.html">Sample‑Centric Report</a></li>
-        <li><a href="genius_acinetobacter_ultimate_gene_centric_report.html">Gene‑Centric Report</a></li>
-    </ul>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🦠 AcinetoScope</h1>
+            <div class="subtitle">Interactive sample reports – <em>Acinetobacter baumannii</em></div>
+            <div class="badge">
+                <i class="fas fa-flask"></i> K/O Locus &bull; MLST &bull; AMR &bull; Virulence &bull; Plasmids &bull; Mutations
+            </div>
+        </div>
+
+        <!-- Quote Box -->
+        <div class="quote-box" id="quoteBox">
+            <div class="quote-text" id="quoteText">Loading insight…</div>
+            <div class="quote-author" id="quoteAuthor"></div>
+        </div>
+
+        <!-- Cards -->
+        <div class="card-grid">
+            <div class="card sample">
+                <div class="icon">📋</div>
+                <h2>Sample‑Centric Report</h2>
+                <p>Each isolate presented as an interactive box with typing badges, AMR, virulence, BACMET, plasmids, and mutations. Designed for clinical review.</p>
+                <div class="meta">Interactive isolate boxes • Horizontally scrollable tables</div>
+                <a href="genius_acinetobacter_sample_centric_report.html">View Report →</a>
+            </div>
+            <div class="card gene">
+                <div class="icon">🧬</div>
+                <h2>Gene‑Centric Report</h2>
+                <p>Each resistance or virulence gene shown with all genomes that carry it. Dynamic grouping by typing reveals clonal associations.</p>
+                <div class="meta">Group by ST • K/O locus • Capsule • Combinations</div>
+                <a href="genius_acinetobacter_ultimate_gene_centric_report.html">View Report →</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span class="author">
+                <strong>Brown Beckley</strong> &bull; University of Ghana Medical School
+            </span>
+            <span>
+                <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank">GitHub</a>
+                &nbsp;&bull;&nbsp;
+                <a href="mailto:brownbeckley94@gmail.com">Email</a>
+            </span>
+            <span style="color: rgba(255,255,255,0.25);">
+                v1.3.1 &bull; MIT License
+            </span>
+        </div>
+    </div>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script>
+        // Science quotes for rotation
+        const quotes = [
+            { text: "Science is organized knowledge.", author: "Herbert Spencer" },
+            { text: "The science of today is the technology of tomorrow.", author: "Edward Teller" },
+            { text: "Nature is the source of all true knowledge.", author: "Leonardo da Vinci" },
+            { text: "Biology is the most powerful technology ever created.", author: "Freeman Dyson" },
+            { text: "Genomics is a lens on biology.", author: "Eric Lander" },
+            { text: "Every microbe has its own story.", author: "Anonymous" },
+            { text: "Data beats emotions.", author: "Sean Rad" },
+            { text: "In every walk with nature, one receives far more than one seeks.", author: "John Muir" },
+            { text: "The microbe is nothing; the terrain is everything.", author: "Louis Pasteur" },
+            { text: "What we know is a drop, what we don't know is an ocean.", author: "Isaac Newton" },
+            { text: "The important thing is not to stop questioning. Curiosity has its own reason for existing.", author: "Albert Einstein" },
+            { text: "One must learn by doing the thing; though you think you know it, you have no certainty until you try.", author: "Sophocles" },
+            { text: "Nothing in life is to be feared, it is only to be understood.", author: "Marie Curie" },
+            { text: "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.", author: "Stephen Hawking" },
+            { text: "We are just an advanced breed of monkeys on a minor planet of a very average star. But we can understand the Universe.", author: "Stephen Hawking" },
+            { text: "The most exciting phrase to hear in science, the one that heralds new discoveries, is not 'Eureka!' but 'That's funny…'", author: "Isaac Asimov" },
+            { text: "DNA is like a computer program but far, far more advanced than any software ever created.", author: "Bill Gates" },
+            { text: "The beauty of a living thing is not the atoms that go into it, but the way those atoms are put together.", author: "Carl Sagan" },
+            { text: "If I have seen further it is by standing on the shoulders of Giants.", author: "Isaac Newton" },
+            { text: "AcinetoScope – turning genomic data into actionable insights for the fight against antimicrobial resistance.", author: "Brown Beckley" },
+            { text: "Great science is built on curiosity, rigour, and the willingness to challenge the status quo.", author: "Brown Beckley" },
+            { text: "Every genome tells a story; our job is to listen and translate.", author: "Brown Beckley" }
+        ];
+
+        let currentIndex = 0;
+        const quoteText = document.getElementById('quoteText');
+        const quoteAuthor = document.getElementById('quoteAuthor');
+
+        function displayQuote() {
+            const q = quotes[currentIndex];
+            quoteText.style.opacity = 0;
+            setTimeout(() => {
+                quoteText.textContent = `“${q.text}”`;
+                quoteAuthor.textContent = q.author;
+                quoteText.style.opacity = 1;
+            }, 300);
+            currentIndex = (currentIndex + 1) % quotes.length;
+        }
+
+        // Initial display
+        displayQuote();
+        // Rotate every 12 seconds
+        setInterval(displayQuote, 12000);
+    </script>
 </body>
 </html>
