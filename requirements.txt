@@ -11,4 +11,4 @@ seaborn>=0.12.0
 scipy>=1.10.1
 plotly>=5.10.0
 numpy>=1.21.0  # Often required by pandas and others
-kaptive>=3.1.0
+kaptive>=3.2.2
