@@ -1,5 +1,5 @@
 pandas>=2.3.3
-biopython>=1.80
+biopython>=1.88
 psutil>=5.9.0
 requests>=2.34.2
 tqdm>=4.64.0
