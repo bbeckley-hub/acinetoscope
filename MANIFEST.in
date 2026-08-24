@@ -6,7 +6,7 @@ include environment.yml
 include setup.py
 include meta.yaml
 
-# Include EVERYTHING in acinetoscope directory
+# Include EVERYTHING in acinetoscope dir
 recursive-include acinetoscope *
 # Standard exclusions
 global-exclude __pycache__

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-AcinetoScope Main Orchestrator - v1.3.1
+AcinetoScope Main Orchestrator - v1.3.2
 All module writes happen in /tmp, final results are copied to user output.
 HPC/ Docker-friendly with full flag support.
 
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School
-Date: 2026-07-24
+Date: 2026-08-22
 """
 
 import os
@@ -24,7 +24,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 
 
 # ----------------------------------------------------------------------

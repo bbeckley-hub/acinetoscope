@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-AcinetoScope FASTA QC - Comprehensive Quality Control with Beautiful HTML Reports
+AcinetoScope FASTA QC - Comprehensive Quality Control with HTML Reports
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2025-07-18
+Date: 2026-08-18
 """
 
 import os
@@ -18,21 +18,22 @@ from collections import Counter, defaultdict
 import argparse
 import logging
 import subprocess
+import tempfile
 from typing import List, Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# BioPython imports
 from Bio import SeqIO
 from Bio.SeqUtils import gc_fraction
 
+
 class AcinetoFASTAQC:
-    """Comprehensive FASTA QC with beautiful HTML"""
-    
-    def __init__(self, cpus: int = None):
-        # Setup logging
+    """Comprehensive FASTA QC with HTML reporting and integrated species confirmation via FASTANI"""
+
+    def __init__(self, cpus: int = None, ref_dir: str = "ref_db"):
         self.logger = self._setup_logging()
-        
-        # ASCII Art for AcinetoScope
+        self.cpus = cpus or os.cpu_count() or 1
+        self.ref_dir = Path(ref_dir)
+
         self.ascii_art = r"""
  █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
 ██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
@@ -41,11 +42,10 @@ class AcinetoFASTAQC:
 ██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
 ╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
 """
-        
-        # Metadata
+
         self.metadata = {
             "tool_name": "AcinetoScope FASTA QC Analysis",
-            "version": "1.3.1", 
+            "version": "1.3.2",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
@@ -53,22 +53,10 @@ class AcinetoFASTAQC:
             "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "biopython_version": self._get_biopython_version()
         }
-        
-        # Colors matching
-        self.colors = {
-            'primary': '#3b82f6',
-            'success': '#28a745',
-            'warning': '#ffc107',
-            'danger': '#dc3545',
-            'info': '#17a2b8',
-            'dark': '#1f2937',
-            'light': '#f8f9fa'
-        }
-        
-        # Science quotes
+
         self.science_quotes = [
             "The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein",
-            "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking", 
+            "Science is not only a disciple of reason but also one of romance and passion. - Stephen Hawking",
             "Somewhere, something incredible is waiting to be known. - Carl Sagan",
             "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson",
             "In science, there are no shortcuts to truth. - Karl Popper",
@@ -78,8 +66,7 @@ class AcinetoFASTAQC:
             "Research is what I'm doing when I don't know what I'm doing. - Wernher von Braun",
             "The universe is not required to be in harmony with human ambition. - Carl Sagan"
         ]
-        
-        # Thresholds
+
         self.thresholds = {
             'gc_normal': (35, 65),
             'short_seq': 100,
@@ -88,32 +75,100 @@ class AcinetoFASTAQC:
             'max_homopolymer': 20,
             'ambiguous_critical': 5.0,
             'ambiguous_warning': 1.0,
+            'ani_threshold': 95.0,
+            'contamination_threshold': 90.0
         }
-        
-        self.cpus = cpus or os.cpu_count() or 1
-    
+
+        self.species_refs = self._load_references()
+        self.run_ani = bool(self.species_refs)
+
+        if self.run_ani:
+            self.logger.info(f"Species confirmation enabled with {len(self.species_refs)} reference genomes")
+        else:
+            self.logger.warning("No reference genomes found in ref_db/. Species confirmation disabled.")
+
     def _setup_logging(self):
-        """Setup logging"""
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
         return logging.getLogger(__name__)
-    
+
     def _get_biopython_version(self) -> str:
-        """Get BioPython version"""
         try:
             import Bio
             return Bio.__version__
         except:
             return "Unknown"
-    
+
+    def _load_references(self) -> Dict[str, Path]:
+        refs = {}
+        if not self.ref_dir.exists():
+            self.logger.warning(f"Reference directory {self.ref_dir} not found.")
+            return refs
+        for f in self.ref_dir.glob("*.fna"):
+            species = f.stem.replace('_', ' ').title()
+            refs[species] = f
+        if refs:
+            self.logger.info(f"Loaded {len(refs)} reference genomes for species check")
+        return refs
+
+    def _is_baumannii(self, species_name: str) -> bool:
+        return 'baumannii' in species_name.lower()
+
+    def _run_fastani(self, query: str, reference: str) -> float:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=True) as tmp:
+            cmd = ['fastANI', '-q', query, '-r', str(reference), '-o', tmp.name, '-t', str(min(self.cpus, 4))]
+            try:
+                subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=300)
+                with open(tmp.name, 'r') as f:
+                    line = f.readline().strip()
+                    if line:
+                        parts = line.split('\t')
+                        if len(parts) >= 3:
+                            return float(parts[2])
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, FileNotFoundError):
+                pass
+        return 0.0
+
+    def _run_species_ani(self, fasta_file: str) -> Dict[str, Any]:
+        if not self.species_refs:
+            return {'error': 'No reference genomes available'}
+
+        results = []
+        for species, ref_path in self.species_refs.items():
+            ani = self._run_fastani(fasta_file, ref_path)
+            if ani > 0:
+                results.append((species, ani))
+
+        if not results:
+            return {'error': 'No valid ANI results'}
+
+        results.sort(key=lambda x: x[1], reverse=True)
+        best_species, best_ani = results[0]
+        second_species, second_ani = results[1] if len(results) > 1 else (None, None)
+
+        passed = best_ani >= self.thresholds['ani_threshold'] and self._is_baumannii(best_species)
+
+        contamination = False
+        if second_ani and second_ani > self.thresholds['contamination_threshold']:
+            if (best_ani - second_ani) < 5.0 and not self._is_baumannii(second_species):
+                contamination = True
+
+        return {
+            'best_match': best_species,
+            'ani_percent': round(best_ani, 2),
+            'passed': passed,
+            'contamination_suspected': contamination,
+            'second_best_match': second_species if second_species else None,
+            'second_best_ani': round(second_ani, 2) if second_ani else None,
+            'all_matches': {sp: round(ani, 2) for sp, ani in results}
+        }
+
     def analyze_file(self, fasta_file: str) -> Dict[str, Any]:
-        """Comprehensive analysis of a FASTA file"""
         try:
             self.logger.info(f"Analyzing {os.path.basename(fasta_file)}...")
-            
-            # Read sequences
+
             sequences = list(SeqIO.parse(fasta_file, "fasta"))
             if not sequences:
                 return {
@@ -122,57 +177,47 @@ class AcinetoFASTAQC:
                     'status': 'error',
                     'error': 'No sequences found'
                 }
-            
-            # Basic stats
+
             seq_lengths = [len(seq) for seq in sequences]
             total_length = sum(seq_lengths)
-            
-            # Sort for N statistics
             sorted_lengths = sorted(seq_lengths, reverse=True)
-            
-            # N statistics
+
             n50 = self._calculate_nx(sorted_lengths, total_length, 50)
             n75 = self._calculate_nx(sorted_lengths, total_length, 75)
             n90 = self._calculate_nx(sorted_lengths, total_length, 90)
-            
-            # L statistics
+
             l50 = self._calculate_lx(sorted_lengths, total_length, 50)
             l75 = self._calculate_lx(sorted_lengths, total_length, 75)
             l90 = self._calculate_lx(sorted_lengths, total_length, 90)
-            
-            # Nucleotide composition
+
             base_counts = Counter()
             gc_contents = []
-            
+
             for seq in sequences:
                 seq_str = str(seq.seq).upper()
                 base_counts.update(seq_str)
                 gc_contents.append(gc_fraction(seq_str) * 100)
-            
+
             total_bases = sum(base_counts.values())
-            
-            # Calculate percentages
+
             a_count = base_counts.get('A', 0)
             t_count = base_counts.get('T', 0)
             g_count = base_counts.get('G', 0)
             c_count = base_counts.get('C', 0)
-            
+
             a_percent = (a_count / total_bases) * 100 if total_bases > 0 else 0
             t_percent = (t_count / total_bases) * 100 if total_bases > 0 else 0
             g_percent = (g_count / total_bases) * 100 if total_bases > 0 else 0
             c_percent = (c_count / total_bases) * 100 if total_bases > 0 else 0
             gc_percent = g_percent + c_percent
             at_percent = a_percent + t_percent
-            
-            # Ambiguous bases
+
             ambiguous_bases = sum(base_counts.get(b, 0) for b in ['N', 'Y', 'R', 'W', 'S', 'K', 'M', 'B', 'D', 'H', 'V'])
             ambiguous_percent = (ambiguous_bases / total_bases) * 100 if total_bases > 0 else 0
-            
-            # N statistics
+
             sequences_with_n = sum(1 for seq in sequences if 'N' in str(seq.seq).upper())
             total_n_bases = base_counts.get('N', 0)
-            
-            # Find longest N-run
+
             max_n_run = 0
             n_runs = []
             for seq in sequences:
@@ -183,8 +228,7 @@ class AcinetoFASTAQC:
                     n_runs.append(run_len)
                     if run_len > max_n_run:
                         max_n_run = run_len
-            
-            # Homopolymers
+
             homopolymers = []
             for seq in sequences:
                 seq_str = str(seq.seq).upper()
@@ -196,10 +240,9 @@ class AcinetoFASTAQC:
                                 'length': len(match.group()),
                                 'position': match.start()
                             })
-            
+
             max_homopolymer = max([h['length'] for h in homopolymers]) if homopolymers else 0
-            
-            # Duplicate sequences
+
             seq_hashes = set()
             duplicate_sequences = 0
             for seq in sequences:
@@ -208,15 +251,12 @@ class AcinetoFASTAQC:
                     duplicate_sequences += 1
                 else:
                     seq_hashes.add(seq_hash)
-            
-            # Short and long sequences
+
             short_sequences = sum(1 for length in seq_lengths if length < self.thresholds['short_seq'])
             long_sequences = sum(1 for length in seq_lengths if length > self.thresholds['long_seq'])
-            
-            # Length distribution
+
             length_distribution = self._create_length_bins(seq_lengths)
-            
-            # Compile results
+
             results = {
                 'filename': os.path.basename(fasta_file),
                 'filepath': fasta_file,
@@ -260,15 +300,16 @@ class AcinetoFASTAQC:
                 'length_distribution': length_distribution,
                 'base_counts': dict(base_counts),
                 'n_runs': n_runs,
-                'warnings': self._generate_warnings(
-                    gc_percent, ambiguous_percent, max_n_run, max_homopolymer,
-                    short_sequences, long_sequences, duplicate_sequences, len(sequences)
-                )
             }
-            
+
+            if self.run_ani:
+                results['species_check'] = self._run_species_ani(fasta_file)
+
+            results['warnings'] = self._generate_warnings(results)
+
             self.logger.info(f"✓ {os.path.basename(fasta_file)}: {len(sequences)} sequences, {total_length:,} bp, N50: {n50:,}, GC: {gc_percent:.1f}%")
             return results
-            
+
         except Exception as e:
             self.logger.error(f"✗ Error analyzing {fasta_file}: {e}")
             return {
@@ -276,39 +317,30 @@ class AcinetoFASTAQC:
                 'status': 'error',
                 'error': str(e)
             }
-    
+
     def _calculate_nx(self, sorted_lengths: List[int], total_length: int, x: int) -> int:
-        """Calculate Nx (N50, N75, N90)"""
         if not sorted_lengths:
             return 0
-        
         target = total_length * (x / 100)
         cumulative = 0
-        
         for length in sorted_lengths:
             cumulative += length
             if cumulative >= target:
                 return length
-        
         return sorted_lengths[-1]
-    
+
     def _calculate_lx(self, sorted_lengths: List[int], total_length: int, x: int) -> int:
-        """Calculate Lx (L50, L75, L90)"""
         if not sorted_lengths:
             return 0
-        
         target = total_length * (x / 100)
         cumulative = 0
-        
         for i, length in enumerate(sorted_lengths, 1):
             cumulative += length
             if cumulative >= target:
                 return i
-        
         return len(sorted_lengths)
-    
+
     def _create_length_bins(self, lengths: List[int]) -> Dict[str, int]:
-        """Create length distribution bins"""
         bins = {
             '< 100 bp': 0,
             '100-500 bp': 0,
@@ -321,7 +353,6 @@ class AcinetoFASTAQC:
             '500k-1M bp': 0,
             '> 1M bp': 0
         }
-        
         for length in lengths:
             if length < 100:
                 bins['< 100 bp'] += 1
@@ -343,112 +374,77 @@ class AcinetoFASTAQC:
                 bins['500k-1M bp'] += 1
             else:
                 bins['> 1M bp'] += 1
-        
         return bins
-    
-    def _generate_warnings(self, gc_percent: float, ambiguous_percent: float, 
-                          max_n_run: int, max_homopolymer: int,
-                          short_sequences: int, long_sequences: int, 
-                          duplicate_sequences: int, total_sequences: int) -> List[Dict]:
-        """Generate warning messages"""
+
+    def _generate_warnings(self, results: Dict[str, Any]) -> List[Dict]:
         warnings = []
-        
-        # GC content
+
+        gc_percent = results['gc_percent']
         low, high = self.thresholds['gc_normal']
         if gc_percent < low:
-            warnings.append({
-                'level': 'warning',
-                'message': f'Low GC content ({gc_percent:.1f}%) - below normal range ({low}-{high}%)'
-            })
+            warnings.append({'level': 'warning', 'message': f'Low GC content ({gc_percent:.1f}%) - below normal range ({low}-{high}%)'})
         elif gc_percent > high:
-            warnings.append({
-                'level': 'warning',
-                'message': f'High GC content ({gc_percent:.1f}%) - above normal range ({low}-{high}%)'
-            })
-        
-        # Ambiguous bases
+            warnings.append({'level': 'warning', 'message': f'High GC content ({gc_percent:.1f}%) - above normal range ({low}-{high}%)'})
+
+        ambiguous_percent = results['ambiguous_percent']
         if ambiguous_percent > self.thresholds['ambiguous_critical']:
-            warnings.append({
-                'level': 'danger',
-                'message': f'High ambiguous bases ({ambiguous_percent:.2f}%) - may indicate poor quality'
-            })
+            warnings.append({'level': 'danger', 'message': f'High ambiguous bases ({ambiguous_percent:.2f}%) - may indicate poor quality'})
         elif ambiguous_percent > self.thresholds['ambiguous_warning']:
-            warnings.append({
-                'level': 'warning',
-                'message': f'Elevated ambiguous bases ({ambiguous_percent:.2f}%)'
-            })
-        
-        # N-runs
+            warnings.append({'level': 'warning', 'message': f'Elevated ambiguous bases ({ambiguous_percent:.2f}%)'})
+
+        max_n_run = results['max_n_run']
         if max_n_run > 100:
-            warnings.append({
-                'level': 'danger',
-                'message': f'Very long N-run detected ({max_n_run} bases) - may indicate assembly gaps'
-            })
+            warnings.append({'level': 'danger', 'message': f'Very long N-run detected ({max_n_run} bases) - may indicate assembly gaps'})
         elif max_n_run > 10:
-            warnings.append({
-                'level': 'warning',
-                'message': f'Long N-run detected ({max_n_run} bases)'
-            })
-        
-        # Homopolymers
+            warnings.append({'level': 'warning', 'message': f'Long N-run detected ({max_n_run} bases)'})
+
+        max_homopolymer = results['max_homopolymer']
         if max_homopolymer > 20:
-            warnings.append({
-                'level': 'danger',
-                'message': f'Very long homopolymer ({max_homopolymer} bases) - may cause sequencing errors'
-            })
+            warnings.append({'level': 'danger', 'message': f'Very long homopolymer ({max_homopolymer} bases) - may cause sequencing errors'})
         elif max_homopolymer > 10:
-            warnings.append({
-                'level': 'warning',
-                'message': f'Long homopolymer ({max_homopolymer} bases)'
-            })
-        
-        # Short sequences
+            warnings.append({'level': 'warning', 'message': f'Long homopolymer ({max_homopolymer} bases)'})
+
+        short_sequences = results['short_sequences']
+        total_sequences = results['total_sequences']
         if short_sequences > total_sequences * 0.5:
-            warnings.append({
-                'level': 'danger',
-                'message': f'Many short sequences ({short_sequences}) - may indicate poor assembly'
-            })
+            warnings.append({'level': 'danger', 'message': f'Many short sequences ({short_sequences}) - may indicate poor assembly'})
         elif short_sequences > total_sequences * 0.1:
-            warnings.append({
-                'level': 'warning',
-                'message': f'Some short sequences ({short_sequences})'
-            })
-        
-        # Long sequences
+            warnings.append({'level': 'warning', 'message': f'Some short sequences ({short_sequences})'})
+
+        long_sequences = results['long_sequences']
         if long_sequences > 0:
-            warnings.append({
-                'level': 'warning',
-                'message': f'Very long sequences detected ({long_sequences}) - may indicate contamination'
-            })
-        
-        # Duplicate sequences
+            warnings.append({'level': 'warning', 'message': f'Very long sequences detected ({long_sequences}) - may indicate contamination'})
+
+        duplicate_sequences = results['duplicate_sequences']
         duplicate_percent = (duplicate_sequences / total_sequences) * 100 if total_sequences > 0 else 0
         if duplicate_percent > 10:
-            warnings.append({
-                'level': 'warning',
-                'message': f'Duplicate sequences detected ({duplicate_sequences}, {duplicate_percent:.1f}%)'
-            })
-        
+            warnings.append({'level': 'warning', 'message': f'Duplicate sequences detected ({duplicate_sequences}, {duplicate_percent:.1f}%)'})
+
+        if self.run_ani:
+            species_check = results.get('species_check', {})
+            if 'error' not in species_check:
+                if not species_check.get('passed', False):
+                    best_match = species_check.get('best_match', 'Unknown')
+                    ani = species_check.get('ani_percent', 0)
+                    warnings.append({'level': 'danger', 'message': f'Species mismatch: best match is {best_match} (ANI {ani}%). Expected Acinetobacter baumannii.'})
+                if species_check.get('contamination_suspected', False):
+                    second = species_check.get('second_best_match', 'Unknown')
+                    second_ani = species_check.get('second_best_ani', 0)
+                    warnings.append({'level': 'danger', 'message': f'Contamination suspected: second best match is {second} (ANI {second_ani}%), which is not A. baumannii.'})
+
         return warnings
-    
+
     def create_individual_html_report(self, results: Dict[str, Any], output_dir: str) -> str:
-        """Create comprehensive HTML report for a single FASTA file"""
-        # Create individual folder for this FASTA file
         filename_no_ext = Path(results['filename']).stem
         sample_dir = os.path.join(output_dir, filename_no_ext)
         os.makedirs(sample_dir, exist_ok=True)
-        
+
         html_file = os.path.join(sample_dir, f"{filename_no_ext}_fasta_qc_report.html")
-        
-        # JavaScript for interactive features
+
         js_content = f"""
         <script>
-            // Print report
-            function printReport() {{
-                window.print();
-            }}
-            
-            // Export to JSON
+            function printReport() {{ window.print(); }}
+
             function exportToJSON() {{
                 const reportData = {json.dumps(results, indent=2)};
                 const dataStr = JSON.stringify(reportData, null, 2);
@@ -462,77 +458,44 @@ class AcinetoFASTAQC:
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }}
-            
-            // Rotating quotes
+
             let quotes = {json.dumps(self.science_quotes)};
             let currentQuote = 0;
-            
+
             function rotateQuote() {{
                 document.getElementById('science-quote').innerHTML = quotes[currentQuote];
                 currentQuote = (currentQuote + 1) % quotes.length;
             }}
-            
-            // Initialize
+
             document.addEventListener('DOMContentLoaded', function() {{
                 rotateQuote();
                 setInterval(rotateQuote, 10000);
-                
-                // Add tooltips
-                const tooltips = document.querySelectorAll('[data-toggle="tooltip"]');
-                tooltips.forEach(el => {{
-                    el.addEventListener('mouseenter', function(e) {{
-                        const tooltip = document.createElement('div');
-                        tooltip.className = 'tooltip-custom';
-                        tooltip.textContent = this.getAttribute('title');
-                        tooltip.style.position = 'absolute';
-                        tooltip.style.background = 'rgba(0,0,0,0.8)';
-                        tooltip.style.color = 'white';
-                        tooltip.style.padding = '5px 10px';
-                        tooltip.style.borderRadius = '4px';
-                        tooltip.style.zIndex = '1000';
-                        tooltip.style.left = e.pageX + 'px';
-                        tooltip.style.top = (e.pageY - 30) + 'px';
-                        document.body.appendChild(tooltip);
-                        this._tooltip = tooltip;
-                    }});
-                    
-                    el.addEventListener('mouseleave', function() {{
-                        if (this._tooltip) {{
-                            document.body.removeChild(this._tooltip);
-                            this._tooltip = null;
-                        }}
-                    }});
-                }});
             }});
-            
-            // Sort table
+
             function sortTable(tableId, columnIndex) {{
                 const table = document.getElementById(tableId);
                 const tbody = table.querySelector('tbody');
                 const rows = Array.from(tbody.querySelectorAll('tr'));
-                
+
                 rows.sort((a, b) => {{
                     const aText = a.children[columnIndex].textContent.trim();
                     const bText = b.children[columnIndex].textContent.trim();
-                    
-                    // Try to convert to number if possible
+
                     const aNum = parseFloat(aText.replace(/,/g, '').replace('%', ''));
                     const bNum = parseFloat(bText.replace(/,/g, '').replace('%', ''));
-                    
+
                     if (!isNaN(aNum) && !isNaN(bNum)) {{
                         return aNum - bNum;
                     }}
-                    
+
                     return aText.localeCompare(bText);
                 }});
-                
-                // Clear and re-add rows
+
                 rows.forEach(row => tbody.appendChild(row));
             }}
         </script>
         """
-        
-        # HTML Content
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -541,12 +504,7 @@ class AcinetoFASTAQC:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-        
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -554,17 +512,8 @@ class AcinetoFASTAQC:
             padding: 20px;
             min-height: 100vh;
         }}
-        
-        .container {{
-            max-width: 1600px;
-            margin: 0 auto;
-        }}
-        
-        .header {{
-            text-align: center;
-            margin-bottom: 30px;
-        }}
-        
+        .container {{ max-width: 1600px; margin: 0 auto; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
         .ascii-container {{
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
@@ -573,7 +522,6 @@ class AcinetoFASTAQC:
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             border: 2px solid rgba(0, 255, 0, 0.3);
         }}
-        
         .ascii-art {{
             font-family: 'Courier New', monospace;
             font-size: 10px;
@@ -583,7 +531,6 @@ class AcinetoFASTAQC:
             text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
             overflow-x: auto;
         }}
-        
         .card {{
             background: rgba(255, 255, 255, 0.95);
             color: #1f2937;
@@ -592,92 +539,79 @@ class AcinetoFASTAQC:
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }}
-        
-        .qc-table {{ 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 20px 0; 
+        .qc-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
             background: white;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             font-size: 13px;
         }}
-        
-        .qc-table th, .qc-table td {{ 
-            padding: 12px 8px; 
-            text-align: left; 
-            border-bottom: 1px solid #e0e0e0; 
-            word-wrap: break-word;
+        .qc-table th, .qc-table td {{
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
         }}
-        
-        .qc-table th {{ 
+        .qc-table th {{
             background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
             color: white;
             font-weight: 600;
             cursor: pointer;
             position: relative;
         }}
-        
-        .qc-table th:hover {{ 
-            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
-        }}
-        
+        .qc-table th:hover {{ background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); }}
         .qc-table th.sortable::after {{
             content: "↕";
             position: absolute;
             right: 8px;
             opacity: 0.6;
         }}
-        
         tr:hover {{ background-color: #f8f9fa; }}
         .success {{ color: #28a745; font-weight: 600; }}
         .warning {{ color: #ffc107; font-weight: 600; }}
         .danger {{ color: #dc3545; font-weight: 600; }}
-        
-        .summary-stats {{ 
-            display: flex; 
-            justify-content: space-around; 
-            margin: 20px 0; 
+
+        .summary-stats {{
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
             flex-wrap: wrap;
         }}
-        
-        .stat-card {{ 
+        .stat-card {{
             background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
             color: white;
-            padding: 20px; 
-            border-radius: 12px; 
-            text-align: center; 
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             margin: 10px;
             flex: 1;
             min-width: 180px;
         }}
-        
         .gc-stat-card {{
             background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
             color: white;
-            padding: 20px; 
-            border-radius: 12px; 
-            text-align: center; 
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             margin: 10px;
             flex: 1;
             min-width: 180px;
         }}
-        
         .at-stat-card {{
             background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
             color: white;
-            padding: 20px; 
-            border-radius: 12px; 
-            text-align: center; 
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             margin: 10px;
             flex: 1;
             min-width: 180px;
         }}
-        
         .quote-container {{
             background: rgba(255, 255, 255, 0.1);
             color: white;
@@ -688,7 +622,6 @@ class AcinetoFASTAQC:
             font-style: italic;
             border-left: 4px solid #fff;
         }}
-        
         .footer {{
             background: rgba(0, 0, 0, 0.8);
             color: white;
@@ -696,17 +629,9 @@ class AcinetoFASTAQC:
             border-radius: 12px;
             margin-top: 40px;
         }}
-        
-        .footer a {{
-            color: #667eea;
-            text-decoration: none;
-        }}
-        
-        .footer a:hover {{
-            text-decoration: underline;
-        }}
-        
-        /* Controls */
+        .footer a {{ color: #667eea; text-decoration: none; }}
+        .footer a:hover {{ text-decoration: underline; }}
+
         .controls {{
             background: #f8f9fa;
             padding: 15px;
@@ -717,13 +642,11 @@ class AcinetoFASTAQC:
             gap: 10px;
             align-items: center;
         }}
-        
         .export-buttons {{
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }}
-        
         .export-buttons button {{
             padding: 8px 16px;
             background: #3b82f6;
@@ -734,28 +657,12 @@ class AcinetoFASTAQC:
             font-size: 14px;
             transition: background 0.3s;
         }}
-        
-        .export-buttons button:hover {{
-            background: #2563eb;
-        }}
-        
-        .export-buttons button.print {{
-            background: #10b981;
-        }}
-        
-        .export-buttons button.print:hover {{
-            background: #059669;
-        }}
-        
-        .export-buttons button.json {{
-            background: #8b5cf6;
-        }}
-        
-        .export-buttons button.json:hover {{
-            background: #7c3aed;
-        }}
-        
-        /* Warning boxes */
+        .export-buttons button:hover {{ background: #2563eb; }}
+        .export-buttons button.print {{ background: #10b981; }}
+        .export-buttons button.print:hover {{ background: #059669; }}
+        .export-buttons button.json {{ background: #8b5cf6; }}
+        .export-buttons button.json:hover {{ background: #7c3aed; }}
+
         .warning-box {{
             background: #fff3cd;
             border: 1px solid #ffc107;
@@ -764,7 +671,6 @@ class AcinetoFASTAQC:
             margin: 10px 0;
             color: #856404;
         }}
-        
         .danger-box {{
             background: #f8d7da;
             border: 1px solid #dc3545;
@@ -773,49 +679,33 @@ class AcinetoFASTAQC:
             margin: 10px 0;
             color: #721c24;
         }}
-        
-        /* Responsive table */
-        .table-container {{
-            overflow-x: auto;
-            margin: 20px 0;
-        }}
-        
-        /* Nucleotide composition */
+        .table-container {{ overflow-x: auto; margin: 20px 0; }}
+
         .composition-grid {{
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
             margin: 20px 0;
         }}
-        
-        .composition-item {{
-            text-align: center;
-            margin: 10px;
-            flex: 1;
-            min-width: 120px;
+        .composition-item {{ text-align: center; margin: 10px; flex: 1; min-width: 120px; }}
+        .composition-value {{ font-size: 24px; font-weight: bold; }}
+        .composition-label {{ font-size: 12px; color: #666; margin-top: 5px; }}
+
+        .species-card {{
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 6px solid #3b82f6;
         }}
-        
-        .composition-value {{
-            font-size: 24px;
-            font-weight: bold;
-        }}
-        
-        .composition-label {{
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }}
-        
+        .species-card.passed {{ border-left-color: #28a745; }}
+        .species-card.failed {{ border-left-color: #dc3545; }}
+        .species-card.contaminated {{ border-left-color: #ffc107; }}
+
         @media (max-width: 1200px) {{
-            .qc-table {{
-                font-size: 11px;
-            }}
-            
-            .qc-table th, .qc-table td {{
-                padding: 8px 6px;
-            }}
+            .qc-table {{ font-size: 11px; }}
+            .qc-table th, .qc-table td {{ padding: 8px 6px; }}
         }}
-        
         @media print {{
             .controls {{ display: none !important; }}
             body {{ background: white !important; color: black !important; }}
@@ -831,12 +721,12 @@ class AcinetoFASTAQC:
             <div class="ascii-container">
                 <div class="ascii-art">{self.ascii_art}</div>
             </div>
-            
+
             <div class="card">
                 <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope FASTA QC Report</h1>
                 <p style="color: #666; font-size: 1.2em;">Comprehensive Quality Control for FASTA Files</p>
                 <p style="color: #666; font-size: 1.1em;"><strong>Sample:</strong> {results['filename']}</p>
-                
+
                 <div class="controls">
                     <div class="export-buttons">
                         <button onclick="exportToJSON()" class="json">📥 Export JSON</button>
@@ -845,13 +735,12 @@ class AcinetoFASTAQC:
                 </div>
             </div>
         </div>
-        
+
         <div class="quote-container">
             <div id="science-quote" style="font-size: 1.1em;"></div>
         </div>
 """
-        
-        # Summary Statistics
+
         html_content += f"""
         <div class="card">
             <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 FASTA QC Summary</h2>
@@ -886,12 +775,54 @@ class AcinetoFASTAQC:
             <p><strong>Tool Version:</strong> {self.metadata['version']}</p>
         </div>
 """
-        
-        # Basic Statistics Table
+
+        if self.run_ani and 'species_check' in results and 'error' not in results['species_check']:
+            sc = results['species_check']
+            status_class = 'passed' if sc['passed'] else 'failed'
+            if sc['contamination_suspected']:
+                status_class = 'contaminated'
+
+            html_content += f"""
+        <div class="card">
+            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧬 Species Confirmation (FASTANI)</h2>
+            <div class="species-card {status_class}">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div>
+                        <div style="font-size: 12px; color: #666;">Best Match</div>
+                        <div style="font-size: 20px; font-weight: bold;">{sc['best_match']}</div>
+                        <div style="font-size: 14px; color: #3b82f6;">ANI: {sc['ani_percent']}%</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #666;">Status</div>
+                        <div style="font-size: 20px; font-weight: bold; color: {'#28a745' if sc['passed'] else '#dc3545'};">
+                            {'✅ Confirmed' if sc['passed'] else '❌ Mismatch'}
+                        </div>
+                        <div style="font-size: 14px; color: #666;">Threshold: ≥{self.thresholds['ani_threshold']}%</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #666;">Contamination</div>
+                        <div style="font-size: 20px; font-weight: bold; color: {'#ffc107' if sc['contamination_suspected'] else '#28a745'};">
+                            {'⚠️ Suspected' if sc['contamination_suspected'] else 'None'}
+                        </div>
+                        <div style="font-size: 14px; color: #666;">Second best: {sc['second_best_match'] or 'N/A'} ({sc['second_best_ani'] or 'N/A'}%)</div>
+                    </div>
+                </div>
+                <details style="margin-top: 15px;">
+                    <summary style="cursor: pointer; color: #3b82f6;">All ANI values</summary>
+                    <ul style="margin-top: 10px;">
+"""
+            for sp, ani in sc.get('all_matches', {}).items():
+                html_content += f'<li>{sp}: {ani}%</li>'
+            html_content += """
+                    </ul>
+                </details>
+            </div>
+        </div>
+"""
+
         html_content += f"""
         <div class="card">
             <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Basic Statistics</h2>
-            
             <div class="table-container">
                 <table class="qc-table" id="basic-stats-table">
                     <thead>
@@ -902,137 +833,39 @@ class AcinetoFASTAQC:
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><strong>Total Sequences</strong></td>
-                            <td>{results['total_sequences']:,}</td>
-                            <td>Number of sequences in the file</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total Length</strong></td>
-                            <td>{results['total_length']:,} bp</td>
-                            <td>Total number of bases (including Ns)</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total Bases</strong></td>
-                            <td>{results['total_bases']:,} bp</td>
-                            <td>Total bases excluding ambiguous characters</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Longest Sequence</strong></td>
-                            <td>{results['longest_sequence']:,} bp</td>
-                            <td>Length of the longest sequence</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Shortest Sequence</strong></td>
-                            <td>{results['shortest_sequence']:,} bp</td>
-                            <td>Length of the shortest sequence</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Mean Length</strong></td>
-                            <td>{results['mean_length']:,.0f} bp</td>
-                            <td>Average sequence length</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Median Length</strong></td>
-                            <td>{results['median_length']:,} bp</td>
-                            <td>Median sequence length</td>
-                        </tr>
-                        <tr>
-                            <td><strong>N50</strong></td>
-                            <td>{results['n50']:,} bp</td>
-                            <td>Length for which 50% of total bases are in longer sequences</td>
-                        </tr>
-                        <tr>
-                            <td><strong>N75</strong></td>
-                            <td>{results['n75']:,} bp</td>
-                            <td>Length for which 75% of total bases are in longer sequences</td>
-                        </tr>
-                        <tr>
-                            <td><strong>N90</strong></td>
-                            <td>{results['n90']:,} bp</td>
-                            <td>Length for which 90% of total bases are in longer sequences</td>
-                        </tr>
-                        <tr>
-                            <td><strong>L50</strong></td>
-                            <td>{results['l50']:,}</td>
-                            <td>Number of sequences that make up 50% of total length</td>
-                        </tr>
-                        <tr>
-                            <td><strong>L75</strong></td>
-                            <td>{results['l75']:,}</td>
-                            <td>Number of sequences that make up 75% of total length</td>
-                        </tr>
-                        <tr>
-                            <td><strong>L90</strong></td>
-                            <td>{results['l90']:,}</td>
-                            <td>Number of sequences that make up 90% of total length</td>
-                        </tr>
-                        <tr>
-                            <td><strong>GC Content</strong></td>
-                            <td>{results['gc_percent']:.1f}%</td>
-                            <td>Percentage of G and C bases</td>
-                        </tr>
-                        <tr>
-                            <td><strong>AT Content</strong></td>
-                            <td>{results['at_percent']:.1f}%</td>
-                            <td>Percentage of A and T bases</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Ambiguous Bases</strong></td>
-                            <td>{results['ambiguous_percent']:.2f}%</td>
-                            <td>Percentage of N and other ambiguous bases</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Sequences with Ns</strong></td>
-                            <td>{results['sequences_with_n']:,}</td>
-                            <td>Number of sequences containing N bases</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total N Bases</strong></td>
-                            <td>{results['total_n_bases']:,}</td>
-                            <td>Total count of N bases</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Max N-run</strong></td>
-                            <td>{results['max_n_run']:,}</td>
-                            <td>Longest consecutive run of N bases</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Homopolymers</strong></td>
-                            <td>{results['homopolymers_count']:,}</td>
-                            <td>Number of homopolymers longer than 4 bases</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Max Homopolymer</strong></td>
-                            <td>{results['max_homopolymer']:,}</td>
-                            <td>Longest homopolymer run</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Duplicate Sequences</strong></td>
-                            <td>{results['duplicate_sequences']:,}</td>
-                            <td>Number of identical sequences</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Short Sequences (&lt;{self.thresholds['short_seq']} bp)</strong></td>
-                            <td>{results['short_sequences']:,}</td>
-                            <td>Sequences shorter than {self.thresholds['short_seq']} bp</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Long Sequences (&gt;{self.thresholds['long_seq']:,} bp)</strong></td>
-                            <td>{results['long_sequences']:,}</td>
-                            <td>Sequences longer than {self.thresholds['long_seq']:,} bp</td>
-                        </tr>
+                        <tr><td><strong>Total Sequences</strong></td><td>{results['total_sequences']:,}</td><td>Number of sequences in the file</td></tr>
+                        <tr><td><strong>Total Length</strong></td><td>{results['total_length']:,} bp</td><td>Total number of bases (including Ns)</td></tr>
+                        <tr><td><strong>Total Bases</strong></td><td>{results['total_bases']:,} bp</td><td>Total bases excluding ambiguous characters</td></tr>
+                        <tr><td><strong>Longest Sequence</strong></td><td>{results['longest_sequence']:,} bp</td><td>Length of the longest sequence</td></tr>
+                        <tr><td><strong>Shortest Sequence</strong></td><td>{results['shortest_sequence']:,} bp</td><td>Length of the shortest sequence</td></tr>
+                        <tr><td><strong>Mean Length</strong></td><td>{results['mean_length']:,.0f} bp</td><td>Average sequence length</td></tr>
+                        <tr><td><strong>Median Length</strong></td><td>{results['median_length']:,} bp</td><td>Median sequence length</td></tr>
+                        <tr><td><strong>N50</strong></td><td>{results['n50']:,} bp</td><td>Length for which 50% of total bases are in longer sequences</td></tr>
+                        <tr><td><strong>N75</strong></td><td>{results['n75']:,} bp</td><td>Length for which 75% of total bases are in longer sequences</td></tr>
+                        <tr><td><strong>N90</strong></td><td>{results['n90']:,} bp</td><td>Length for which 90% of total bases are in longer sequences</td></tr>
+                        <tr><td><strong>L50</strong></td><td>{results['l50']:,}</td><td>Number of sequences that make up 50% of total length</td></tr>
+                        <tr><td><strong>L75</strong></td><td>{results['l75']:,}</td><td>Number of sequences that make up 75% of total length</td></tr>
+                        <tr><td><strong>L90</strong></td><td>{results['l90']:,}</td><td>Number of sequences that make up 90% of total length</td></tr>
+                        <tr><td><strong>GC Content</strong></td><td>{results['gc_percent']:.1f}%</td><td>Percentage of G and C bases</td></tr>
+                        <tr><td><strong>AT Content</strong></td><td>{results['at_percent']:.1f}%</td><td>Percentage of A and T bases</td></tr>
+                        <tr><td><strong>Ambiguous Bases</strong></td><td>{results['ambiguous_percent']:.2f}%</td><td>Percentage of N and other ambiguous bases</td></tr>
+                        <tr><td><strong>Sequences with Ns</strong></td><td>{results['sequences_with_n']:,}</td><td>Number of sequences containing N bases</td></tr>
+                        <tr><td><strong>Total N Bases</strong></td><td>{results['total_n_bases']:,}</td><td>Total count of N bases</td></tr>
+                        <tr><td><strong>Max N-run</strong></td><td>{results['max_n_run']:,}</td><td>Longest consecutive run of N bases</td></tr>
+                        <tr><td><strong>Homopolymers</strong></td><td>{results['homopolymers_count']:,}</td><td>Number of homopolymers longer than 4 bases</td></tr>
+                        <tr><td><strong>Max Homopolymer</strong></td><td>{results['max_homopolymer']:,}</td><td>Longest homopolymer run</td></tr>
+                        <tr><td><strong>Duplicate Sequences</strong></td><td>{results['duplicate_sequences']:,}</td><td>Number of identical sequences</td></tr>
+                        <tr><td><strong>Short Sequences (&lt;{self.thresholds['short_seq']} bp)</strong></td><td>{results['short_sequences']:,}</td><td>Sequences shorter than {self.thresholds['short_seq']} bp</td></tr>
+                        <tr><td><strong>Long Sequences (&gt;{self.thresholds['long_seq']:,} bp)</strong></td><td>{results['long_sequences']:,}</td><td>Sequences longer than {self.thresholds['long_seq']:,} bp</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 """
-        
-        # Nucleotide Composition
+
         html_content += f"""
         <div class="card">
             <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧬 Nucleotide Composition</h2>
-            
             <div class="composition-grid">
                 <div class="composition-item">
                     <div class="composition-value" style="color: #28a745;">{results['gc_percent']:.1f}%</div>
@@ -1065,12 +898,10 @@ class AcinetoFASTAQC:
             </div>
         </div>
 """
-        
-        # Length Distribution
+
         html_content += """
         <div class="card">
             <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Length Distribution</h2>
-            
             <div class="table-container">
                 <table class="qc-table" id="length-dist-table">
                     <thead>
@@ -1082,7 +913,6 @@ class AcinetoFASTAQC:
                     </thead>
                     <tbody>
 """
-        
         total_seqs = results['total_sequences']
         for length_range, count in results['length_distribution'].items():
             percentage = (count / total_seqs * 100) if total_seqs > 0 else 0
@@ -1093,21 +923,18 @@ class AcinetoFASTAQC:
                             <td>{percentage:.1f}%</td>
                         </tr>
 """
-        
         html_content += """
                     </tbody>
                 </table>
             </div>
         </div>
 """
-        
-        # Warnings section
+
         if results.get('warnings'):
             html_content += """
         <div class="card">
             <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">⚠️ Quality Warnings</h2>
 """
-            
             for warning in results['warnings']:
                 box_class = 'danger-box' if warning['level'] == 'danger' else 'warning-box'
                 html_content += f"""
@@ -1115,12 +942,10 @@ class AcinetoFASTAQC:
                 <strong>{warning['level'].upper()}:</strong> {warning['message']}
             </div>
 """
-            
             html_content += """
         </div>
 """
-        
-        # Footer
+
         html_content += f"""
         <div class="footer">
             <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
@@ -1128,51 +953,48 @@ class AcinetoFASTAQC:
             <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
-            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-            </p>
         </div>
     </div>
 </body>
 </html>
 """
-        
-        # Write HTML file
+
         with open(html_file, 'w', encoding='utf-8') as f:
             f.write(html_content)
-        
-        # Create JSON report
+
         json_file = os.path.join(sample_dir, f"{filename_no_ext}_fasta_qc_report.json")
         with open(json_file, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=2, default=str)
-        
+
         self.logger.info(f"✓ HTML report generated: {html_file}")
         self.logger.info(f"✓ JSON report generated: {json_file}")
-        
+
         return html_file
-    
+
     def create_summary_report(self, all_results: List[Dict[str, Any]], output_dir: str):
-        """Create summary report for multiple FASTA files"""
         successful_results = [r for r in all_results if r.get('status') == 'success']
-        
+
         if not successful_results:
             self.logger.warning("No successful analyses to create summary report")
             return
-        
-        # Create TSV summary
+
         tsv_file = os.path.join(output_dir, "FASTA_QC_summary.tsv")
+        headers = [
+            'Filename', 'Total Sequences', 'Total Length', 'Total Bases',
+            'GC Content (%)', 'AT Content (%)', 'N50', 'N75', 'N90',
+            'Median Length', 'Mean Length', 'Longest Sequence', 'Shortest Sequence',
+            'Ambiguous Bases (%)', 'Sequences with Ns', 'Max N-run',
+            'Homopolymers', 'Max Homopolymer', 'Duplicate Sequences',
+            'Short Sequences (<100 bp)', 'Long Sequences (>1M bp)',
+            'File Size (MB)', 'Warnings'
+        ]
+
+        if self.run_ani:
+            headers.extend(['Best Species', 'ANI (%)', 'Confirmed', 'Contamination'])
+
         with open(tsv_file, 'w', encoding='utf-8') as f:
-            # Header
-            headers = [
-                'Filename', 'Total Sequences', 'Total Length', 'Total Bases',
-                'GC Content (%)', 'AT Content (%)', 'N50', 'N75', 'N90',
-                'Median Length', 'Mean Length', 'Longest Sequence', 'Shortest Sequence',
-                'Ambiguous Bases (%)', 'Sequences with Ns', 'Max N-run',
-                'Homopolymers', 'Max Homopolymer', 'Duplicate Sequences',
-                'Short Sequences (<100 bp)', 'Long Sequences (>1M bp)',
-                'File Size (MB)', 'Warnings'
-            ]
             f.write('\t'.join(headers) + '\n')
-            
+
             for result in successful_results:
                 row = [
                     result['filename'],
@@ -1199,25 +1021,32 @@ class AcinetoFASTAQC:
                     f"{result['file_size_mb']:.2f}",
                     str(len(result.get('warnings', [])))
                 ]
+
+                if self.run_ani:
+                    sc = result.get('species_check', {})
+                    row.extend([
+                        sc.get('best_match', 'Unknown'),
+                        str(sc.get('ani_percent', 'N/A')),
+                        'Yes' if sc.get('passed') else 'No',
+                        'Yes' if sc.get('contamination_suspected') else 'No'
+                    ])
+
                 f.write('\t'.join(row) + '\n')
-        
-        # Create JSON summary
+
         json_summary = self._create_json_summary(successful_results)
         json_file = os.path.join(output_dir, "FASTA_QC_summary.json")
         with open(json_file, 'w', encoding='utf-8') as f:
             json.dump(json_summary, f, indent=2, default=str)
-        
-        # Create HTML summary report
+
         html_file = os.path.join(output_dir, "FASTA_QC_summary.html")
         self._create_summary_html_report(successful_results, html_file, json_summary)
-        
+
         self.logger.info(f"✓ TSV summary created: {tsv_file}")
         self.logger.info(f"✓ JSON summary created: {json_file}")
         self.logger.info(f"✓ HTML summary created: {html_file}")
-    
+
     def _create_json_summary(self, successful_results: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Create JSON summary structure"""
-        summary_data = {
+        return {
             'metadata': {
                 'tool': self.metadata['tool_name'],
                 'version': self.metadata['version'],
@@ -1225,7 +1054,8 @@ class AcinetoFASTAQC:
                 'analysis_date': self.metadata['analysis_date'],
                 'total_files': len(successful_results),
                 'total_sequences': sum(r['total_sequences'] for r in successful_results),
-                'total_length': sum(r['total_length'] for r in successful_results)
+                'total_length': sum(r['total_length'] for r in successful_results),
+                'ani_enabled': self.run_ani
             },
             'statistics': {
                 'gc_content_range': {
@@ -1247,22 +1077,15 @@ class AcinetoFASTAQC:
             },
             'files': successful_results
         }
-        
-        return summary_data
-    
-    def _create_summary_html_report(self, successful_results: List[Dict[str, Any]], 
-                                  html_file: str, json_summary: Dict[str, Any]):
-        """Create HTML summary report with scrollable table"""
-        
-        # JavaScript for interactive features
+
+    def _create_summary_html_report(self, successful_results: List[Dict[str, Any]], html_file: str, json_summary: Dict[str, Any]):
         js_content = f"""
         <script>
-            // Search functionality
             function searchTable(tableId, searchTerm) {{
                 const table = document.getElementById(tableId);
                 const rows = table.getElementsByTagName('tr');
                 let visibleCount = 0;
-                
+
                 for (let i = 1; i < rows.length; i++) {{
                     const row = rows[i];
                     const text = row.textContent.toLowerCase();
@@ -1273,53 +1096,46 @@ class AcinetoFASTAQC:
                         row.style.display = 'none';
                     }}
                 }}
-                
-                // Update result count
+
                 const resultCounter = document.getElementById('result-counter-' + tableId);
                 if (resultCounter) {{
                     resultCounter.textContent = visibleCount + ' files found';
                 }}
             }}
-            
-            // Sort table
+
             function sortTable(tableId, columnIndex) {{
                 const table = document.getElementById(tableId);
                 const tbody = table.querySelector('tbody');
                 const rows = Array.from(tbody.querySelectorAll('tr'));
-                
+
                 rows.sort((a, b) => {{
                     const aText = a.children[columnIndex].textContent.trim();
                     const bText = b.children[columnIndex].textContent.trim();
-                    
-                    // Try to convert to number if possible
+
                     const aNum = parseFloat(aText.replace(/,/g, '').replace('%', ''));
                     const bNum = parseFloat(bText.replace(/,/g, '').replace('%', ''));
-                    
+
                     if (!isNaN(aNum) && !isNaN(bNum)) {{
                         return aNum - bNum;
                     }}
-                    
+
                     return aText.localeCompare(bText);
                 }});
-                
-                // Clear and re-add rows
+
                 rows.forEach(row => tbody.appendChild(row));
             }}
-            
-            // Export to CSV
+
             function exportToCSV() {{
                 const rows = document.querySelectorAll('#qc-summary-table tr');
                 let csv = [];
-                
-                // Add headers
+
                 const headerCells = rows[0].querySelectorAll('th');
                 const headerRow = [];
                 for (let cell of headerCells) {{
                     headerRow.push(cell.textContent);
                 }}
                 csv.push(headerRow.join(','));
-                
-                // Add data
+
                 for (let i = 1; i < rows.length; i++) {{
                     if (rows[i].style.display !== 'none') {{
                         const cells = rows[i].querySelectorAll('td');
@@ -1332,8 +1148,7 @@ class AcinetoFASTAQC:
                         csv.push(row.join(','));
                     }}
                 }}
-                
-                // Create download
+
                 const blob = new Blob([csv.join('\\n')], {{ type: 'text/csv' }});
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -1344,8 +1159,7 @@ class AcinetoFASTAQC:
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
             }}
-            
-            // Export to JSON
+
             function exportToJSON() {{
                 const data = {json.dumps(json_summary, indent=2)};
                 const jsonStr = JSON.stringify(data, null, 2);
@@ -1359,22 +1173,20 @@ class AcinetoFASTAQC:
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
             }}
-            
-            // Print report
+
             function printReport() {{
                 window.print();
             }}
-            
-            // Filter by warnings
+
             function filterByWarnings(level) {{
                 const table = document.getElementById('qc-summary-table');
                 const rows = table.getElementsByTagName('tr');
-                
+
                 for (let i = 1; i < rows.length; i++) {{
                     const row = rows[i];
                     const warningsCell = row.children[row.children.length - 1];
                     const warnings = parseInt(warningsCell.textContent);
-                    
+
                     if (level === 'all') {{
                         row.style.display = '';
                     }} else if (level === 'with_warnings' && warnings > 0) {{
@@ -1386,25 +1198,22 @@ class AcinetoFASTAQC:
                     }}
                 }}
             }}
-            
-            // Rotating quotes
+
             let quotes = {json.dumps(self.science_quotes)};
             let currentQuote = 0;
-            
+
             function rotateQuote() {{
                 document.getElementById('science-quote').innerHTML = quotes[currentQuote];
                 currentQuote = (currentQuote + 1) % quotes.length;
             }}
-            
-            // Initialize
+
             document.addEventListener('DOMContentLoaded', function() {{
                 rotateQuote();
                 setInterval(rotateQuote, 10000);
             }});
         </script>
         """
-        
-        # HTML Content
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -1413,12 +1222,7 @@ class AcinetoFASTAQC:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-        
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -1426,17 +1230,8 @@ class AcinetoFASTAQC:
             padding: 20px;
             min-height: 100vh;
         }}
-        
-        .container {{
-            max-width: 1800px;
-            margin: 0 auto;
-        }}
-        
-        .header {{
-            text-align: center;
-            margin-bottom: 30px;
-        }}
-        
+        .container {{ max-width: 1800px; margin: 0 auto; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
         .ascii-container {{
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
@@ -1445,7 +1240,6 @@ class AcinetoFASTAQC:
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             border: 2px solid rgba(0, 255, 0, 0.3);
         }}
-        
         .ascii-art {{
             font-family: 'Courier New', monospace;
             font-size: 10px;
@@ -1455,7 +1249,6 @@ class AcinetoFASTAQC:
             text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
             overflow-x: auto;
         }}
-        
         .card {{
             background: rgba(255, 255, 255, 0.95);
             color: #1f2937;
@@ -1464,7 +1257,6 @@ class AcinetoFASTAQC:
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }}
-        
         .qc-table {{
             width: 100%;
             border-collapse: collapse;
@@ -1475,14 +1267,12 @@ class AcinetoFASTAQC:
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             font-size: 12px;
         }}
-        
         .qc-table th, .qc-table td {{
             padding: 10px 8px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
             white-space: nowrap;
         }}
-        
         .qc-table th {{
             background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
             color: white;
@@ -1492,63 +1282,54 @@ class AcinetoFASTAQC:
             top: 0;
             z-index: 10;
         }}
-        
-        .qc-table th:hover {{
-            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
-        }}
-        
+        .qc-table th:hover {{ background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); }}
         .qc-table th.sortable::after {{
             content: "↕";
             position: absolute;
             right: 8px;
             opacity: 0.6;
         }}
-        
         tr:hover {{ background-color: #f8f9fa; }}
-        
+
         .summary-stats {{
             display: flex;
             justify-content: space-around;
             margin: 20px 0;
             flex-wrap: wrap;
         }}
-        
         .stat-card {{
             background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             margin: 10px;
             flex: 1;
             min-width: 180px;
         }}
-        
         .seq-stat-card {{
             background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             margin: 10px;
             flex: 1;
             min-width: 180px;
         }}
-        
         .warning-stat-card {{
             background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
             color: black;
             padding: 20px;
             border-radius: 12px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             margin: 10px;
             flex: 1;
             min-width: 180px;
         }}
-        
         .quote-container {{
             background: rgba(255, 255, 255, 0.1);
             color: white;
@@ -1559,7 +1340,6 @@ class AcinetoFASTAQC:
             font-style: italic;
             border-left: 4px solid #fff;
         }}
-        
         .footer {{
             background: rgba(0, 0, 0, 0.8);
             color: white;
@@ -1567,17 +1347,9 @@ class AcinetoFASTAQC:
             border-radius: 12px;
             margin-top: 40px;
         }}
-        
-        .footer a {{
-            color: #667eea;
-            text-decoration: none;
-        }}
-        
-        .footer a:hover {{
-            text-decoration: underline;
-        }}
-        
-        /* Interactive controls */
+        .footer a {{ color: #667eea; text-decoration: none; }}
+        .footer a:hover {{ text-decoration: underline; }}
+
         .interactive-controls {{
             background: #f8f9fa;
             padding: 15px;
@@ -1588,12 +1360,7 @@ class AcinetoFASTAQC:
             gap: 10px;
             align-items: center;
         }}
-        
-        .search-box {{
-            flex: 1;
-            min-width: 200px;
-        }}
-        
+        .search-box {{ flex: 1; min-width: 200px; }}
         .search-box input {{
             width: 100%;
             padding: 8px 12px;
@@ -1601,13 +1368,11 @@ class AcinetoFASTAQC:
             border-radius: 4px;
             font-size: 14px;
         }}
-        
         .filter-buttons {{
             display: flex;
             gap: 5px;
             flex-wrap: wrap;
         }}
-        
         .filter-buttons button {{
             padding: 6px 12px;
             background: #e9ecef;
@@ -1617,23 +1382,17 @@ class AcinetoFASTAQC:
             cursor: pointer;
             font-size: 13px;
         }}
-        
         .filter-buttons button.active {{
             background: #3b82f6;
             color: white;
             border-color: #3b82f6;
         }}
-        
-        .filter-buttons button:hover {{
-            background: #dee2e6;
-        }}
-        
+        .filter-buttons button:hover {{ background: #dee2e6; }}
         .export-buttons {{
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }}
-        
         .export-buttons button {{
             padding: 8px 16px;
             background: #3b82f6;
@@ -1644,61 +1403,38 @@ class AcinetoFASTAQC:
             font-size: 14px;
             transition: background 0.3s;
         }}
-        
-        .export-buttons button:hover {{
-            background: #2563eb;
-        }}
-        
-        .export-buttons button.print {{
-            background: #10b981;
-        }}
-        
-        .export-buttons button.print:hover {{
-            background: #059669;
-        }}
-        
-        .export-buttons button.json {{
-            background: #8b5cf6;
-        }}
-        
-        .export-buttons button.json:hover {{
-            background: #7c3aed;
-        }}
-        
+        .export-buttons button:hover {{ background: #2563eb; }}
+        .export-buttons button.print {{ background: #10b981; }}
+        .export-buttons button.print:hover {{ background: #059669; }}
+        .export-buttons button.json {{ background: #8b5cf6; }}
+        .export-buttons button.json:hover {{ background: #7c3aed; }}
+
         .result-counter {{
             font-size: 0.9em;
             color: #666;
             font-style: italic;
             margin-left: auto;
         }}
-        
-        /* Table container with horizontal scroll */
         .table-container {{
             overflow-x: auto;
             margin: 20px 0;
             max-height: 600px;
             overflow-y: auto;
         }}
-        
         .table-container::-webkit-scrollbar {{
             width: 8px;
             height: 8px;
         }}
-        
         .table-container::-webkit-scrollbar-track {{
             background: #f1f1f1;
             border-radius: 4px;
         }}
-        
         .table-container::-webkit-scrollbar-thumb {{
             background: #888;
             border-radius: 4px;
         }}
-        
-        .table-container::-webkit-scrollbar-thumb:hover {{
-            background: #555;
-        }}
-        
+        .table-container::-webkit-scrollbar-thumb:hover {{ background: #555; }}
+
         .warning-count {{
             display: inline-block;
             padding: 2px 8px;
@@ -1706,22 +1442,10 @@ class AcinetoFASTAQC:
             font-size: 11px;
             font-weight: bold;
         }}
-        
-        .warning-count.none {{
-            background: #d4edda;
-            color: #155724;
-        }}
-        
-        .warning-count.low {{
-            background: #fff3cd;
-            color: #856404;
-        }}
-        
-        .warning-count.high {{
-            background: #f8d7da;
-            color: #721c24;
-        }}
-        
+        .warning-count.none {{ background: #d4edda; color: #155724; }}
+        .warning-count.low {{ background: #fff3cd; color: #856404; }}
+        .warning-count.high {{ background: #f8d7da; color: #721c24; }}
+
         @media print {{
             .interactive-controls {{ display: none !important; }}
             body {{ background: white !important; color: black !important; }}
@@ -1738,28 +1462,28 @@ class AcinetoFASTAQC:
             <div class="ascii-container">
                 <div class="ascii-art">{self.ascii_art}</div>
             </div>
-            
+
             <div class="card">
                 <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope FASTA QC - Summary Report</h1>
                 <p style="color: #666; font-size: 1.2em;">Comprehensive Quality Control Analysis Across All FASTA Files</p>
-                
+
                 <div class="interactive-controls">
                     <div class="search-box">
-                        <input type="text" id="search-summary" 
-                               placeholder="🔍 Search filenames or values..." 
+                        <input type="text" id="search-summary"
+                               placeholder="🔍 Search filenames or values..."
                                onkeyup="searchTable('qc-summary-table', this.value)">
                     </div>
-                    
+
                     <div class="filter-buttons">
                         <button class="active" onclick="filterByWarnings('all')">All Files</button>
                         <button onclick="filterByWarnings('with_warnings')">With Warnings</button>
                         <button onclick="filterByWarnings('no_warnings')">No Warnings</button>
                     </div>
-                    
+
                     <div class="result-counter" id="result-counter-qc-summary-table">
                         {len(successful_results)} files found
                     </div>
-                    
+
                     <div class="export-buttons">
                         <button onclick="exportToCSV()">📥 Export CSV</button>
                         <button onclick="exportToJSON()" class="json">📥 Export JSON</button>
@@ -1768,18 +1492,17 @@ class AcinetoFASTAQC:
                 </div>
             </div>
         </div>
-        
+
         <div class="quote-container">
             <div id="science-quote" style="font-size: 1.1em;"></div>
         </div>
 """
-        
-        # Overall statistics
+
         total_sequences = sum(r['total_sequences'] for r in successful_results)
         total_length = sum(r['total_length'] for r in successful_results)
         total_warnings = sum(len(r.get('warnings', [])) for r in successful_results)
         files_with_warnings = sum(1 for r in successful_results if r.get('warnings'))
-        
+
         html_content += f"""
         <div class="card">
             <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Overall Statistics</h2>
@@ -1806,15 +1529,15 @@ class AcinetoFASTAQC:
             <p><strong>Analysis Date:</strong> {self.metadata['analysis_date']}</p>
             <p><strong>Tool Version:</strong> {self.metadata['version']}</p>
             <p><strong>BioPython Version:</strong> {self.metadata['biopython_version']}</p>
+            <p><strong>ANI Enabled:</strong> {'Yes' if self.run_ani else 'No'}</p>
         </div>
 """
-        
-        # Detailed table with scroll
+
         html_content += """
         <div class="card">
             <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Detailed FASTA QC Results</h2>
             <p style="color: #666; margin-bottom: 15px;">Scroll horizontally to view all columns. Click headers to sort.</p>
-            
+
             <div class="table-container">
                 <table class="qc-table" id="qc-summary-table">
                     <thead>
@@ -1842,15 +1565,26 @@ class AcinetoFASTAQC:
                             <th class="sortable" onclick="sortTable('qc-summary-table', 20)">Long Sequences (&gt;1M bp)</th>
                             <th class="sortable" onclick="sortTable('qc-summary-table', 21)">File Size (MB)</th>
                             <th class="sortable" onclick="sortTable('qc-summary-table', 22)">Warnings</th>
+"""
+
+        if self.run_ani:
+            html_content += """
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 23)">Best Species</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 24)">ANI (%)</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 25)">Confirmed</th>
+                            <th class="sortable" onclick="sortTable('qc-summary-table', 26)">Contamination</th>
+"""
+
+        html_content += """
                         </tr>
                     </thead>
                     <tbody>
 """
-        
+
         for result in successful_results:
             warning_count = len(result.get('warnings', []))
             warning_class = 'none' if warning_count == 0 else 'low' if warning_count < 3 else 'high'
-            
+
             html_content += f"""
                         <tr>
                             <td><strong>{result['filename']}</strong></td>
@@ -1876,17 +1610,36 @@ class AcinetoFASTAQC:
                             <td>{result['long_sequences']:,}</td>
                             <td>{result['file_size_mb']:.2f}</td>
                             <td><span class="warning-count {warning_class}">{warning_count}</span></td>
+"""
+
+            if self.run_ani:
+                sc = result.get('species_check', {})
+                if 'error' not in sc:
+                    html_content += f"""
+                            <td>{sc.get('best_match', 'ND')}</td>
+                            <td>{sc.get('ani_percent', 'ND')}%</td>
+                            <td>{'Yes' if sc.get('passed') else '❌ No'}</td>
+                            <td>{'⚠️ Yes' if sc.get('contamination_suspected') else 'No'}</td>
+"""
+                else:
+                    html_content += """
+                            <td>ND</td>
+                            <td>ND</td>
+                            <td>ND</td>
+                            <td>ND</td>
+"""
+
+            html_content += """
                         </tr>
 """
-        
+
         html_content += """
                     </tbody>
                 </table>
             </div>
         </div>
 """
-        
-        # Footer
+
         html_content += f"""
         <div class="footer">
             <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
@@ -1894,20 +1647,16 @@ class AcinetoFASTAQC:
             <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
             <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
             <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
-            <p style="margin-top: 20px; font-size: 0.9em; color: #ccc;">
-            </p>
         </div>
     </div>
 </body>
 </html>
 """
-        
-        # Write HTML file
+
         with open(html_file, 'w', encoding='utf-8') as f:
             f.write(html_content)
-    
+
     def process_files(self, pattern: str, output_dir: str = "fasta_qc_results") -> List[Dict[str, Any]]:
-        """Process multiple FASTA files with parallel execution and comprehensive reporting"""
         print("\n" + "="*80)
         print(self.ascii_art)
         print("AcinetoScope FASTA QC - Comprehensive Quality Control")
@@ -1917,53 +1666,48 @@ class AcinetoFASTAQC:
         print("="*80)
         print(f"Output directory: {output_dir}")
         print(f"Using {self.cpus} CPU cores")
+        print(f"ANI species check: {'Enabled' if self.run_ani else 'Disabled (no refs found)'}")
+        if self.run_ani:
+            print(f"Reference genomes: {len(self.species_refs)}")
         print("="*80)
-        
-        # Find FASTA files
+
         fasta_extensions = ['.fna', '.fasta', '.fa', '.faa']
         files = []
-        
-        # Try the pattern as-is first
+
         files.extend(glob.glob(pattern))
-        
-        # If no files found, try with extensions
         if not files:
             for ext in fasta_extensions:
                 files.extend(glob.glob(f"{pattern}{ext}"))
-        
-        # Remove duplicates and non-existent files
+
         files = list(set([f for f in files if os.path.exists(f)]))
-        
+
         if not files:
             self.logger.error(f"No FASTA files found matching pattern: {pattern}")
             self.logger.info(f"Supported extensions: {', '.join(fasta_extensions)}")
             return []
-        
+
         self.logger.info(f"Found {len(files)} FASTA files: {[Path(f).name for f in files]}")
-        
-        # Create output directory
+
         os.makedirs(output_dir, exist_ok=True)
-        
-        # Process files in parallel
+
         all_results = []
         successful_files = 0
-        
+
         with ThreadPoolExecutor(max_workers=self.cpus) as executor:
             future_to_file = {executor.submit(self.analyze_file, f): f for f in files}
-            
+
             for future in as_completed(future_to_file):
                 file = future_to_file[future]
                 try:
                     result = future.result()
                     all_results.append(result)
-                    
+
                     if result.get('status') == 'success':
                         successful_files += 1
-                        # Create individual HTML report
                         self.create_individual_html_report(result, output_dir)
                     else:
                         self.logger.error(f"✗ {result['filename']}: {result.get('error', 'Unknown error')}")
-                        
+
                 except Exception as e:
                     self.logger.error(f"✗ {os.path.basename(file)}: ERROR - {str(e)}")
                     all_results.append({
@@ -1971,12 +1715,10 @@ class AcinetoFASTAQC:
                         'status': 'error',
                         'error': str(e)
                     })
-        
-        # Create summary reports if we have successful analyses
+
         if successful_files > 0:
             self.create_summary_report(all_results, output_dir)
-        
-        # Print final summary
+
         print("\n" + "="*80)
         print("ANALYSIS COMPLETE")
         print("="*80)
@@ -1990,46 +1732,44 @@ class AcinetoFASTAQC:
             print(f"   Summary TSV: {output_dir}/FASTA_QC_summary.tsv")
             print(f"   Summary JSON: {output_dir}/FASTA_QC_summary.json")
             print(f"   Summary HTML: {output_dir}/FASTA_QC_summary.html")
-        
+
         print("\n" + "="*80)
-        
+
         return all_results
 
+
 def main():
-    """Command line interface for FASTA QC analysis"""
     parser = argparse.ArgumentParser(
         description='AcinetoScope FASTA QC - Comprehensive Quality Control with HTML Reports',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run on all FASTA files
   python acineto_fasta_qc.py "*.fna"
-  
-  # Run on specific pattern
-  python acineto_fasta_qc.py "genomes/*.fasta"
-  
-  # Run with custom output directory
-  python acineto_fasta_qc.py "*.fa" --output my_qc_results
+  python acineto_fasta_qc.py "genomes/*.fasta" --output my_qc_results
+  # Place reference genomes in ref_db/ for species confirmation (e.g., A. baumannii ATCC 19606, AC1633, E. coli, K. pneumoniae)
 
 Supported FASTA extensions: .fasta, .fa, .fna, .faa
         """
     )
-    
+
     parser.add_argument('pattern', help='File pattern for FASTA files (e.g., "*.fasta", "genomes/*.fna")')
-    parser.add_argument('--output', '-o', default='fasta_qc_results', 
+    parser.add_argument('--output', '-o', default='fasta_qc_results',
                        help='Output directory (default: fasta_qc_results)')
     parser.add_argument('--cpus', '-c', type=int, default=None,
                        help='Number of CPU cores to use (default: all available)')
-    
+    parser.add_argument('--ref-dir', default='ref_db',
+                       help='Directory containing reference genomes for ANI (default: ref_db)')
+
     args = parser.parse_args()
-    
+
     try:
-        qc = AcinetoFASTAQC(cpus=args.cpus)
+        qc = AcinetoFASTAQC(cpus=args.cpus, ref_dir=args.ref_dir)
         results = qc.process_files(args.pattern, args.output)
-        
+
     except Exception as e:
         print(f"FASTA QC analysis failed: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

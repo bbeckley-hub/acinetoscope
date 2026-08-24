@@ -4,10 +4,10 @@ GENIUS ACINETOBACTER SAMPLE‑CENTRIC REPORTER
 Interactive per‑isolate boxes for AMR, Virulence, BACMET, Plasmids, Mutations
 Gene‑centric for MLST, Kaptive, QC, Combinations, Co‑occurrence, Patterns
 
-Version: 1.0.0
+Version: 1.1.0
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School
-Date: 2026-07-17
+Date: 2026-08-22
 """
 
 import os
@@ -240,18 +240,24 @@ class SampleCentricParser:
                     if ic_col is not None and pd.notna(row.get(ic_col)):
                         ic_val = str(row[ic_col]).strip()
                         if ic_val and ic_val.lower() not in ['', 'nan', 'none', 'unknown', 'not assigned']:
-                            ic_match = re.search(r'(IC\s*[I|II|III|IV|V|VI|VII|VIII|IX|X]+)', ic_val, re.I)
+                            roman_to_arabic = {'I':'1','II':'2','III':'3','IV':'4','V':'5','VI':'6','VII':'7','VIII':'8','IX':'9','X':'10'}
+                            ic_match = re.search(r'IC\s*([IVXLCDM]+)', ic_val, re.I)
                             if ic_match:
-                                ic = ic_match.group(1).replace(' ', '')
+                                roman = ic_match.group(1).upper()
+                                arabic = roman_to_arabic.get(roman, roman)
+                                ic = f"IC{arabic}"
                             else:
                                 ic = ic_val.replace(' ', '')
                     if ic == 'Unknown':
                         for col in df.columns:
                             if col.lower() != sample_col.lower() and pd.notna(row.get(col)):
                                 cell_val = str(row[col])
-                                ic_match = re.search(r'(IC\s*[I|II|III|IV|V|VI|VII|VIII|IX|X]+)', cell_val, re.I)
+                                roman_to_arabic = {'I':'1','II':'2','III':'3','IV':'4','V':'5','VI':'6','VII':'7','VIII':'8','IX':'9','X':'10'}
+                                ic_match = re.search(r'IC\s*([IVXLCDM]+)', cell_val, re.I)
                                 if ic_match:
-                                    ic = ic_match.group(1).replace(' ', '')
+                                    roman = ic_match.group(1).upper()
+                                    arabic = roman_to_arabic.get(roman, roman)
+                                    ic = f"IC{arabic}"
                                     break
                 allele_profile = 'ND'
                 for col in df.columns:
@@ -327,26 +333,25 @@ class SampleCentricParser:
                     if o_col in df.columns and pd.notna(row.get(o_col)):
                         o_val = str(row[o_col]).strip()
                         if o_val and o_val.lower() not in ['', 'nan', 'none', 'nd', 'unknown']:
-                            o_match = re.search(r'(OC\d+)', o_val, re.I)
-                            if o_match:
-                                o_locus = o_match.group(1).upper()
+                            ocl_match = re.search(r'(OCL\d+)', o_val, re.I)
+                            if ocl_match:
+                                o_locus = ocl_match.group(1).upper()
                             else:
-                                unknown_match = re.search(r'unknown\s*\(OCL(\d+)\)', o_val, re.I)
-                                if unknown_match:
-                                    o_locus = f"OC{unknown_match.group(1)}"
+                                num_match = re.search(r'(\d+)', o_val)
+                                if num_match:
+                                    o_locus = f"OCL{num_match.group(1)}"
                                 else:
-                                    ocl_match = re.search(r'OCL(\d+)', o_val, re.I)
-                                    if ocl_match:
-                                        o_locus = f"OC{ocl_match.group(1)}"
-                                    else:
-                                        parts = o_val.split()
-                                        for part in parts:
-                                            if part.startswith('OC') and part[2:].isdigit():
-                                                o_locus = part.upper()
-                                                break
-                                            elif part.startswith('O') and part[1:].isdigit():
-                                                o_locus = 'OC' + part[1:]
-                                                break
+                                    parts = o_val.split()
+                                    for part in parts:
+                                        if part.startswith('OCL') and len(part) > 3 and part[3:].isdigit():
+                                            o_locus = part.upper()
+                                            break
+                                        elif part.startswith('OC') and len(part) > 2 and part[2:].isdigit():
+                                            o_locus = f"OCL{part[2:]}"
+                                            break
+                                        elif part.startswith('O') and len(part) > 1 and part[1:].isdigit():
+                                            o_locus = f"OCL{part[1:]}"
+                                            break
                             if o_locus != 'ND':
                                 break
                 capsule_type = f"{k_locus}:{o_locus}"
@@ -486,7 +491,6 @@ class SampleCentricAnalyzer:
             'gene_categories': defaultdict(list),
         }
 
-        # AMRfinder
         if amr_details:
             all_amr = []
             for genes in amr_details.values():
@@ -514,13 +518,11 @@ class SampleCentricAnalyzer:
                 for gd in amr_list:
                     gene_centric['gene_categories'][gd['category']].append(gd)
 
-        # ABRicate databases
         amr_dbs = ['card', 'resfinder', 'argannot', 'megares', 'ncbi']
         vir_dbs = ['vfdb', 'ecoli_vf']
         bac_dbs = ['bacmet2']
         plas_dbs = ['plasmidfinder', 'ecoh']
 
-        # Collect all genes per database from abricate_details
         db_to_genes = defaultdict(list)
         for sample, dbs in abricate_details.items():
             for db, genes in dbs.items():
@@ -755,7 +757,7 @@ class SampleCentricHTMLGenerator:
 <div id="citation-tab" class="tab-content">{self._citation_section()}</div>
 <div id="funding-tab" class="tab-content">{self._funding_section()}</div>
 <div id="export-tab" class="tab-content">{self._export_section()}</div>
-<div class="footer"><h3>GENIUS Acinetobacter baumannii Sample‑Centric Reporter v1.0.0</h3><p>University of Ghana Medical School | Brown Beckley &lt;brownbeckley94@gmail.com&gt;</p><p>If you find this tool helpful, please <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank">⭐ star us on GitHub</a> and share with your network.</p><p>Generated on {metadata.get('analysis_date','Unknown')}</p></div>
+<div class="footer"><h3>GENIUS Acinetobacter baumannii Sample‑Centric Reporter v1.1.0</h3><p>University of Ghana Medical School | Brown Beckley &lt;brownbeckley94@gmail.com&gt;</p><p>If you find this tool helpful, please <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank">⭐ star us on GitHub</a> and share with your network.</p><p>Generated on {metadata.get('analysis_date','Unknown')}</p></div>
 </div></body></html>"""
         return html
 
@@ -877,7 +879,7 @@ class SampleCentricHTMLGenerator:
         .isolate-box .sample-header .typing-badge.capsule-badge { background: #9C27B0; color: white; border-color: #9C27B0; }
         .isolate-box .sample-header .typing-badge.st-badge { background: #FF9800; color: white; border-color: #FF9800; }
         .isolate-box .sample-header .typing-badge.k-badge { background: #4CAF50; color: white; border-color: #4CAF50; }
-        .isolate-box .sample-header .typing-badge.o-badge { background: #2196F3; color: white; border-color: #2196F3; }
+        .isolate-box .sample-header .typing-badge.ocl-badge { background: #2196F3; color: white; border-color: #2196F3; }
         .isolate-box .sample-header .typing-badge.oxford-badge { background: #795548; color: white; border-color: #795548; }
         .isolate-box .database-table-wrapper { margin: 15px 0; overflow-x: auto; }
         .isolate-box .database-table-wrapper table { width: 100%; border-collapse: collapse; font-size: 0.85em; min-width: 800px; }
@@ -1305,7 +1307,7 @@ class SampleCentricHTMLGenerator:
                     <span class="typing-badge st-badge">Pasteur: ST {pasteur}</span>
                     <span class="typing-badge oxford-badge">Oxford: ST {oxford}</span>
                     <span class="typing-badge k-badge">K: {k}</span>
-                    <span class="typing-badge o-badge">O: {o}</span>
+                    <span class="typing-badge ocl-badge">OCL: {o}</span>
                     <span class="typing-badge capsule-badge">Capsule: {capsule}</span>
                 </div>
             </div>
@@ -1528,7 +1530,7 @@ class SampleCentricHTMLGenerator:
         return f"""
         <div class="alert-box alert-info"><i class="fas fa-info-circle fa-2x"></i><div><h3>Sample‑Centric Analysis with Isolate Boxes</h3>
         <p>This report provides an <strong>interactive per‑isolate view</strong> of all genomic features for <strong>{total}</strong> A. baumannii genomes.</p>
-        <ul><li>Each isolate is displayed in its own box with typing badges (Pasteur ST, Oxford ST, K, O, Capsule).</li>
+        <ul><li>Each isolate is displayed in its own box with typing badges (Pasteur ST, Oxford ST, K, OCL, Capsule).</li>
         <li>Inside each box, you will find tables with full details from TSV files – horizontally scrollable.</li>
         <li>Filter boxes by sample name or by database (AMR, Virulence, BACMET, Plasmids).</li>
         <li>Gene‑centric tabs (MLST, Kaptive, QC, Combinations, Co‑occurrence, Patterns) are also available.</li></ul>
@@ -1569,13 +1571,13 @@ class SampleCentricHTMLGenerator:
                     count += len(dbs[db])
             vir_counts[sample] = count
         html = """
-        <div class="alert-box alert-info"><i class="fas fa-info-circle"></i><div><h3>Population Structure Overview</h3><p>This table summarises the key typing results for each genome. Understanding the population structure helps identify dominant clones, track outbreaks, and link genotypes to phenotypes.</p><ul><li><strong>MLST (Sequence Type)</strong>: Gold standard for global epidemiology.</li><li><strong>Capsule Typing (K:O)</strong>: K (capsule) and O (lipooligosaccharide) loci are critical for virulence and immune evasion.</li><li><strong>ND</strong>: Not Determined.</li></ul></div></div>
+        <div class="alert-box alert-info"><i class="fas fa-info-circle"></i><div><h3>Population Structure Overview</h3><p>This table summarises the key typing results for each genome. Understanding the population structure helps identify dominant clones, track outbreaks, and link genotypes to phenotypes.</p><ul><li><strong>MLST (Sequence Type)</strong>: Gold standard for global epidemiology.</li><li><strong>Capsule Typing (K:OCL)</strong>: K (capsule) and OCL (lipooligosaccharide) loci are critical for virulence and immune evasion.</li><li><strong>ND</strong>: Not Determined.</li></ul></div></div>
         <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('samples-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-samples').value=''; searchTable('samples-table','search-samples'); highlightTableCells('samples-table','highlight-samples')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV('samples-table','acinetobacter_samples.csv')"><i class="fas fa-download"></i> Export CSV</button></div>
         <div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-samples" onkeyup="searchTable('samples-table','search-samples')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-samples" onkeyup="highlightTableCells('samples-table','highlight-samples')" placeholder="✨ Highlight text..."></div>
         <div class="master-scrollable-container">
             <table id="samples-table" class="data-table">
                 <thead>
-                    <tr><th data-sort="string">Sample</th><th data-sort="string">Pasteur ST</th><th data-sort="string">Oxford ST</th><th data-sort="string">K Locus</th><th data-sort="string">O Locus</th><th data-sort="number">Virulence Count</th></tr>
+                    <tr><th data-sort="string">Sample</th><th data-sort="string">Pasteur ST</th><th data-sort="string">Oxford ST</th><th data-sort="string">K Locus</th><th data-sort="string">OCL Locus</th><th data-sort="number">Virulence Count</th></tr>
                 </thead>
                 <tbody>
         """
@@ -1599,18 +1601,25 @@ class SampleCentricHTMLGenerator:
         qc = kwargs.get('qc_data', {})
         if not qc:
             return '<div class="alert-box alert-warning"><i class="fas fa-exclamation-circle"></i><div>FASTA QC file not found or could not parse.</div></div>'
+
         html = """
         <div class="scientific-note" style="background: linear-gradient(135deg, #f8f9fa 0%, #d1ecf1 100%); border-left: 6px solid #17a2b8; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <span style="font-size: 1.4em;">📊</span>
                 <div>
-                    <strong style="font-size: 1.2em; color: #0c5460;">FASTA QC Metrics</strong><br>
+                    <strong style="font-size: 1.2em; color: #0c5460;">FASTA QC & Species Confirmation</strong><br>
                     <span style="font-size: 0.95em; color: #333;">
                         <strong>Biopython</strong> by 
                         <a href="https://biopython.org/" target="_blank" style="color: #17a2b8; font-weight: bold;">The Biopython Consortium</a> 
                         <i class="fas fa-arrow-right"></i> 
                         Computes assembly statistics (contigs, N50, GC%, total length) from 
                         <em>FASTA files</em> into a structured format.
+                        <br>
+                        <strong>FastANI</strong> by 
+                        <a href="https://github.com/ParBLiSS/FastANI" target="_blank" style="color: #17a2b8; font-weight: bold;">Jain C, et al.</a> 
+                        <i class="fas fa-arrow-right"></i> 
+                        Species confirmation via Average Nucleotide Identity (ANI) 
+                        (<a href="https://doi.org/10.1038/s41467-018-07641-9" target="_blank" style="color: #17a2b8;">Nat Commun. 2018;9:5114</a>).
                     </span>
                 </div>
             </div>
@@ -1659,7 +1668,7 @@ class SampleCentricHTMLGenerator:
                     <strong style="font-size: 1.2em; color: #e65100;">MLST Typing – Acknowledgments & Licensing</strong><br>
                     <span style="font-size: 0.95em; color: #333;">
                         <strong>MLST scheme</strong> powered by 
-                        <a href="https://github.com/tseemann/mlst" target="_blank" style="color: #FF9800; font-weight: bold;">Prof. Torsten Seemann’s Perl scripts</a> 
+                        <a href="https://github.com/tseemann/mlst" target="_blank" style="color: #FF9800; font-weight: bold;">Prof. Torsten Seemann's Perl scripts</a> 
                         and the 
                         <a href="https://pubmlst.org/" target="_blank" style="color: #FF9800; font-weight: bold;">PubMLST database</a> 
                         (Jolley et al., Wellcome Open Res 2018).<br>
@@ -1740,9 +1749,9 @@ class SampleCentricHTMLGenerator:
                     <span style="font-size: 0.95em; color: #333;">
                         <strong>Kaptive</strong> developed by 
                         <a href="https://github.com/klebgenomics/Kaptive" target="_blank" style="color: #9C27B0; font-weight: bold;">Stanton et al.</a> 
-                        (<a href="https://doi.org/10.1099/mgen.0.001428" target="_blank" style="color: #9C27B0; font-weight: 600;">J Clin Microbiol. 2015;53(5):1530-8</a>)
+                        (<a href="https://doi.org/10.1099/mgen.0.001428" target="_blank" style="color: #9C27B0; font-weight: 600;">Microbial Genomics. 2025;11(6):001428</a>)
                         <i class="fas fa-arrow-right"></i> 
-                        Identifies capsule (K) and lipooligosaccharide (O) loci in <em>Acinetobacter baumannii</em> 
+                        Identifies capsule (K) and lipooligosaccharide (OCL) loci in <em>Acinetobacter baumannii</em> 
                         from whole‑genome sequence data.
                         <br>
                         <span style="color: #6c757d;">
@@ -1755,7 +1764,7 @@ class SampleCentricHTMLGenerator:
         </div>
         """
         html += """
-        <div class="alert-box alert-info"><i class="fas fa-shield-alt"></i><div><h3>Capsule Typing (Kaptive) Analysis</h3><p>Kaptive identifies capsule (K) and lipooligosaccharide (O) loci in A. baumannii. The capsule is a major virulence determinant, protecting against phagocytosis and complement killing. Specific K types are associated with different clonal complexes and clinical outcomes. O locus (OCL) influences immune evasion and serum resistance.</p></div></div>
+        <div class="alert-box alert-info"><i class="fas fa-shield-alt"></i><div><h3>Capsule Typing (Kaptive) Analysis</h3><p>Kaptive identifies capsule (K) and lipooligosaccharide (OCL) loci in A. baumannii. The capsule is a major virulence determinant, protecting against phagocytosis and complement killing. Specific K types are associated with different clonal complexes and clinical outcomes. OCL (O-Chain Locus) influences immune evasion and serum resistance.</p></div></div>
         <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('kaptive-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-k').value=''; searchTable('k-locus-table','search-k'); highlightGenome('k-locus-table','highlight-k')"><i class="fas fa-sync"></i> Clear</button></div>
         """
         html += '<h3>K Locus Distribution</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-k" onkeyup="searchTable(\'k-locus-table\',\'search-k\')" placeholder="🔍 Filter K locus..."><input type="text" class="search-box" id="highlight-k" onkeyup="highlightGenome(\'k-locus-table\',\'highlight-k\')" placeholder="🔍 Highlight genome tags..."></div>'
@@ -1775,8 +1784,8 @@ class SampleCentricHTMLGenerator:
             tags = self._make_genome_tags(sample_list)
             html += f'<tr><td><strong>{k}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
         html += '</tbody></table></div>'
-        html += '<h3>O Locus Distribution</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-o" onkeyup="searchTable(\'o-locus-table\',\'search-o\')" placeholder="🔍 Filter O locus..."><input type="text" class="search-box" id="highlight-o" onkeyup="highlightGenome(\'o-locus-table\',\'highlight-o\')" placeholder="🔍 Highlight genome tags..."></div>'
-        html += '<div class="master-scrollable-container"><table id="o-locus-table" class="data-table"><thead><tr><th data-sort="string">O Locus</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
+        html += '<h3>OCL Locus Distribution</h3><div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-o" onkeyup="searchTable(\'o-locus-table\',\'search-o\')" placeholder="🔍 Filter OCL locus..."><input type="text" class="search-box" id="highlight-o" onkeyup="highlightGenome(\'o-locus-table\',\'highlight-o\')" placeholder="🔍 Highlight genome tags..."></div>'
+        html += '<div class="master-scrollable-container"><table id="o-locus-table" class="data-table"><thead><tr><th data-sort="string">OCL Locus</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
         totalo = sum(o_dist.values()) if o_dist else 0
         for o, cnt in sorted(o_dist.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if o=='ND': continue
@@ -1797,10 +1806,10 @@ class SampleCentricHTMLGenerator:
     def _combinations_section(self, kwargs):
         patterns = kwargs['patterns']
         combos = [
-            ('st_o_combinations', 'ST - O Locus'),
+            ('st_o_combinations', 'ST - OCL Locus'),
             ('st_k_combinations', 'ST - K Locus'),
-            ('ko_combinations', 'K:O (Capsule Type)'),
-            ('st_ko_combinations', 'ST - K:O')
+            ('ko_combinations', 'K:OCL (Capsule Type)'),
+            ('st_ko_combinations', 'ST - K:OCL')
         ]
         html = '<div class="alert-box alert-info"><i class="fas fa-link"></i><div><h3>Combination Tables</h3><p>Associations between Sequence Types, capsule loci, and serotypes. These combinations help identify dominant clones and track epidemic strains.</p></div></div>'
         html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'combinations-tab\')"><i class="fas fa-print"></i> Print Section</button></div>'
@@ -1938,7 +1947,7 @@ class SampleCentricHTMLGenerator:
         if crab:
             html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'patterns-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-patterns\').value=\'\'; searchTable(\'crab-table\',\'search-patterns\'); highlightTableCells(\'crab-table\',\'highlight-patterns\')"><i class="fas fa-sync"></i> Clear</button></div>'
             html += '<div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-patterns" onkeyup="searchTable(\'crab-table\',\'search-patterns\')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-patterns" onkeyup="highlightTableCells(\'crab-table\',\'highlight-patterns\')" placeholder="✨ Highlight text..."></div>'
-            html += '<div class="master-scrollable-container"><table id="crab-table" class="data-table"><thead><tr><th data-sort="string">Sample</th><th data-sort="string">ST</th><th data-sort="string">Capsule (K:O)</th><th data-sort="string">Carbapenemases</th><th data-sort="string">Colistin Resistance</th><th data-sort="string">Tigecycline Resistance</th></tr></thead><tbody>'
+            html += '<div class="master-scrollable-container"><table id="crab-table" class="data-table"><thead><tr><th data-sort="string">Sample</th><th data-sort="string">ST</th><th data-sort="string">Capsule (K:OCL)</th><th data-sort="string">Carbapenemases</th><th data-sort="string">Colistin Resistance</th><th data-sort="string">Tigecycline Resistance</th></tr></thead><tbody>'
             for c in crab:
                 html += f'<tr><td><strong>{c["sample"]}</strong></td><td>{c["pasteur_st"]}</td><td>{c["capsule_type"]}</td><td>{",".join(c["carbapenemases"])}</td><td>{",".join(c["colistin_resistance"])}</td><td>{",".join(c["tigecycline_resistance"])}</td></tr>'
             html += '</tbody></table></div>'
@@ -1947,34 +1956,122 @@ class SampleCentricHTMLGenerator:
         return html
 
     def _aiguide_section(self):
-        return """
-        <div class="alert-box alert-info"><i class="fas fa-robot fa-2x"></i><div><h3>AI Assistant Guide</h3><p>Upload this HTML or the JSON file to ChatGPT, Claude, or Gemini to ask questions about A. baumannii resistance.</p></div></div>
-        <div style="margin: 20px 0;">
-            <div class="database-section"><h4><i class="fas fa-brain"></i> Why Use AI for Genomic Data Analysis?</h4><p>Modern AI models excel at pattern recognition, natural language queries, hypothesis generation, and literature synthesis.</p><p><span style="background:#fff3cd; padding:2px 8px; border-radius:4px;"><i class="fas fa-lightbulb"></i> <strong>Scientific note:</strong> AI is pattern‑finding, not causal‑inferring. Use it to suggest, then verify.</span></p></div>
-            <div class="database-section"><h4><i class="fas fa-upload"></i> How to Feed This Report to AI</h4><ul><li><strong>Upload the JSON file</strong> – <code>genius_acinetobacter_sample_centric_report.json</code> contains all structured data.</li><li><strong>Upload the HTML report</strong> – Modern AI tools can read HTML and extract tables.</li><li><strong>Copy‑paste specific tables</strong> – For quick insights.</li></ul></div>
-            <div class="database-section"><h4><i class="fas fa-chart-line"></i> Example Questions</h4><ul><li>What are the most common Pasteur STs?</li><li>Which samples carry OXA-23?</li><li>Which capsule types are dominant?</li><li>List isolates with biofilm genes (ompA, csu).</li><li>What are the most frequent point mutations in gyrA?</li></ul></div>
-            <div class="database-section" style="background:#fff3cd; border-left:6px solid #ffc107;"><h4><i class="fas fa-balance-scale"></i> Ethical AI Use</h4><ul><li>AI is a co‑pilot – always verify critical calls.</li><li>No patient‑identifiable data should be uploaded.</li><li>AI hallucination is real – treat every statement as a hypothesis.</li></ul></div>
-        </div>
-        """
+            return """
+            <div class="alert-box alert-info"><i class="fas fa-robot fa-2x"></i><div><h3>AI Assistant Guide – Unleash the Power of AI for Genomic Epidemiology</h3><p>This guide shows you how to leverage large language models (LLMs) like <strong>ChatGPT, Claude, or Gemini</strong> to interact with your <em>A. baumannii</em> dataset – turning static reports into dynamic conversations.</p></div></div>
+            <div style="margin: 20px 0;">
+                <div class="database-section"><h4><i class="fas fa-brain"></i> Why Use AI for Genomic Data Analysis?</h4><p>Modern AI models excel at:</p><ul><li><strong>Pattern recognition</strong> – spotting epidemiological trends, clone associations, and co‑occurrence networks.</li><li><strong>Natural language queries</strong> – ask in plain English, get instant answers without writing code.</li><li><strong>Hypothesis generation</strong> – uncover unexpected correlations that merit experimental follow‑up.</li><li><strong>Literature synthesis</strong> – connect your findings with published resistance mechanisms and clinical guidelines.</li></ul><p><span style="background:#fff3cd; padding:2px 8px; border-radius:4px;"><i class="fas fa-lightbulb"></i> <strong>Scientific note:</strong> AI is <em>pattern‑finding</em>, not <em>causal‑inferring</em>. Use it to suggest, then verify with wet‑lab or clinical correlation.</span></p></div>
+                <div class="database-section"><h4><i class="fas fa-upload"></i> How to Feed This Report to AI</h4><p>You have <strong>three powerful options</strong>:</p><ol><li><strong>Upload the JSON file</strong> – <code>genius_acinetobacter_ultimate_gene_centric_report.json</code> contains all structured data. Upload it to ChatGPT (Advanced Data Analysis), Claude, or Gemini. <em>Best for precise quantitative queries.</em></li><li><strong>Upload the HTML report</strong> – Modern AI tools can read HTML and extract tables. Upload the <code>.html</code> file directly – the AI will parse the tables and text. <em>Great for visual context.</em></li><li><strong>Copy‑paste specific tables</strong> – If you only need a quick insight, copy a table (e.g., AMR gene list) and paste it into the chat. <em>Instant, no file upload needed.</em></li></ol><p style="margin-top:10px; background:#e8f5e9; padding:10px; border-radius:5px;"><i class="fas fa-info-circle"></i> <strong>Pro tip:</strong> For best results, tell the AI: <em>"You are a bioinformatician analysing <em>A. baumannii</em> genomes. The attached data contains typing, AMR, virulence, BACMET, and mutation information. Answer my questions with references to the data."</em></p></div>
+                <div class="database-section"><h4><i class="fas fa-chart-line"></i> Scientifically Relevant Questions to Ask</h4><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>🧬 Epidemiology &amp; Clonality</strong><ul style="margin-top:5px; font-size:0.9em;"><li>What are the most common Pasteur STs in this dataset?</li><li>Which capsule types (K:OCL) are dominant?</li><li>Are there any ST‑capsule combinations with >2 isolates?</li><li>Which clones carry the most resistance genes?</li></ul></div><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>💊 Antimicrobial Resistance</strong><ul style="margin-top:5px; font-size:0.9em;"><li>How many samples carry OXA-23? What are their STs?</li><li>Are there any NDM‑positive samples? What is their capsule type?</li><li>Which AMR genes co‑occur most frequently?</li><li>What is the distribution of colistin resistance genes (mcr, pmr)?</li></ul></div><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>🦠 Virulence &amp; Biofilm</strong><ul style="margin-top:5px; font-size:0.9em;"><li>Which samples carry biofilm genes (ompA, csu)?</li><li>List all isolates with the T6SS (tss, hcp).</li><li>Is there a correlation between capsule type and virulence gene carriage?</li></ul></div><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>🧪 Mutations &amp; Biocides</strong><ul style="margin-top:5px; font-size:0.9em;"><li>What are the most frequent point mutations in gyrA or parC?</li><li>Are there any 23S rRNA mutations (tigecycline resistance)?</li><li>Which samples carry qac genes (disinfectant resistance)?</li></ul></div></div><p style="margin-top:10px;"><i class="fas fa-arrow-right"></i> <strong>Beyond tables:</strong> Ask the AI to <em>“write a summary of the resistance profile for ST2”</em> or <em>“compare virulence gene carriage between K1 and K2 capsule types”</em> – the report contains all data.</p></div>
+                <div class="database-section"><h4><i class="fas fa-balance-scale"></i> Scientific Rigour &amp; Ethical AI Use</h4><ul><li><strong>AI is your co‑pilot, not the pilot.</strong> Always interpret AI‑generated insights in the context of your local epidemiology, clinical guidelines, and laboratory validation.</li><li><strong>Verify, verify, verify.</strong> Cross‑check critical calls (e.g., carbapenemase presence, colistin resistance) with primary literature, genome browsers, or secondary tools.</li><li><strong>No patient‑identifiable data.</strong> Only upload aggregated, de‑identified genomic data. This report contains no clinical metadata.</li><li><strong>Transparency in publications.</strong> If you use AI for exploratory analysis, mention it in the methods (e.g., “AI‑assisted pattern discovery was performed using a large language model, followed by manual curation”).</li><li><strong>AI hallucination is real.</strong> If the AI confidently tells you that <em>blaOXA-23</em> is found in <em>E. coli</em> or that tigecycline resistance is caused by a mutation in <em>rpoB</em> – <strong>don’t believe it</strong>. Treat every AI statement as a hypothesis, not a fact.</li></ul></div>
+                <div class="database-section" style="background:#fff3cd; border-left:6px solid #ffc107;"><h4><i class="fas fa-smile-wink"></i> A (Mostly Serious) AI Survival Guide</h4><ul><li><strong>If the AI says “I don’t know”</strong> – trust it. It’s being honest.</li><li><strong>If the AI says “It is widely known”</strong> – ask for a reference. It may have made it up.</li><li><strong>If the AI offers a completely novel evolutionary theory</strong> – check if your coffee is spiked.</li><li><strong>Remember:</strong> AI won’t take your job – but a microbiologist who knows how to use AI might! So learn it, use it, and always keep a healthy dose of scepticism. 😉</li></ul><p style="margin-top:10px;"><i class="fas fa-microbe"></i> <strong>Final thought:</strong> The best AI‑human partnership is one where the AI does the heavy pattern‑lifting, and you do the heavy thinking. Happy (and careful) exploring!</p></div>
+            </div>
+            """
+
 
     def _citation_section(self):
         citations = [
-            {"title": "AcinetoScope", "text": "Beckley et al. A species‑specific computational pipeline for rapid, comprehensive Acinetobacter baumannii outbreak investigation and resistance gene tracking. GitHub 2026.", "url": "https://github.com/bbeckley-hub/acinetoscope", "category": "main"},
-            {"title": "MLST", "text": "Seemann T. MLST: Scan contig files against PubMLST typing schemes. GitHub. 2018.", "url": "https://github.com/tseemann/mlst", "category": "tool"},
-            {"title": "PubMLST", "text": "Jolley KA, Bray JE, Maiden MCJ. Open‑access bacterial population genomics: BIGSdb software, the PubMLST.org website and their applications. Wellcome Open Res. 2018;3:124.", "url": "https://doi.org/10.12688/wellcomeopenres.14826.1", "category": "db"},
-            {"title": "Kaptive 3", "text": "Stanton TD, Hetland MAK, Löhr IH, Holt KE, Wyres KL. Fast and Accurate in silico Antigen Typing with Kaptive 3. Microbial Genomics. 2025;11(6):001428.", "url": "https://doi.org/10.1099/mgen.0.001428", "category": "tool"},
-            {"title": "APT (Acinetobacter Plasmid Typing)", "text": "Lam MMC, Koong J, Holt KE, Hall RM, Hamidian M. Detection and Typing of Plasmids in Acinetobacter baumannii Using rep Genes Encoding Replication Initiation Proteins. Microbiol Spectr. 2023;11(1):e0247822.", "url": "https://doi.org/10.1128/spectrum.02478-22", "category": "tool"},
-            {"title": "AMRFinderPlus", "text": "Feldgarden M, et al. AMRFinderPlus and the Reference Gene Catalog facilitate examination of the genomic links among antimicrobial resistance, stress response, and virulence. Sci Rep. 2021;11(1):12728.", "url": "https://doi.org/10.1038/s41598-021-91456-0", "category": "tool"},
-            {"title": "ABRicate", "text": "Seemann T. ABRicate: mass screening of contigs for antibiotic resistance genes. GitHub. 2024.", "url": "https://github.com/tseemann/abricate", "category": "tool"},
-            {"title": "CARD", "text": "Alcock BP, et al. CARD 2023: expanded curation, support for machine learning, and resistome prediction at the Comprehensive Antibiotic Resistance Database. Nucleic Acids Res. 2023;51(D1):D690-D699.", "url": "https://doi.org/10.1093/nar/gkac920", "category": "db"},
-            {"title": "ResFinder", "text": "Bortolaia V, et al. ResFinder 4.0 for predictions of phenotypes from genotypes. J Antimicrob Chemother. 2020;75(12):3491-3500.", "url": "https://doi.org/10.1093/jac/dkaa345", "category": "db"},
-            {"title": "VFDB", "text": "Chen L, Zheng D, Liu B, Yang J, Jin Q. VFDB 2016: hierarchical and refined dataset for big data analysis – 10 years on. Nucleic Acids Res. 2016;44(D1):D694-D697.", "url": "https://doi.org/10.1093/nar/gkv1239", "category": "db"},
-            {"title": "PlasmidFinder", "text": "Carattoli A, et al. In silico detection and typing of plasmids using PlasmidFinder and plasmid multilocus sequence typing. Antimicrob Agents Chemother. 2014;58(7):3895-903.", "url": "https://doi.org/10.1128/AAC.02412-14", "category": "db"},
-            {"title": "EcOH", "text": "Inouye M, et al. SRST2: Rapid genomic surveillance for public health and hospital microbiology labs. Microb Genom. 2016;2(7):e000064.", "url": "https://doi.org/10.1099/mgen.0.000064", "category": "db"},
-            {"title": "MEGARes 3.0", "text": "Bonin N, et al. MEGARes 3.0: a curated and updated database for antimicrobial resistance, biocide, and metal resistance gene detection. Nucleic Acids Res. 2023;51(D1):D677-D684.", "url": "https://doi.org/10.1093/nar/gkac1047", "category": "db"},
-            {"title": "ARG-ANNOT", "text": "Gupta SK, et al. ARG-ANNOT, a new bioinformatic tool to discover antibiotic resistance genes in bacterial genomes. Antimicrob Agents Chemother. 2014;58(1):212-20.", "url": "https://doi.org/10.1128/AAC.01310-13", "category": "db"},
-            {"title": "BacMet", "text": "Pal C, et al. BacMet: antibacterial biocide and metal resistance genes database. Nucleic Acids Res. 2014;42(Database issue):D737-43.", "url": "https://doi.org/10.1093/nar/gkt1252", "category": "db"},
-            {"title": "Biopython", "text": "Cock PJ, et al. Biopython: freely available Python tools for computational molecular biology and bioinformatics. Bioinformatics. 2009;25(11):1422-3.", "url": "https://doi.org/10.1093/bioinformatics/btp163", "category": "other"}
+            {
+                "title": "AcinetoScope",
+                "text": "Beckley et al. A species‑specific computational pipeline for rapid, comprehensive Acinetobacter baumannii outbreak investigation and resistance gene tracking. GitHub 2026.",
+                "url": "https://github.com/bbeckley-hub/acinetoscope",
+                "category": "main"
+            },
+            {
+                "title": "MLST",
+                "text": "Seemann T. MLST: Scan contig files against PubMLST typing schemes. GitHub. 2018.",
+                "url": "https://github.com/tseemann/mlst",
+                "category": "tool"
+            },
+            {
+                "title": "PubMLST",
+                "text": "Jolley KA, Bray JE, Maiden MCJ. Open‑access bacterial population genomics: BIGSdb software, the PubMLST.org website and their applications. Wellcome Open Res. 2018;3:124.",
+                "url": "https://doi.org/10.12688/wellcomeopenres.14826.1",
+                "category": "db"
+            },
+            {
+                "title": "Kaptive 3",
+                "text": "Stanton TD, Hetland MAK, Löhr IH, Holt KE, Wyres KL. Fast and Accurate in silico Antigen Typing with Kaptive 3. Microbial Genomics. 2025;11(6):001428.",
+                "url": "https://doi.org/10.1099/mgen.0.001428",
+                "category": "tool"
+            },
+            {
+                "title": "APT (Acinetobacter Plasmid Typing)",
+                "text": "Lam MMC, Koong J, Holt KE, Hall RM, Hamidian M. Detection and Typing of Plasmids in Acinetobacter baumannii Using rep Genes Encoding Replication Initiation Proteins. Microbiol Spectr. 2023;11(1):e0247822.",
+                "url": "https://doi.org/10.1128/spectrum.02478-22",
+                "category": "tool"
+            },
+            {
+                "title": "AMRFinderPlus",
+                "text": "Feldgarden M, et al. AMRFinderPlus and the Reference Gene Catalog facilitate examination of the genomic links among antimicrobial resistance, stress response, and virulence. Sci Rep. 2021;11(1):12728.",
+                "url": "https://doi.org/10.1038/s41598-021-91456-0",
+                "category": "tool"
+            },
+            {
+                "title": "ABRicate",
+                "text": "Seemann T. ABRicate: mass screening of contigs for antibiotic resistance genes. GitHub. 2024.",
+                "url": "https://github.com/tseemann/abricate",
+                "category": "tool"
+            },
+            {
+                "title": "FastANI",
+                "text": "Jain C, Rodriguez-R LM, Phillippy AM, Konstantinidis KT, Aluru S. High throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. Nat Commun. 2018;9(1):5114.",
+                "url": "https://doi.org/10.1038/s41467-018-07641-9",
+                "category": "tool"
+            },
+            {
+                "title": "CARD",
+                "text": "Alcock BP, et al. CARD 2023: expanded curation, support for machine learning, and resistome prediction at the Comprehensive Antibiotic Resistance Database. Nucleic Acids Res. 2023;51(D1):D690-D699.",
+                "url": "https://doi.org/10.1093/nar/gkac920",
+                "category": "db"
+            },
+            {
+                "title": "ResFinder",
+                "text": "Bortolaia V, et al. ResFinder 4.0 for predictions of phenotypes from genotypes. J Antimicrob Chemother. 2020;75(12):3491-3500.",
+                "url": "https://doi.org/10.1093/jac/dkaa345",
+                "category": "db"
+            },
+            {
+                "title": "VFDB",
+                "text": "Chen L, Zheng D, Liu B, Yang J, Jin Q. VFDB 2016: hierarchical and refined dataset for big data analysis – 10 years on. Nucleic Acids Res. 2016;44(D1):D694-D697.",
+                "url": "https://doi.org/10.1093/nar/gkv1239",
+                "category": "db"
+            },
+            {
+                "title": "PlasmidFinder",
+                "text": "Carattoli A, et al. In silico detection and typing of plasmids using PlasmidFinder and plasmid multilocus sequence typing. Antimicrob Agents Chemother. 2014;58(7):3895-903.",
+                "url": "https://doi.org/10.1128/AAC.02412-14",
+                "category": "db"
+            },
+            {
+                "title": "EcOH",
+                "text": "Inouye M, et al. SRST2: Rapid genomic surveillance for public health and hospital microbiology labs. Microb Genom. 2016;2(7):e000064.",
+                "url": "https://doi.org/10.1099/mgen.0.000064",
+                "category": "db"
+            },
+            {
+                "title": "MEGARes 3.0",
+                "text": "Bonin N, et al. MEGARes 3.0: a curated and updated database for antimicrobial resistance, biocide, and metal resistance gene detection. Nucleic Acids Res. 2023;51(D1):D677-D684.",
+                "url": "https://doi.org/10.1093/nar/gkac1047",
+                "category": "db"
+            },
+            {
+                "title": "ARG-ANNOT",
+                "text": "Gupta SK, et al. ARG-ANNOT, a new bioinformatic tool to discover antibiotic resistance genes in bacterial genomes. Antimicrob Agents Chemother. 2014;58(1):212-20.",
+                "url": "https://doi.org/10.1128/AAC.01310-13",
+                "category": "db"
+            },
+            {
+                "title": "BacMet",
+                "text": "Pal C, et al. BacMet: antibacterial biocide and metal resistance genes database. Nucleic Acids Res. 2014;42(Database issue):D737-43.",
+                "url": "https://doi.org/10.1093/nar/gkt1252",
+                "category": "db"
+            },
+            {
+                "title": "Biopython",
+                "text": "Cock PJ, et al. Biopython: freely available Python tools for computational molecular biology and bioinformatics. Bioinformatics. 2009;25(11):1422-3.",
+                "url": "https://doi.org/10.1093/bioinformatics/btp163",
+                "category": "other"
+            }
         ]
 
         html = """
@@ -1998,7 +2095,7 @@ class SampleCentricHTMLGenerator:
         html += """
         </div>
         <div class="alert-box alert-success" style="margin-top:20px;"><i class="fas fa-hand-peace"></i><div><strong>Suggested acknowledgement:</strong><br>
-        "Genomic analysis was performed using AcinetoScope [Beckley et al., 2026], which integrates MLST [Seemann, 2018] using the PubMLST database [Jolley et al., 2018], Kaptive 3 [Stanton et al., 2025], ABRicate [Seemann, 2024], AMRFinderPlus [Feldgarden et al., 2021], APT (Acinetobacter Plasmid Typing) [Lam et al., 2023], and PlasmidFinder [Carattoli et al., 2014]. Antimicrobial resistance genes were identified using CARD [Alcock et al., 2023], ResFinder [Bortolaia et al., 2020], MEGARes 3.0 [Bonin et al., 2023], and ARG-ANNOT [Gupta et al., 2014]. For biocide and heavy metal resistance genes, BacMet [Pal et al., 2014] was used. Virulence screening was performed with ABRicate using VFDB [Chen et al., 2016]. Mutation detection was performed using AMRFinderPlus. FASTA QC was performed using Biopython [Cock et al., 2009]."
+        "Genomic analysis was performed using AcinetoScope [Beckley et al., 2026], which integrates MLST [Seemann, 2018] using the PubMLST database [Jolley et al., 2018], Kaptive 3 [Stanton et al., 2025], ABRicate [Seemann, 2024], AMRFinderPlus [Feldgarden et al., 2021], APT (Acinetobacter Plasmid Typing) [Lam et al., 2023], PlasmidFinder [Carattoli et al., 2014], and FastANI [Jain et al., 2018]. Antimicrobial resistance genes were identified using CARD [Alcock et al., 2023], ResFinder [Bortolaia et al., 2020], MEGARes 3.0 [Bonin et al., 2023], and ARG-ANNOT [Gupta et al., 2014]. For biocide and heavy metal resistance genes, BacMet [Pal et al., 2014] was used. Virulence screening was performed with ABRicate using VFDB [Chen et al., 2016]. Mutation detection was performed using AMRFinderPlus. FASTA QC was performed using Biopython [Cock et al., 2009]."
         </div></div>
         <script>
         document.querySelectorAll('.copy-btn').forEach(btn => {
@@ -2016,11 +2113,11 @@ class SampleCentricHTMLGenerator:
         return html
 
     def _funding_section(self):
-        return """
-        <div class="alert-box alert-info"><i class="fas fa-coffee fa-2x"></i><div><h3>Funding & Support</h3><p>GENIUS Acinetobacter baumannii Reporter is an independent, unfunded project developed at the University of Ghana Medical School.</p><p>No grants, no sponsors, no institutional backing – just a laptop, a lot of coffee, and a passion for AMR research.</p></div></div>
-        <div class="alert-box alert-warning"><i class="fas fa-heart fa-2x"></i><div><h3>How You Can Help</h3><ul><li>⭐ Star us on GitHub</li><li>🐛 Report bugs</li><li>💡 Suggest features</li><li>📢 Share with colleagues</li><li>🤝 Collaborate on ESKAPE pathogen pipelines</li></ul><p>Contact: <strong>brownbeckley94@gmail.com</strong></p></div></div>
-        <div class="alert-box alert-success"><i class="fas fa-hand-holding-heart"></i><div><h3>Contribute to the ESKAPE AMR Platform</h3><p>We also maintain pipelines for other ESKAPE pathogens. Visit our GitHub: <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a> – star, fork, and let’s fight AMR together!</p></div></div>
-        """
+            return """
+            <div class="alert-box alert-info"><i class="fas fa-coffee fa-2x"></i><div><h3>Funding & Support – Keeping the Lights On (with code and caffeine)</h3><p>AcinetoScope is an <strong>independent, unfunded project</strong> born out of passion for genomic surveillance and AMR research at the University of Ghana Medical School.</p><p>No grants, no sponsors, no institutional backing – just a laptop, a lot of coffee, and a burning desire to help researchers fight antimicrobial resistance.</p></div></div>
+            <div class="alert-box alert-warning"><i class="fas fa-heart fa-2x"></i><div><h3>💡 How You Can Help (Without Opening Your Wallet)</h3><ul><li><strong>⭐ Star us on GitHub</strong> – It takes two seconds and makes us feel like rockstars.</li><li><strong>🐛 Report bugs</strong> – If something breaks, let us know. We’ll fix it with joy.</li><li><strong>💡 Suggest features</strong> – Have an idea? We’re all ears.</li><li><strong>🧬 Share your data</strong> – If you’ve used the tool and want to collaborate, we’d love to hear your story.</li><li><strong>📢 Spread the word</strong> – Tell your colleagues, tweet about it, or mention it in your next Zoom call.</li><li><strong>👋 Say hello!</strong> – Seriously, just drop an email to <strong>brownbeckley94@gmail.com</strong>. It makes our day.</li></ul><p><i class="fas fa-microbe"></i> <strong>Fun fact:</strong> This project runs on 100% volunteer tears, 0% grant money. But we’re not bitter – we’re just caffeinated.</p></div></div>
+            <div class="alert-box alert-success"><i class="fas fa-hand-holding-heart"></i><div><h3>🤝 Contribute to the ESKAPE AMR Platform</h3><p>We also maintain pipelines for other ESKAPE pathogens (Kleboscope, Pseudoscope, etc.). If you’re a developer, bioinformatician, or just someone who loves clean code and bacteria, we welcome: pull requests, issues, documentation improvements, ideas for new databases. Visit our GitHub: <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a> – star, fork, and let’s fight AMR together!</p><p><strong>Brown Beckley</strong> – <i class="fas fa-envelope"></i> brownbeckley94@gmail.com</p><p><i class="fas fa-laugh-beam"></i> <strong>P.S.</strong> If you ever meet Brown in person, buy him a coffee – he’ll probably talk your ear off about ST types, but it’s worth it.</p></div></div>
+            """
 
     def _export_section(self):
         return """
@@ -2049,7 +2146,7 @@ class SampleCentricReporter:
         self.html_generator = SampleCentricHTMLGenerator(self.analyzer)
         self.metadata = {
             "tool_name": "GENIUS Acinetobacter baumannii Sample‑Centric Reporter",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "author": "Brown Beckley <brownbeckley94@gmail.com>",
             "affiliation": "University of Ghana Medical School",
             "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -2058,7 +2155,7 @@ class SampleCentricReporter:
 
     def run(self):
         print("=" * 80)
-        print("🧬 GENIUS ACINETOBACTER SAMPLE‑CENTRIC REPORTER v1.0.0")
+        print("🧬 GENIUS ACINETOBACTER SAMPLE‑CENTRIC REPORTER v1.1.0")
         print("   Interactive per‑isolate boxes for AMR, Virulence, BACMET, Plasmids, Mutations")
         print("   Gene‑centric for MLST, Kaptive, QC, Combinations, Co‑occurrence, Patterns")
         print("=" * 80)
@@ -2093,13 +2190,10 @@ class SampleCentricReporter:
                 'kaptive': kaptive.get(sample, {'K_Locus': 'ND', 'O_Locus': 'ND', 'Capsule_Type': 'ND'})
             }
 
-        # Build gene_centric for dashboard and co‑occurrence
         gene_centric = self.analyzer.build_gene_centric_frequencies(amr_details, abricate_details, total_samples)
 
-        # Build patterns
         patterns = self.analyzer.build_cross_genome_patterns(samples_data, gene_centric)
 
-        # Compute co‑occurrence from sample gene sets
         sample_genes = defaultdict(set)
         for sample, genes in amr_details.items():
             for g in genes:
@@ -2117,7 +2211,6 @@ class SampleCentricReporter:
                     cooc[g1][g2] += 1
         patterns['gene_cooccurrence'] = dict(cooc)
 
-        # High‑risk CRAB
         high_risk_crab = []
         for sample, genes in sample_genes.items():
             carb = [g for g in genes if self.analyzer.categorize_gene(g) == 'Carbapenemases']
@@ -2189,7 +2282,6 @@ class SampleCentricReporter:
         mutation_details = data.get('mutation_details', {})
         patterns = data['patterns']
 
-        # Sample overview
         vir_counts = {}
         for sample, dbs in abricate_details.items():
             count = 0
@@ -2197,12 +2289,13 @@ class SampleCentricReporter:
                 if db in dbs:
                     count += len(dbs[db])
             vir_counts[sample] = count
+
         samples_df = pd.DataFrame([{
             'Sample': s,
             'Pasteur_ST': d.get('pasteur_mlst', {}).get('ST', 'ND'),
             'Oxford_ST': d.get('oxford_mlst', {}).get('ST', 'ND'),
             'K_Locus': d.get('kaptive', {}).get('K_Locus', 'ND'),
-            'O_Locus': d.get('kaptive', {}).get('O_Locus', 'ND'),
+            'OCL_Locus': d.get('kaptive', {}).get('O_Locus', 'ND'),
             'Virulence_Count': vir_counts.get(s, 0)
         } for s, d in samples_data.items()])
         samples_df.to_csv(self.output_dir / "sample_overview.csv", index=False)
@@ -2246,7 +2339,7 @@ class SampleCentricReporter:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='GENIUS Acinetobacter baumannii Sample‑Centric Reporter v1.0.0')
+    parser = argparse.ArgumentParser(description='GENIUS Acinetobacter baumannii Sample‑Centric Reporter v1.1.0')
     parser.add_argument('-i', '--input-dir', required=True, help='Directory containing AcinetoScope TSV and HTML files')
     parser.add_argument('-o', '--output-dir', help='Custom output directory (optional)')
     args = parser.parse_args()

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # EcoliTyper Quick Cleanup Script
-echo "🧹 EcoliTyper Quick Cleanupp"
+echo "🧹 EcoliTyper Quick Cleanup"
 
 # Remove build directories
-echo "📁 Removing build directories..."
+echo "📁 Removing build directories.."
 rm -rf build/
 rm -rf dist/
 rm -rf *.egg-info/
@@ -32,4 +32,4 @@ rm -f .coverage
 rm -rf htmlcov/
 rm -rf .pytest_cache/
 
-echo "✅ Cleanup completed!"
+echo "✅ Cleanup completed!!"

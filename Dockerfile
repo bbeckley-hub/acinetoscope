@@ -22,7 +22,7 @@ RUN conda env create -f environment.yml && \
 # Make the environment the default for RUN commands
 SHELL ["conda", "run", "-n", "acinetoscope", "/bin/bash", "-c"]
 
-# Run abricate database setup (one-time)
+# Run abricate database setup
 RUN abricate --setupdb
 
 # Set entrypoint to acinetoscope command

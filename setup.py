@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="acinetoscope",
-    version="1.3.1",
+    version="1.3.2",
     author="Brown Beckley",
     author_email="brownbeckley94@gmail.com",
     description="Advanced Acinetobacter baumannii Genomic Analysis Platform",
@@ -19,6 +19,7 @@ setup(
         "requests>=2.28.0",
         "tqdm>=4.64.0",
         "click>=8.0.0",
+        "fastani>=1.34"
         "kaptive>=3.1.0", 
         "beautifulsoup4>=4.11.0",
         "lxml>=4.9.0",

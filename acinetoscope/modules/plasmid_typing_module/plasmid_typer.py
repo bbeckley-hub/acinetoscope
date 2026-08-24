@@ -37,7 +37,7 @@ class AcinetoPlasmidTyper:
         
         self.metadata = {
             "tool_name": "AcinetoScope Plasmid Typing",
-            "version": "1.3.1",
+            "version": "1.3.2",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
