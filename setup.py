@@ -19,7 +19,7 @@ setup(
         "requests>=2.28.0",
         "tqdm>=4.64.0",
         "click>=8.0.0",
-        "fastani>=1.34"
+        "fastani>=1.34",
         "kaptive>=3.1.0", 
         "beautifulsoup4>=4.11.0",
         "lxml>=4.9.0",
