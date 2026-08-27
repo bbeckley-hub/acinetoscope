@@ -2715,7 +2715,7 @@ class UltimateHTMLGenerator:
     # --------------------------------------------------------------------------
     def _search_boxes(self, prefix: str, table_id: str) -> str:
         return f"""
-        <input type="text" class="search-box" id="search-{prefix}" onkeyup="searchTable('{table_id}','search-{prefix}')" placeholder="🔍 Search genes...">
+        <input type="text" class="search-box" id="search-{prefix}" onkeyup="searchTable('{table_id}','search-{prefix}')" placeholder="🔍 Search genes or specific database...">
         <input type="text" class="search-box" id="search-{prefix}-genome" onkeyup="highlightGenome('{table_id}','search-{prefix}-genome')" placeholder="🔍 Highlight genomes containing text...">
         """
 

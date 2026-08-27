@@ -292,6 +292,9 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             return f'"*{ext}"'
         return '"*"'
 
+    # ================================================================
+    # MODIFIED: run_module_in_temp now copies ref_db/ to temp root
+    # ================================================================
     def run_module_in_temp(self, module_name: str, fasta_files: List[Path],
                            cmd_str: str, result_subdir: str = None,
                            extra_files: List[str] = None) -> bool:
@@ -306,6 +309,17 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
 
         try:
             shutil.copytree(module_orig, temp_dir / module_name, dirs_exist_ok=True)
+
+            # ------------------------------------------------------------
+            # NEW: copy ref_db/ to temp_dir root so QC script finds it
+            # ------------------------------------------------------------
+            ref_db_src = module_orig / "ref_db"
+            if ref_db_src.exists():
+                shutil.copytree(ref_db_src, temp_dir / "ref_db")
+                self.logger.info(f"Copied ref_db to temporary directory root: {temp_dir / 'ref_db'}")
+            else:
+                self.logger.warning(f"ref_db not found in {module_orig}, species confirmation will be disabled.")
+
             for f in fasta_files:
                 shutil.copy2(f, temp_dir / f.name)
 
@@ -349,7 +363,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                 self.logger.info(f"Removed temporary directory: {temp_dir}")
 
     # ------------------------------------------------------------------
-    # Module‑specific run methods
+    # Module‑specific run methods 
     # ------------------------------------------------------------------
     def run_qc_analysis(self, fasta_files: List[Path], output_dir: Path, threads: int) -> bool:
         pattern = self.get_file_pattern(fasta_files)
