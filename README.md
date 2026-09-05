@@ -501,7 +501,7 @@ AcinetoScope stands on the shoulders of giants. We are deeply grateful to:
 - **NCBI team** for AMRFinderPlus.
 - **Kath Holt Lab** for Kaptive 3.
 - **Hamidian Lab** for the APT scheme.
-- **PubMedST, CARD, VFDB, ResFinder, PlasmidFinder, BacMet, MEGARes, ARG-ANNOT** for essential databases.
+- **PubMLST, CARD, VFDB, ResFinder, PlasmidFinder, BacMet, MEGARes, ARG-ANNOT** for essential databases.
 - **Python community** for Biopython, pandas, plotly, etc.
 - **Early adopters and beta testers** for invaluable feedback.
 
