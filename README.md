@@ -114,6 +114,7 @@ AcinetoScope delivers:
 | Module | 🎯 Purpose | 📊 Key Outputs | ⚡ Speed |
 | :--- | :--- | :--- | :--- |
 | **Quality Control** | Assembly metric assessment & integrity checking | N50/N75, GC%, ambiguous bases, homopolymers | <1 min |
+| **Species Confirmation** | species assigment via fastani | species name and basic contamination flag | <1 min |
 | **Dual MLST Typing** | Phylogenetic classification via Pasteur & Oxford schemes | Sequence Type (ST), International Clone (IC), novel alleles | <1 min |
 | **Capsule (K/O) Typing** | Polysaccharide capsule & lipooligosaccharide typing via Kaptive 3 | K type, O type, locus coverage/identity | 1-2 min |
 | **AMR Detection** | Comprehensive resistance gene detection with AMRFinderPlus | Carbapenemases, ESBLs, colistin/tigecycline resistance, 4‑tier risk flags | 2-3 min |
