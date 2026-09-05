@@ -11,8 +11,8 @@
 #### **Complete genomic surveillance in a single automated workflow — from FASTA to actionable insights.**
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/bbeckley-hub/acinetoscope/releases)
 [![Conda Version](https://anaconda.org/bbeckley-hub/acinetoscope/badges/version.svg)](https://anaconda.org/bbeckley-hub/acinetoscope)
+[![Conda Downloads](https://anaconda.org/bioconda/acinetoscope/badges/downloads.svg)](https://anaconda.org/bbeckley-hub/acinetoscope)
 [![Platform](https://anaconda.org/bbeckley-hub/acinetoscope/badges/platforms.svg)](https://anaconda.org/bbeckley-hub/acinetoscope)
 [![License](https://img.shields.io/github/license/bbeckley-hub/acinetoscope)](LICENSE)
 [![Latest Release Date](https://anaconda.org/bbeckley-hub/acinetoscope/badges/latest_release_date.svg)](https://anaconda.org/bbeckley-hub/acinetoscope)
@@ -59,89 +59,6 @@
 ![Profile Views](https://komarev.com/ghpvc/?username=bbeckley-hub&label=Profile%20Views&color=0e75b6&style=flat)
 
 </div>
-
----
-
-## 🐛 What's New in v1.3.1 (July 2026)
-
-### 🔧 **Harmless Bug Fix – AMR Database Update Logger**
-
-Running `acinetoscope --update-amr-db` or `--force-update-amr-db` would correctly update the database, but the script would crash with an `AttributeError` traceback because the logger was not initialised (no output directory was provided). The database update itself **always worked** – the error was purely in the logging layer.
-
-- **What changed:** The orchestrator now initialises a basic logger automatically when running standalone AMR database updates.
-- **What this means:** The command now runs cleanly, logs the output, and returns the correct exit code.
-- **Why it matters:** Others may have interpreted the error as a failed download – but rest assured, your AMR database was always updating correctly. This fix simply removes the confusion and ensures a smooth user experience.
-
-**Docker users:** You were always safe because you get database downloads automatically. Pull the latest image to get the fix – no configuration changes required.
-
----
-
-**Full v1.3.0 features remain unchanged** – the sample‑centric reporter, dynamic grouping, mutation tab, HPC‑ready orchestrator, enhanced citation tab, and AI guide are all fully functional.
-
----
-
-## 🎉 **What's New in v1.3.0** (July 2026)
-
-### 📊 **Sample‑Centric Reporter – The Clinical Counterpart to Gene‑Centric Analysis**
-
-Previous versions of AcinetoScope focused on **gene‑centric** reporting: each resistance or virulence gene is shown with all genomes that carry it. This is excellent for epidemiological surveillance, but it does not give a **per‑isolate** overview – you cannot see, at a glance, everything that a single genome carries.
-
-The **sample‑centric reporter** fills this gap. It displays **each isolate** as an interactive box with:
-
-- **Typing badges**: `Pasteur: ST 2`, `Oxford: ST 3`, `K: K1`, `O: OC1`, `Capsule: K1:OC1`.
-- **All gene tables** for that isolate: AMR (AMRfinder + all ABRicate databases), Virulence (VFDB, Ecoli_VF), BACMET (biocide & heavy metal resistance), Plasmids (PlasmidFinder + APT), and Mutations.
-- **Filtering** by sample name or by database (e.g., show only VFDB genes).
-- **Horizontally scrollable tables** – no data truncation.
-- **Export** each table to CSV with one click.
-- **Print** any tab individually.
-
-**Why it matters:** During an outbreak investigation, clinicians need to see the **complete resistance profile of a single isolate** – not just the gene frequencies. The sample‑centric reporter provides that **patient‑centred view** in seconds. It also makes results accessible to non‑bioinformaticians, facilitating communication between laboratory and clinical teams.
-
-### 🔁 **Dynamic Grouping by Typing – From StaphScope to AcinetoScope**
-
-We ported the **grouping feature** from our ESKAPE pipelines (StaphScope, Kleboscope). In any gene‑centric table (AMR, Virulence, BACMET, Plasmids, Mutations), you can now click a button to group the genome list by:
-
-- **Pasteur ST**
-- **Oxford ST**
-- **K locus**
-- **O locus**
-- **Capsule type**
-- **Combinations**: `ST‑K`, `ST‑O`, `K:O`, `ST‑K:O`
-
-The genome list reorganises instantly, showing genomes under group headers. Click “Reset” to return to the flat list.
-
-**Why it matters:** This reveals **clonal associations** at a glance. For example, grouping AMR genes by **capsule type** might show that `OXA-23` is only found in `K1:OC1` isolates – indicating a specific capsule lineage is driving carbapenemase spread. This is critical for understanding transmission dynamics, designing targeted interventions, and linking genotypes to phenotypes.
-
-### 🧬 **Mutation Tab – Clinical Relevance at a Glance**
-
-Point mutations (e.g., `gyrA_S81L`, `parC_E88K`, `pmrB`) are clinically important for fluoroquinolone, colistin, and tigecycline resistance. The new **mutation tab** in the gene‑centric reporter shows each unique mutation (gene + element name) with all genomes that carry it. You can filter by gene (gyrA, parC, rpoB, 23S rRNA, pmrAB), group by typing, and export to CSV.
-
-**Why it matters:** Mutations are often the **first sign** of emerging resistance to last‑line antibiotics. The mutation tab allows you to monitor these signals in real time, without digging through raw AMR data.
-
-### 🏠 **HPC/Cloud‑Ready Orchestrator – Temp‑Dir Execution**
-
-The orchestrator has been refactored to be **Docker‑ and HPC‑friendly**. Every module now runs in a temporary directory (`/tmp/acinetoscope_*`). Results are copied back to your output folder; everything else is **automatically cleaned up**. This means AcinetoScope now works on:
-
-- **Read‑only filesystems** (common in HPC clusters and container environments).
-- **Shared clusters** where users cannot write to the installation directory.
-- **Cloud environments** where ephemeral storage is preferred.
-
-**Why it matters:** This removes the biggest barrier to running AcinetoScope on high‑performance computing infrastructure, making genomic surveillance accessible on any platform – from a laptop to a supercomputer.
-
-### 📚 **Citation Overhaul – Full Credit Where It's Due**
-
-We have added a **dedicated citation tab** in both reports, with colour‑coded cards for each tool/database, copy‑to‑clipboard buttons, and a complete suggested acknowledgement. This includes:
-
-- Kaptive 3 (Stanton et al., 2025) – GitHub: `klebgenomics/Kaptive`
-- APT (Lam et al., 2023)
-- AMRFinderPlus, ABRicate, CARD, ResFinder, VFDB, PlasmidFinder, BacMet, MEGARes, ARG-ANNOT, EcOH, and Biopython.
-
-**Why it matters:** Proper attribution encourages collaboration and ensures that the scientists who built the foundations of our field are recognised.
-
-### 🧠 **Enhanced AI Guide**
-
-We have expanded the AI Guide with detailed example questions for each analysis category (epidemiology, AMR, virulence, mutations) and ethical guidelines for using AI in genomic research – all with a touch of humour.
-
 ---
 
 ## 📋 **Table of Contents**
@@ -565,11 +482,11 @@ If you use AcinetoScope in your research, please cite:
 
 ```bibtex
 @software{acinetoscope2026,
-  title = {A species‑specific computational pipeline for rapid, comprehensive Acinetobacter baumannii* outbreak investigation and resistance gene tracking},
+  title = {a computational pipeline for rapid, comprehensive Acinetobacter baumannii* outbreak investigation and resistance gene tracking},
   author = {Beckley, B. and Amarh, V. and Lopes, B. S. and A. and Olalekan, A. and Afeke, I.},
   year = {2026},
-  publisher = {GitHub},
-  url = {https://github.com/bbeckley-hub/acinetoscope}
+  publisher = {Scientific Reports},
+  doi = {10.1038/s41598-026-70189-y }
 }
 ```
 
