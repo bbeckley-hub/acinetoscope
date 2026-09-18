@@ -17,6 +17,7 @@
 [![License](https://img.shields.io/github/license/bbeckley-hub/acinetoscope)](LICENSE)
 [![Latest Release Date](https://anaconda.org/bbeckley-hub/acinetoscope/badges/latest_release_date.svg)](https://anaconda.org/bbeckley-hub/acinetoscope)
 [![Bioconda](https://img.shields.io/badge/bioconda-✓-44A833.svg?logo=conda)](https://anaconda.org/bioconda/acinetoscope)
+[![Article](https://img.shields.io/badge/Scientific%20Reports-10.1038%2Fs41598--026--70189--y-brightgreen)](https://doi.org/10.1038/s41598-026-70189-y)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/bbeckleyhub/acinetoscope)](https://hub.docker.com/r/bbeckleyhub/acinetoscope)
 [![Docker Image Size](https://img.shields.io/docker/image-size/bbeckleyhub/acinetoscope/latest)](https://hub.docker.com/r/bbeckleyhub/acinetoscope)
@@ -93,6 +94,9 @@
 - **Interpretation Barrier**: Raw outputs from multiple tools need manual integration to form an epidemiological narrative.
 - **Resource Barriers**: Generalist pipelines are slow and not optimised for *A. baumannii*.
 - **Cloud/HPC Limitations**: Many pipelines fail on read‑only filesystems or leave behind clutter.
+
+>**Citation**: Beckley, B., Amarh, V., Lopes, B.S. et al. AcinetoScope: a computational pipeline for rapid,
+           comprehensive Acinetobacter baumannii outbreak investigation and resistance gene tracking. Sci Rep (2026). https://doi.org/10.1038/s41598-026-70189-y
 
 ### 💡 **Our Solution**
 AcinetoScope delivers:
@@ -479,7 +483,8 @@ docker run --rm -u $(id -u):$(id -g) -v ... bbeckleyhub/acinetoscope ...
 ## 📚 **Citation**
 
 If you use AcinetoScope in your research, please cite:
-
+>Beckley, B., Amarh, V., Lopes, B.S. et al. AcinetoScope: a computational pipeline for rapid, comprehensive
+>Acinetobacter baumannii outbreak investigation and resistance gene tracking. Sci Rep (2026). https://doi.org/10.1038/s41598-026-70189-y
 ```bibtex
 @software{acinetoscope2026,
   title = {a computational pipeline for rapid, comprehensive Acinetobacter baumannii* outbreak investigation and resistance gene tracking},
