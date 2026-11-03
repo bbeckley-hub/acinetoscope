@@ -3,7 +3,7 @@
 AcinetoScope FASTA QC - Comprehensive Quality Control with HTML Reports
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2026-08-18
+Date: 2026-08-18 (updated 2026-11-01)
 """
 
 import os
@@ -45,7 +45,7 @@ class AcinetoFASTAQC:
 
         self.metadata = {
             "tool_name": "AcinetoScope FASTA QC Analysis",
-            "version": "1.3.2",
+            "version": "1.4.0",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
@@ -115,6 +115,43 @@ class AcinetoFASTAQC:
 
     def _is_baumannii(self, species_name: str) -> bool:
         return 'baumannii' in species_name.lower()
+
+    @staticmethod
+    def _species_status(species_check: Optional[Dict]) -> str:
+        """Return 'Yes' / 'No' / 'NA' for species confirmation status.
+
+        - 'Yes': best match is A. baumannii AND ANI >= 95%
+        - 'No' : ANI check ran and sample did NOT pass
+        - 'NA' : check could not run (fastANI missing, ref_db empty, error)
+        """
+        if not species_check or 'error' in species_check:
+            return 'NA'
+        return 'Yes' if species_check.get('passed', False) else 'No'
+
+    def _write_species_filter_files(self, successful_results: List[Dict[str, Any]], output_dir: str):
+        """Write FASTA_QC_species_passed.txt and FASTA_QC_species_excluded.txt.
+
+        Policy (mirrors ECOLITYPER module):
+            Yes -> forward to downstream
+            NA  -> forward (check unavailable; cannot prove negative)
+            No  -> exclude from downstream
+        """
+        passed_file   = os.path.join(output_dir, "FASTA_QC_species_passed.txt")
+        excluded_file = os.path.join(output_dir, "FASTA_QC_species_excluded.txt")
+        passed, excluded = [], []
+        for r in successful_results:
+            status = r.get('species_status', self._species_status(r.get('species_check')))
+            if status == 'No':
+                excluded.append(r['filename'])
+            else:
+                passed.append(r['filename'])
+        with open(passed_file, 'w', encoding='utf-8') as f:
+            for n in passed: f.write(n + '\n')
+        with open(excluded_file, 'w', encoding='utf-8') as f:
+            for n in excluded: f.write(n + '\n')
+        self.logger.info("Species filter: %d passed, %d excluded", len(passed), len(excluded))
+        if excluded:
+            self.logger.warning("EXCLUDED from downstream: %s", ', '.join(excluded))
 
     def _run_fastani(self, query: str, reference: str) -> float:
         with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=True) as tmp:
@@ -304,6 +341,7 @@ class AcinetoFASTAQC:
 
             if self.run_ani:
                 results['species_check'] = self._run_species_ani(fasta_file)
+            results['species_status'] = self._species_status(results.get('species_check'))
 
             results['warnings'] = self._generate_warnings(results)
 
@@ -496,6 +534,24 @@ class AcinetoFASTAQC:
         </script>
         """
 
+        exclusion_banner_html = ''
+        if self.run_ani and 'species_check' in results:
+            _sc = results['species_check']
+            if 'error' not in _sc and not _sc.get('passed', True):
+                exclusion_banner_html = f'''
+        <div class="card" style="border-left: 6px solid #dc2626; background: #fef2f2;">
+            <h2 style="color: #dc2626; border-bottom: 3px solid #dc2626; padding-bottom: 10px;">⚠️ Sample Failed Species Confirmation</h2>
+            <p style="color: #991b1b; font-weight: bold; font-size: 1.05em; margin: 10px 0;">
+                Best ANI match is <strong>{_sc['best_match']}</strong> ({_sc['ani_percent']}%),
+                which does <u>NOT</u> meet the {self.thresholds['ani_threshold']}% threshold for
+                <em>Acinetobacter baumannii</em>.
+            </p>
+            <p style="color: #7f1d1d;">
+                This sample will be <strong>excluded</strong> from downstream analyses.
+            </p>
+        </div>
+'''
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -591,7 +647,7 @@ class AcinetoFASTAQC:
             min-width: 180px;
         }}
         .gc-stat-card {{
-            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
@@ -602,7 +658,7 @@ class AcinetoFASTAQC:
             min-width: 180px;
         }}
         .at-stat-card {{
-            background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
@@ -623,14 +679,17 @@ class AcinetoFASTAQC:
             border-left: 4px solid #fff;
         }}
         .footer {{
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.3);
             color: white;
             padding: 30px;
             border-radius: 12px;
             margin-top: 40px;
+            text-align: center;
         }}
-        .footer a {{ color: #667eea; text-decoration: none; }}
+        .footer a {{ color: #fbbf24; text-decoration: none; }}
         .footer a:hover {{ text-decoration: underline; }}
+        .footer .timestamp {{ color: #fbbf24; font-weight: bold; }}
+        .footer .authorship {{ margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; font-size: 12px; line-height: 1.7; }}
 
         .controls {{
             background: #f8f9fa;
@@ -723,7 +782,7 @@ class AcinetoFASTAQC:
             </div>
 
             <div class="card">
-                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope FASTA QC Report</h1>
+                <h1 style="color: #1e3a8a; margin: 0; font-size: 2.5em;">🧬 AcinetoScope FASTA QC Report</h1>
                 <p style="color: #666; font-size: 1.2em;">Comprehensive Quality Control for FASTA Files</p>
                 <p style="color: #666; font-size: 1.1em;"><strong>Sample:</strong> {results['filename']}</p>
 
@@ -739,11 +798,12 @@ class AcinetoFASTAQC:
         <div class="quote-container">
             <div id="science-quote" style="font-size: 1.1em;"></div>
         </div>
+{excluded_note_html}
 """
 
         html_content += f"""
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 FASTA QC Summary</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">📊 FASTA QC Summary</h2>
             <div class="summary-stats">
                 <div class="stat-card">
                     <h3>Total Sequences</h3>
@@ -784,7 +844,7 @@ class AcinetoFASTAQC:
 
             html_content += f"""
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧬 Species Confirmation (FASTANI)</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">🧬 Species Confirmation (FASTANI)</h2>
             <div class="species-card {status_class}">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                     <div>
@@ -822,7 +882,7 @@ class AcinetoFASTAQC:
 
         html_content += f"""
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Basic Statistics</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">📈 Basic Statistics</h2>
             <div class="table-container">
                 <table class="qc-table" id="basic-stats-table">
                     <thead>
@@ -865,7 +925,7 @@ class AcinetoFASTAQC:
 
         html_content += f"""
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">🧬 Nucleotide Composition</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">🧬 Nucleotide Composition</h2>
             <div class="composition-grid">
                 <div class="composition-item">
                     <div class="composition-value" style="color: #28a745;">{results['gc_percent']:.1f}%</div>
@@ -901,7 +961,7 @@ class AcinetoFASTAQC:
 
         html_content += """
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Length Distribution</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">📊 Length Distribution</h2>
             <div class="table-container">
                 <table class="qc-table" id="length-dist-table">
                     <thead>
@@ -933,7 +993,7 @@ class AcinetoFASTAQC:
         if results.get('warnings'):
             html_content += """
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">⚠️ Quality Warnings</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">⚠️ Quality Warnings</h2>
 """
             for warning in results['warnings']:
                 box_class = 'danger-box' if warning['level'] == 'danger' else 'warning-box'
@@ -948,11 +1008,14 @@ class AcinetoFASTAQC:
 
         html_content += f"""
         <div class="footer">
-            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
-            <p><strong>Author:</strong> Brown Beckley</p>
-            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
-            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
-            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p><strong>ACINETOSCOPE</strong> — FASTA QC Analysis Module</p>
+            <p class="timestamp">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <div class="authorship">
+                <p><strong>Technical Support &amp; Inquiries:</strong></p>
+                <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
+                <p>Email: brownbeckley94@gmail.com</p>
+                <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
+            </div>
         </div>
     </div>
 </body>
@@ -962,12 +1025,7 @@ class AcinetoFASTAQC:
         with open(html_file, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
-        json_file = os.path.join(sample_dir, f"{filename_no_ext}_fasta_qc_report.json")
-        with open(json_file, 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2, default=str)
-
         self.logger.info(f"✓ HTML report generated: {html_file}")
-        self.logger.info(f"✓ JSON report generated: {json_file}")
 
         return html_file
 
@@ -990,7 +1048,7 @@ class AcinetoFASTAQC:
         ]
 
         if self.run_ani:
-            headers.extend(['Best Species', 'ANI (%)', 'Confirmed', 'Contamination'])
+            headers.extend(['Best Species', 'ANI (%)', 'Species Status', 'Confirmed', 'Contamination'])
 
         with open(tsv_file, 'w', encoding='utf-8') as f:
             f.write('\t'.join(headers) + '\n')
@@ -1024,9 +1082,11 @@ class AcinetoFASTAQC:
 
                 if self.run_ani:
                     sc = result.get('species_check', {})
+                    status = result.get('species_status', self._species_status(sc))
                     row.extend([
                         sc.get('best_match', 'Unknown'),
                         str(sc.get('ani_percent', 'N/A')),
+                        status,
                         'Yes' if sc.get('passed') else 'No',
                         'Yes' if sc.get('contamination_suspected') else 'No'
                     ])
@@ -1040,6 +1100,8 @@ class AcinetoFASTAQC:
 
         html_file = os.path.join(output_dir, "FASTA_QC_summary.html")
         self._create_summary_html_report(successful_results, html_file, json_summary)
+
+        self._write_species_filter_files(successful_results, output_dir)
 
         self.logger.info(f"✓ TSV summary created: {tsv_file}")
         self.logger.info(f"✓ JSON summary created: {json_file}")
@@ -1079,6 +1141,17 @@ class AcinetoFASTAQC:
         }
 
     def _create_summary_html_report(self, successful_results: List[Dict[str, Any]], html_file: str, json_summary: Dict[str, Any]):
+        # Species filter: only Yes / NA appear in HTML. No samples stay in TSV/JSON audit
+        # and in FASTA_QC_species_excluded.txt, but are hidden from this report.
+        all_results_for_summary = successful_results
+        successful_results = [
+            r for r in successful_results
+            if r.get('species_status', self._species_status(r.get('species_check'))) != 'No'
+        ]
+        excluded_count = len(all_results_for_summary) - len(successful_results)
+        if not successful_results:
+            self.logger.warning("All samples failed species check — summary HTML not written.")
+            return
         js_content = f"""
         <script>
             function searchTable(tableId, searchTerm) {{
@@ -1309,7 +1382,7 @@ class AcinetoFASTAQC:
             min-width: 180px;
         }}
         .seq-stat-card {{
-            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
@@ -1320,8 +1393,8 @@ class AcinetoFASTAQC:
             min-width: 180px;
         }}
         .warning-stat-card {{
-            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-            color: black;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
             padding: 20px;
             border-radius: 12px;
             text-align: center;
@@ -1341,14 +1414,17 @@ class AcinetoFASTAQC:
             border-left: 4px solid #fff;
         }}
         .footer {{
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.3);
             color: white;
             padding: 30px;
             border-radius: 12px;
             margin-top: 40px;
+            text-align: center;
         }}
-        .footer a {{ color: #667eea; text-decoration: none; }}
+        .footer a {{ color: #fbbf24; text-decoration: none; }}
         .footer a:hover {{ text-decoration: underline; }}
+        .footer .timestamp {{ color: #fbbf24; font-weight: bold; }}
+        .footer .authorship {{ margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; font-size: 12px; line-height: 1.7; }}
 
         .interactive-controls {{
             background: #f8f9fa;
@@ -1464,7 +1540,7 @@ class AcinetoFASTAQC:
             </div>
 
             <div class="card">
-                <h1 style="color: #333; margin: 0; font-size: 2.5em;">🧬 AcinetoScope FASTA QC - Summary Report</h1>
+                <h1 style="color: #1e3a8a; margin: 0; font-size: 2.5em;">🧬 AcinetoScope FASTA QC - Summary Report</h1>
                 <p style="color: #666; font-size: 1.2em;">Comprehensive Quality Control Analysis Across All FASTA Files</p>
 
                 <div class="interactive-controls">
@@ -1503,9 +1579,20 @@ class AcinetoFASTAQC:
         total_warnings = sum(len(r.get('warnings', [])) for r in successful_results)
         files_with_warnings = sum(1 for r in successful_results if r.get('warnings'))
 
+        excluded_note_html = ''
+        if excluded_count > 0:
+            excluded_note_html = f'''
+        <div class="card" style="border-left: 4px solid #94a3b8; background: #f1f5f9;">
+            <p style="color: #475569; font-size: 13px; margin: 0;">
+                <strong>Note:</strong> {excluded_count} additional sample(s) failed the
+                species check and are not shown here. See
+                <code>FASTA_QC_species_excluded.txt</code> for the list.
+            </p>
+        </div>'''
+
         html_content += f"""
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📊 Overall Statistics</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">📊 Overall Statistics</h2>
             <div class="summary-stats">
                 <div class="stat-card">
                     <h3>Total Files</h3>
@@ -1535,7 +1622,7 @@ class AcinetoFASTAQC:
 
         html_content += """
         <div class="card">
-            <h2 style="color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">📈 Detailed FASTA QC Results</h2>
+            <h2 style="color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">📈 Detailed FASTA QC Results</h2>
             <p style="color: #666; margin-bottom: 15px;">Scroll horizontally to view all columns. Click headers to sort.</p>
 
             <div class="table-container">
@@ -1642,11 +1729,14 @@ class AcinetoFASTAQC:
 
         html_content += f"""
         <div class="footer">
-            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">👥 Contact Information</h3>
-            <p><strong>Author:</strong> Brown Beckley</p>
-            <p><strong>Email:</strong> brownbeckley94@gmail.com</p>
-            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a></p>
-            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p><strong>ACINETOSCOPE</strong> — FASTA QC Analysis Module</p>
+            <p class="timestamp">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <div class="authorship">
+                <p><strong>Technical Support &amp; Inquiries:</strong></p>
+                <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
+                <p>Email: brownbeckley94@gmail.com</p>
+                <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
+            </div>
         </div>
     </div>
 </body>
@@ -1719,15 +1809,20 @@ class AcinetoFASTAQC:
         if successful_files > 0:
             self.create_summary_report(all_results, output_dir)
 
+        successful_results = [r for r in all_results if r.get('status') == 'success']
+        n_excluded = sum(1 for r in successful_results if r.get('species_status') == 'No')
+        n_forward  = len(successful_results) - n_excluded
+
         print("\n" + "="*80)
         print("ANALYSIS COMPLETE")
         print("="*80)
         print(f"Total files: {len(files)}")
         print(f"Successful analyses: {successful_files}")
         print(f"Failed analyses: {len(files) - successful_files}")
+        print(f"Species check passed/unknown (forwarded): {n_forward}")
+        print(f"Species check failed (excluded): {n_excluded}")
         print("\n📁 OUTPUT FILES:")
         print(f"   Individual HTML reports: {output_dir}/*/*_fasta_qc_report.html")
-        print(f"   Individual JSON reports: {output_dir}/*/*_fasta_qc_report.json")
         if successful_files > 1:
             print(f"   Summary TSV: {output_dir}/FASTA_QC_summary.tsv")
             print(f"   Summary JSON: {output_dir}/FASTA_QC_summary.json")

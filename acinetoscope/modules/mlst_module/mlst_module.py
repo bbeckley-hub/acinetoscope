@@ -4,13 +4,15 @@ AcinetoScope - MLST Module for Acinetobacter baumannii (UPDATED WITH NEW ICS AND
 Author: Brown Beckley <brownbeckley94@gmail.com>
 GitHub: bbeckley-hub
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2026-08-19
+Open an issue if you found any miss matches!!
+Date: 2026-08-19 (updated 2026-11-01)
 """
 
 import os
 import sys
 import json
 import glob
+import tempfile
 import argparse
 import subprocess
 import random
@@ -19,6 +21,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 import pandas as pd
 from datetime import datetime
+from html import escape
 
 class AcinetoMLSTAnalyzer:
     def __init__(self, database_dir: Path, script_dir: Path):
@@ -2075,6 +2078,12 @@ class AcinetoMLSTAnalyzer:
             }
         }
 
+
+        # Canonical Pasteur ST -> IC lookup derived from the supplied sample-level lookup table.
+        # The source table contains repeated observations; conflicts are resolved by majority vote.
+        # This compact map is loaded from a companion TSV when available, otherwise embedded below.
+        self.pasteur_ic_lookup = {'437': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 43}, '2': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 30434}, '1': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 1397}, '52': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 102}, '81': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 32}, '49': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 33}, '20': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 25}, '16': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 264}, '25': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 561}, '404': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 37}, '267': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 61}, '78': {'international_clone': 'IC6', 'oxa51_variant': 'OXA-90', 'n': 304}, '3': {'international_clone': 'IC3', 'oxa51_variant': 'OXA-71', 'n': 468}, '32': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 197}, '415': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 16}, '218': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 27}, '414': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-260', 'n': 5}, '136': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-317', 'n': 13}, '513': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-90', 'n': 3}, '419': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 3}, '417': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 19}, '113': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 103}, '241': {'international_clone': 'IC11', 'oxa51_variant': 'OXA-91', 'n': 26}, '416': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 15}, '406': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-173', 'n': 521}, '413': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 2}, '422': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 26}, '429': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 3}, '438': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 4}, '405': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '19': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 203}, '10': {'international_clone': 'IC8', 'oxa51_variant': 'OXA-68', 'n': 280}, '515': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-90', 'n': 5}, '412': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 19}, '403': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-263', 'n': 8}, '428': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 7}, '155': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 35}, '158': {'international_clone': 'IC12', 'oxa51_variant': 'OXA-343', 'n': 39}, '431': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-117', 'n': 1}, '665': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 2}, '255': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-99', 'n': 4}, '516': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 4}, '47': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-260', 'n': 3}, '12': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '15': {'international_clone': 'IC4', 'oxa51_variant': 'OXA-51', 'n': 227}, '9': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '34': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 21}, '38': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-261', 'n': 3}, '11': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-263', 'n': 3}, '40': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 195}, '35': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-262', 'n': 2}, '36': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 14}, '37': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 5}, '239': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 25}, '39': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 3}, '215': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 62}, '23': {'international_clone': 'IC8', 'oxa51_variant': 'OXA-68', 'n': 68}, '425': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '6': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-94', 'n': 11}, '427': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 4}, '33': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 54}, '79': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 289}, '411': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 3}, '221': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 56}, '639': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 3}, '524': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '669': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 2}, '514': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 21}, '523': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '537': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-387', 'n': 3}, '500': {'international_clone': 'IC3', 'oxa51_variant': 'OXA-71', 'n': 12}, '527': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '499': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 3563}, '529': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '203': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 49}, '512': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 5}, '503': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 2}, '528': {'international_clone': 'IC9', 'oxa51_variant': 'OXA-94', 'n': 1}, '536': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 9}, '240': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-374', 'n': 31}, '508': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 1}, '103': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 71}, '509': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '506': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '522': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '650': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '154': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 17}, '108': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-132', 'n': 116}, '526': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '525': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '195': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 45}, '535': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 1}, '651': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 3}, '510': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 1}, '54': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-365', 'n': 13}, '671': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '532': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '652': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 7}, '521': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '285': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-337', 'n': 5}, '661': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '662': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '656': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '657': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '658': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '659': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '660': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '673': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-82', 'n': 1}, '674': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '336': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-441', 'n': 4}, '1143': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-82', 'n': 12}, '56': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 2}, '126': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 56}, '668': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '664': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 10}, '621': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '94': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 24}, '638': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 6}, '271': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 8}, '1554': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-424', 'n': 5}, '105': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 4}, '653': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '1088': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-172', 'n': 40}, '250': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-407', 'n': 70}, '464': {'international_clone': 'IC9', 'oxa51_variant': 'OXA-94', 'n': 10}, '622': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 26}, '654': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '402': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 1}, '1426': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 2}, '1140': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-111', 'n': 1}, '1545': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '149': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 81}, '2480': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-144', 'n': 1}, '1549': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '492': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 88}, '498': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 5}, '1337': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 5}, '2248': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 15}, '2481': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-340', 'n': 1}, '85': {'international_clone': 'IC9', 'oxa51_variant': 'OXA-94', 'n': 108}, '372': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 10}, '1022': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-241', 'n': 76}, '742': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-497', 'n': 1}, '187': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 96}, '745': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 19}, '48': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 18}, '717': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 8}, '604': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 40}, '1035': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '317': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 2}, '107': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 39}, '632': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 83}, '1079': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 6}, '111': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 4}, '388': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 24}, '943': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-381', 'n': 1}, '821': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 28}, '309': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 11}, '80': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 3}, '1546': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '46': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-531', 'n': 97}, '880': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '338': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 17}, '875': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '878': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 1}, '879': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '920': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '1580': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 50}, '156': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 111}, '738': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-65', 'n': 3}, '1168': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 2}, '1195': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '941': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 5}, '150': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-121', 'n': 96}, '810': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 5}, '1048': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 4}, '142': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 19}, '494': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 14}, '848': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 6}, '973': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-94', 'n': 4}, '216': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 29}, '2482': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '1165': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 1}, '571': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 126}, '730': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 7}, '307': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 5}, '294': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 10}, '448': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 3}, '164': {'international_clone': 'IC11', 'oxa51_variant': 'OXA-91', 'n': 460}, '138': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 13}, '923': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 2}, '927': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 12}, '1179': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-374', 'n': 1}, '690': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-374', 'n': 16}, '938': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 1}, '3289': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 1}, '575': {'international_clone': 'IC8', 'oxa51_variant': 'OXA-144', 'n': 95}, '286': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-338', 'n': 3}, '1543': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '106': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 35}, '77': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 21}, '229': {'international_clone': 'IC3', 'oxa51_variant': 'OXA-71', 'n': 25}, '626': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-123', 'n': 3}, '636': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 232}, '2167': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-132', 'n': 5}, '490': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 8}, '193': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 39}, '329': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 2}, '1156': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '1157': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 3}, '341': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-344', 'n': 2}, '1106': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-371', 'n': 5}, '1544': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '911': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 3}, '1158': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '991': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 17}, '922': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 6}, '1542': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '57': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 7}, '132': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 41}, '2146': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-555', 'n': 2}, '145': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 7}, '1436': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-432', 'n': 1}, '1438': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '1437': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '152': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 20}, '570': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 119}, '1303': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '1197': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 1}, '1039': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 3}, '2250': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-345', 'n': 4}, '2251': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-123', 'n': 4}, '345': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 7}, '2484': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '1512': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 13}, '2485': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '400': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 47}, '315': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 4}, '213': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 21}, '1130': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 1}, '1093': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 12}, '963': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 1}, '1095': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 2}, '1108': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '1126': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-424', 'n': 1}, '1118': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-90', 'n': 1}, '374': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 60}, '972': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-94', 'n': 2}, '109': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 39}, '1302': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 3}, '237': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-64', 'n': 6}, '1547': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2486': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '151': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 7}, '2487': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '130': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 16}, '235': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 4}, '2488': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '2489': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '1136': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '727': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 6}, '456': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 5}, '266': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 2}, '1548': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 5}, '2490': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 5}, '1133': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 7}, '2491': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 2}, '2492': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '1646': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-130', 'n': 6}, '2494': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '647': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-261', 'n': 11}, '334': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 8}, '2495': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 2}, '1878': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 9}, '236': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '2034': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 16}, '331': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-441', 'n': 11}, '424': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 4}, '2238': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 11}, '2264': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 6}, '1464': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 3}, '924': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 2}, '2111': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-555', 'n': 2}, '118': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 5}, '2558': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '1433': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '134': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '42': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 4}, '1102': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 7}, '328': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 9}, '623': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-371', 'n': 28}, '162': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 27}, '1448': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 3}, '825': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 3}, '2478': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 6}, '2497': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 2}, '1278': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-337', 'n': 1}, '172': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 8}, '1472': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '3312': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 2}, '1479': {'international_clone': 'IC11', 'oxa51_variant': 'OXA-91', 'n': 12}, '1535': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-345', 'n': 1}, '600': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 57}, '2424': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '1904': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 13}, '763': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '1137': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 5}, '2499': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 2}, '1562': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-223', 'n': 2}, '1091': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-223', 'n': 203}, '1573': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 3}, '238': {'international_clone': 'IC4', 'oxa51_variant': 'OXA-51', 'n': 5}, '1447': {'international_clone': 'IC4', 'oxa51_variant': 'OXA-51', 'n': 1}, '163': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2252': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 4}, '375': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 5}, '2501': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 1}, '1555': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 19}, '2502': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 3}, '1142': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 139}, '2504': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 7}, '2511': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '45': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 16}, '2512': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-223', 'n': 37}, '734': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 27}, '2513': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '724': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 15}, '577': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 11}, '2514': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 2}, '1537': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 2}, '1822': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 5}, '129': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 18}, '243': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 17}, '318': {'international_clone': 'IC4', 'oxa51_variant': 'OXA-219', 'n': 20}, '837': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 5}, '2517': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 4}, '578': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 12}, '1280': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-377', 'n': 3}, '2518': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 1}, '1191': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 2}, '348': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-432', 'n': 6}, '342': {'international_clone': 'IC12', 'oxa51_variant': 'OXA-98', 'n': 3}, '1279': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 1}, '740': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 4}, '1252': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '1190': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 2}, '1550': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 34}, '2522': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-555', 'n': 6}, '1111': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 10}, '280': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-377', 'n': 3}, '1230': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 13}, '1229': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '141': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 14}, '1228': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 4}, '1224': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '1223': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 9}, '1225': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-346', 'n': 2}, '1227': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '462': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-262', 'n': 22}, '139': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-117', 'n': 3}, '1632': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 4}, '2524': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '2525': {'international_clone': 'IC8', 'oxa51_variant': 'OXA-68', 'n': 1}, '624': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-411', 'n': 8}, '188': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-407', 'n': 5}, '625': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-90', 'n': 9}, '966': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '968': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-531', 'n': 1}, '1115': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 2}, '970': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 1}, '962': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 2}, '1132': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-65', 'n': 1}, '53': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 3}, '1104': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-528', 'n': 1}, '967': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '971': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 1}, '976': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 5}, '2194': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-341', 'n': 3}, '977': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-532', 'n': 1}, '1090': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 16}, '960': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 4}, '1487': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 11}, '2527': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 7}, '1077': {'international_clone': 'IC6', 'oxa51_variant': 'OXA-90', 'n': 19}, '1475': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 1}, '265': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 2}, '721': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-132', 'n': 7}, '2542': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '1083': {'international_clone': 'IC4', 'oxa51_variant': 'OXA-51', 'n': 2}, '1853': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-241', 'n': 3}, '613': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 4}, '876': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 3}, '1357': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 3}, '764': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 10}, '370': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 2}, '2559': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-94', 'n': 1}, '1756': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 3}, '2561': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-555', 'n': 2}, '2562': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '2563': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 1}, '2119': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 2}, '1435': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 5}, '2207': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '2523': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 5}, '2564': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 2}, '1863': {'international_clone': 'IC11', 'oxa51_variant': 'OXA-91', 'n': 1}, '648': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '649': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-562', 'n': 1}, '584': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-125', 'n': 12}, '602': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 45}, '98': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 8}, '1196': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 1}, '2253': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-554', 'n': 2}, '2139': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 120}, '1163': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 4}, '975': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 3}, '1574': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 3}, '2566': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 1}, '2565': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 4}, '729': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 2}, '2571': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '619': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 11}, '823': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 2}, '459': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 12}, '2540': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-223', 'n': 2}, '157': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 2}, '1579': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 104}, '2217': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-317', 'n': 4}, '2089': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '697': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 6}, '2573': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '866': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-385', 'n': 25}, '190': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '2569': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 1}, '380': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-82', 'n': 1}, '367': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 4}, '1293': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '1296': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 1}, '1564': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 2}, '1566': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-410', 'n': 3}, '1295': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '1298': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '1299': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '1212': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 1}, '1301': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 3}, '1297': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 1}, '1294': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 1}, '1211': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '351': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-99', 'n': 7}, '1577': {'international_clone': 'IC11', 'oxa51_variant': 'OXA-91', 'n': 1}, '1290': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-342', 'n': 4}, '1300': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '1578': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 1}, '1567': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 2}, '444': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-121', 'n': 5}, '30': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '1117': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 2}, '2135': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 2}, '2136': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 1}, '311': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '1014': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-150', 'n': 4}, '1520': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-376', 'n': 1}, '160': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 3}, '144': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 2}, '1057': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 7}, '1131': {'international_clone': 'IC11', 'oxa51_variant': 'OXA-91', 'n': 6}, '1124': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 1}, '1109': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 3}, '256': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 5}, '1620': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 3}, '2108': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '1411': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 3}, '284': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 2}, '3354': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 4}, '762': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 2}, '2334': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 27}, '2336': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2337': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '58': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 1}, '867': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '268': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 5}, '2694': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 3}, '757': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2266': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 8}, '2306': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 2}, '504': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 11}, '1730': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 1}, '3151': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '353': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 11}, '765': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-99', 'n': 2}, '2836': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 2}, '3336': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 1}, '1828': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-441', 'n': 9}, '440': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '104': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 4}, '357': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 4}, '641': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 144}, '275': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 2}, '231': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 6}, '1902': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 2}, '739': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '1112': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 11}, '360': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-117', 'n': 26}, '585': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 1}, '1013': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 23}, '1074': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 2}, '1742': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '1740': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '1744': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-339', 'n': 2}, '1635': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '1514': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '634': {'international_clone': 'IC4', 'oxa51_variant': 'OXA-51', 'n': 9}, '3345': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 45}, '2595': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 1}, '2711': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 2}, '2541': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-223', 'n': 13}, '1344': {'international_clone': 'IC6', 'oxa51_variant': 'OXA-90', 'n': 1}, '1627': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '1159': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 7}, '723': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '131': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 7}, '2267': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 1}, '773': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 6}, '1641': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 10}, '2265': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '439': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 1}, '2263': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2160': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '333': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-111', 'n': 3}, '2158': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 1}, '2159': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 1}, '858': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 3}, '2157': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 3}, '282': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 4}, '2683': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '2236': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '2177': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '2555': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 3}, '1405': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 6}, '2575': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2688': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '1908': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 1}, '1907': {'international_clone': 'IC6', 'oxa51_variant': 'OXA-90', 'n': 2}, '1017': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 5}, '2423': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '881': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 2}, '2397': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 8}, '2422': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '766': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 5}, '2332': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-400', 'n': 1}, '2213': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 4}, '2421': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '753': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-342', 'n': 1}, '466': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-409', 'n': 1}, '2420': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 1}, '2414': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 1}, '2404': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 2}, '2419': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-411', 'n': 1}, '2330': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '2416': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 1}, '1059': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '2415': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-346', 'n': 1}, '2176': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-556', 'n': 5}, '935': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-261', 'n': 22}, '2407': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-385', 'n': 2}, '2413': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-390', 'n': 1}, '2276': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 4}, '932': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 2}, '2409': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 1}, '2408': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '2410': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-344', 'n': 1}, '2405': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-130', 'n': 1}, '2406': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-223', 'n': 1}, '933': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-93', 'n': 3}, '22': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 3}, '2403': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-376', 'n': 1}, '1829': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2401': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 1}, '2400': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-555', 'n': 2}, '2402': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '465': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 2}, '820': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2398': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '2399': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-345', 'n': 1}, '2396': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '2395': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 2}, '2392': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 1}, '2391': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2394': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2393': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 1}, '2389': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-516', 'n': 1}, '2388': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '2390': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '1733': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-376', 'n': 1}, '2387': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 1}, '2385': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-411', 'n': 1}, '2381': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 1}, '2383': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-375', 'n': 1}, '2380': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '2382': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '2384': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 1}, '2378': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '1027': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 22}, '2379': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 1}, '928': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-432', 'n': 2}, '2377': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '2375': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-385', 'n': 3}, '2374': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2376': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '2373': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 2}, '2372': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-341', 'n': 2}, '2371': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-344', 'n': 1}, '2370': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-341', 'n': 1}, '2368': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '1019': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-65', 'n': 5}, '2367': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 2}, '2366': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '926': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-379', 'n': 2}, '2365': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 2}, '1060': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '2364': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '2363': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-407', 'n': 1}, '461': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 3}, '2362': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-381', 'n': 1}, '2361': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '1018': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 5}, '2360': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '2359': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-130', 'n': 1}, '1526': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 3}, '1020': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 1}, '2358': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-337', 'n': 1}, '1367': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-380', 'n': 2}, '1147': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-179', 'n': 3}, '2357': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2356': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 1}, '1042': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 4}, '2354': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 3}, '2355': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-179', 'n': 1}, '2353': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 3}, '2352': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-344', 'n': 1}, '814': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 2}, '2351': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '283': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 12}, '961': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '808': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-344', 'n': 6}, '2350': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-497', 'n': 1}, '2349': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2348': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 1}, '481': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-391', 'n': 1}, '2347': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-380', 'n': 1}, '812': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 3}, '2346': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '1858': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 3}, '2338': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '2333': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2328': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '2325': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 5}, '934': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 8}, '2326': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 6}, '2335': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 6}, '2293': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 3}, '2324': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 1}, '2323': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-344', 'n': 1}, '2321': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-508', 'n': 2}, '2322': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2320': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '293': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-342', 'n': 1}, '2319': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '1037': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 7}, '2318': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '2188': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '1741': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '44': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 16}, '2315': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 1}, '2313': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2316': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2312': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-508', 'n': 1}, '2314': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2311': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '332': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '2310': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '2309': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '2308': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '228': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 1}, '2307': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 1}, '936': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '1016': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 7}, '940': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '939': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-346', 'n': 4}, '473': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-412', 'n': 1}, '277': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 2}, '2305': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 2}, '2304': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 2}, '1058': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 2}, '2303': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2302': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '2301': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '1511': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 2}, '2300': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-132', 'n': 1}, '2299': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-75', 'n': 1}, '2297': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 2}, '2298': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 1}, '2296': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 1}, '2331': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 1}, '1069': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '2295': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-432', 'n': 1}, '274': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 3}, '2290': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 4}, '2291': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 1}, '2289': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 1}, '2329': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-93', 'n': 1}, '1061': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 3}, '1046': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2292': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-123', 'n': 2}, '2288': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '2287': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-530', 'n': 1}, '1906': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2286': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '931': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '937': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-317', 'n': 1}, '2283': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 1}, '2285': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-93', 'n': 1}, '2284': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2282': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2281': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '2280': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-65', 'n': 1}, '2279': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-389', 'n': 1}, '1029': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-75', 'n': 3}, '2278': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 1}, '2277': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '2275': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2274': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2273': {'international_clone': 'IC12', 'oxa51_variant': 'OXA-98', 'n': 1}, '620': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-65', 'n': 7}, '2272': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '1036': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '1368': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '929': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-379', 'n': 1}, '2271': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-433', 'n': 2}, '930': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-390', 'n': 1}, '2270': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2269': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-382', 'n': 1}, '2268': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-388', 'n': 1}, '1416': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-386', 'n': 1}, '2435': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 2}, '2434': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-374', 'n': 1}, '2430': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 1}, '2426': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 3}, '2425': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2244': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 3}, '409': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 1}, '1422': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-411', 'n': 2}, '2090': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '1572': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 1}, '257': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '2585': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '1338': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-407', 'n': 1}, '1127': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 1}, '806': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 7}, '2180': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 3}, '2583': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 2}, '857': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '1100': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-317', 'n': 1}, '979': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 2}, '1866': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 5}, '2681': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '2327': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 14}, '2118': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 10}, '2317': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 3}, '1153': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 4}, '1336': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 11}, '2187': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 1}, '582': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-317', 'n': 12}, '2183': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 3}, '687': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-554', 'n': 1}, '1639': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 9}, '1623': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 1}, '2186': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 1}, '1470': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 5}, '2185': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 1}, '2110': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-338', 'n': 1}, '1328': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 1}, '2184': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-556', 'n': 1}, '2182': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-130', 'n': 1}, '2191': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 3}, '349': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 6}, '3341': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '2620': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 2}, '2757': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-377', 'n': 4}, '3317': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '335': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 1}, '245': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 4}, '1480': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 1}, '1233': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 2}, '2545': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-377', 'n': 2}, '2676': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 2}, '2114': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 4}, '452': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 1}, '2549': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 4}, '592': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 1}, '1450': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 1}, '470': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 3}, '350': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-374', 'n': 4}, '2635': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 3}, '2643': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-508', 'n': 3}, '2633': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '2642': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '2197': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 8}, '2640': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 1}, '2576': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-389', 'n': 4}, '1463': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '946': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 5}, '2552': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-407', 'n': 1}, '2732': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 5}, '447': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 1}, '2822': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 3}, '2874': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 2}, '2150': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 3}, '1314': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 1}, '1596': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 2}, '1378': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '686': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-508', 'n': 2}, '3349': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 3}, '583': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-376', 'n': 1}, '1094': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 3}, '1418': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 5}, '2703': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-424', 'n': 1}, '153': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '2493': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 2}, '2247': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 2}, '1384': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '2532': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 6}, '291': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-341', 'n': 1}, '2526': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 2}, '2651': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-431', 'n': 1}, '877': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-508', 'n': 2}, '2655': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-130', 'n': 1}, '3210': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2604': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-150', 'n': 1}, '916': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 3}, '2520': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 2}, '2418': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '2847': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '1642': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-410', 'n': 3}, '1851': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '2716': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '1509': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-69', 'n': 3}, '467': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-410', 'n': 1}, '2695': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 3}, '2199': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-337', 'n': 1}, '1043': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-241', 'n': 2}, '2828': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '2702': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '2729': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 2}, '2733': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 2}, '2543': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 3}, '2728': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 2}, '2727': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 2}, '2560': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 2}, '2140': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-80', 'n': 7}, '2726': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 2}, '1356': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 4}, '2731': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 2}, '2725': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-555', 'n': 2}, '2030': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '2031': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 3}, '2035': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 1}, '2036': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '397': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2032': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2029': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 4}, '2033': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 2}, '2037': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 3}, '2689': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-317', 'n': 2}, '2106': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '1425': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-377', 'n': 1}, '1653': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-383', 'n': 1}, '1643': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-554', 'n': 3}, '1647': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '1650': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '1645': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '1648': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 2}, '1651': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 1}, '1644': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 2}, '455': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-374', 'n': 1}, '1654': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '1652': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 1}, '3327': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-132', 'n': 1}, '3332': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 2}, '298': {'international_clone': 'IC5', 'oxa51_variant': 'OXA-65', 'n': 1}, '2622': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 1}, '1160': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 41}, '719': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '990': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '2826': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-90', 'n': 2}, '2966': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 4}, '185': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 4}, '1377': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-68', 'n': 1}, '3299': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-89', 'n': 1}, '2132': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2116': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-339', 'n': 2}, '242': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 3}, '2115': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-124', 'n': 2}, '354': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 15}, '2708': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-71', 'n': 1}, '28': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 2}, '2631': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '29': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '458': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-414', 'n': 2}, '756': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '3331': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '2145': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-402', 'n': 1}, '2143': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '2149': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '273': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 4}, '358': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 2}, '2148': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '352': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 1}, '2141': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-508', 'n': 1}, '2142': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 1}, '364': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 2}, '2577': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-117', 'n': 1}, '2147': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '356': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '2578': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-432', 'n': 1}, '2823': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-88', 'n': 1}, '2819': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-376', 'n': 2}, '2820': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '2816': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 18}, '2817': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '2818': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-374', 'n': 1}, '2815': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-100', 'n': 1}, '2810': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '2812': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 1}, '2811': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 1}, '2813': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '1910': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-121', 'n': 1}, '2113': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2475': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '2474': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 8}, '2473': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-117', 'n': 1}, '2109': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2243': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '2102': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-432', 'n': 1}, '252': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '137': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 1}, '755': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 1}, '3240': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 1}, '1097': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 1}, '2519': {'international_clone': 'IC8', 'oxa51_variant': 'OXA-259', 'n': 1}, '3333': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-554', 'n': 5}, '3329': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-391', 'n': 1}, '3330': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-95', 'n': 1}, '534': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 2}, '3337': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-65', 'n': 2}, '292': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '3335': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-528', 'n': 1}, '1138': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 3}, '1412': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '1625': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-441', 'n': 1}, '454': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-259', 'n': 1}, '2698': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-179', 'n': 1}, '2648': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 1}, '2696': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-441', 'n': 5}, '770': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '2682': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2615': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2692': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '2690': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '1459': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-217', 'n': 2}, '2553': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-111', 'n': 1}, '2701': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '1362': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 3}, '760': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '2685': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2700': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 2}, '2112': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-78', 'n': 1}, '2677': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 2}, '992': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-98', 'n': 1}, '2684': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2679': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-562', 'n': 1}, '2697': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '2588': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '2693': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-555', 'n': 1}, '2680': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '2686': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 1}, '479': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-126', 'n': 1}, '3351': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '3352': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 2}, '3346': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-407', 'n': 11}, '471': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-411', 'n': 3}, '3149': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 23}, '3350': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 2}, '2339': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-144', 'n': 8}, '2833': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-424', 'n': 1}, '2832': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-377', 'n': 1}, '392': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-378', 'n': 1}, '1649': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 1}, '1365': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 1}, '2858': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 1}, '3303': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '125': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 1}, '2122': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-242', 'n': 2}, '2799': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '3348': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '3347': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '1560': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2724': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '474': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 3}, '3313': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-375', 'n': 1}, '1070': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-203', 'n': 4}, '3310': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 2}, '3309': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '2744': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 6}, '3308': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '3307': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 2}, '3306': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '2105': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '912': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 2}, '1044': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-429', 'n': 1}, '3300': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-123', 'n': 1}, '3298': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-380', 'n': 2}, '3297': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-375', 'n': 1}, '3281': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 12}, '1056': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-408', 'n': 2}, '3283': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-314', 'n': 1}, '3282': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '2603': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-343', 'n': 1}, '21': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-389', 'n': 1}, '1363': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '3270': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-391', 'n': 4}, '3302': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '3296': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-180', 'n': 2}, '3284': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-380', 'n': 1}, '3278': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-411', 'n': 2}, '3273': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-70', 'n': 4}, '1731': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-65', 'n': 1}, '3272': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-413', 'n': 5}, '1049': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-375', 'n': 1}, '3305': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '3304': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-208', 'n': 1}, '2582': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 2}, '3277': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-51', 'n': 1}, '3276': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 1}, '2580': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-91', 'n': 1}, '3322': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-241', 'n': 1}, '1359': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-67', 'n': 7}, '2260': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '3058': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-510', 'n': 1}, '368': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-558', 'n': 1}, '2743': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-430', 'n': 1}, '1581': {'international_clone': 'IC7', 'oxa51_variant': 'OXA-64', 'n': 2}, '1575': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '986': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 1}, '2803': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-64', 'n': 1}, '143': {'international_clone': 'IC2', 'oxa51_variant': 'OXA-66', 'n': 1}, '3202': {'international_clone': 'NOIC', 'oxa51_variant': '', 'n': 2}, '2806': {'international_clone': 'NOIC', 'oxa51_variant': '', 'n': 7}, '1232': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-338', 'n': 1}, '2544': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-66', 'n': 1}, '460': {'international_clone': 'IC1', 'oxa51_variant': 'OXA-69', 'n': 1}, '1432': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 3}, '1430': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-407', 'n': 3}, '2500': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '1431': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-120', 'n': 1}, '1622': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-130', 'n': 2}, '2546': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-106', 'n': 1}, '445': {'international_clone': 'IC10', 'oxa51_variant': 'OXA-120', 'n': 2}, '1028': {'international_clone': 'NOIC', 'oxa51_variant': 'OXA-346', 'n': 1}}
+
     def check_excel_support(self):
         try:
             import openpyxl
@@ -2147,11 +2156,7 @@ class AcinetoMLSTAnalyzer:
             print(f"   Running: {' '.join(mlst_cmd)}")
             result = subprocess.run(mlst_cmd, capture_output=True, text=True, check=True)
 
-            with open(raw_output_file, 'w') as f:
-                f.write("STDOUT:\n")
-                f.write(result.stdout)
-                f.write("\nSTDERR:\n")
-                f.write(result.stderr)
+            # Raw output is written only on failure (see except block below).
 
             mlst_results = self.parse_mlst_csv_fixed(result.stdout, input_file.name, scheme)
 
@@ -2264,28 +2269,35 @@ class AcinetoMLSTAnalyzer:
         }
 
     def get_lineage_info(self, st: str, scheme: str) -> Dict:
+        """Return lineage metadata, applying the corrected Pasteur lookup consensus."""
+        st_key = str(st).removeprefix("ST")
         db = self.lineage_db.get(scheme, {})
+        info = db.get(st_key, {}).copy()
 
-        if st in db:
-            return db[st].copy()
-        else:
-            if st.isdigit():
+        if not info:
+            if st_key.isdigit():
                 scheme_id = "1" if scheme == "abaumannii" else "2"
-                pubmlst_link = f"https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates&page=query&scheme_id={scheme_id}&ST={st}"
-
-                return {
+                pubmlst_link = (
+                    "https://pubmlst.org/bigsdb?db=pubmlst_abaumannii_isolates"
+                    f"&page=query&scheme_id={scheme_id}&ST={st_key}"
+                )
+                info = {
                     "international_clone": "NOIC",
-                    "clonal_complex": f"Unknown (ST{st})",
+                    "clonal_complex": f"Unknown (ST{st_key})",
                     "classification": "Not in database - novel or uncommon",
                     "geographic_distribution": "Unknown",
-                    "clinical_significance": f"ST{st} is not currently in the AcinetoScope {scheme} MLST database. No International Clone has been assigned.",
+                    "clinical_significance": (
+                        f"ST{st_key} is not currently described in the AcinetoScope lineage "
+                        "metadata. International Clone assignment is based on the supplied "
+                        "Pasteur lookup table where available."
+                    ),
                     "common_resistance": ["Unknown - requires further analysis"],
                     "outbreak_potential": "UNKNOWN",
                     "typical_resistance_genes": ["Unknown"],
-                    "pubmlst_link": pubmlst_link
+                    "pubmlst_link": pubmlst_link,
                 }
             else:
-                return {
+                info = {
                     "international_clone": "NOIC",
                     "clonal_complex": "Not Assigned",
                     "classification": "MLST typing failed",
@@ -2294,8 +2306,36 @@ class AcinetoMLSTAnalyzer:
                     "common_resistance": ["Cannot determine"],
                     "outbreak_potential": "UNKNOWN",
                     "typical_resistance_genes": ["Cannot determine"],
-                    "pubmlst_link": "https://pubmlst.org/organisms/acinetobacter-baumannii"
+                    "pubmlst_link": "https://pubmlst.org/organisms/acinetobacter-baumannii",
                 }
+
+        # Track whether this ST was already resolved from the curated lineage_db
+        from_curated_db = bool(db.get(st_key, {}))
+
+        # Pasteur lookup: fills IC/OXA-51 for STs missing from the curated DB.
+        # When both exist, the curated (literature-backed) lineage_db wins.
+        if scheme == "abaumannii_2" and st_key in self.pasteur_ic_lookup:
+            entry = self.pasteur_ic_lookup[st_key]
+            if not from_curated_db:
+                info["international_clone"] = entry["international_clone"]
+                info["ic_assignment_source"] = "Supplied Pasteur ST/IC lookup table (majority consensus)"
+            else:
+                info["ic_assignment_source"] = "AcinetoScope curated lineage metadata (literature-backed)"
+            info["oxa51_variant"] = entry["oxa51_variant"]
+            info["lookup_observations"] = entry["n"]
+        else:
+            info.setdefault("oxa51_variant", "Not assessed")
+            info.setdefault("ic_assignment_source", "AcinetoScope lineage metadata")
+
+        # Final fallback: resolve IC via ic_mapping when absent from both sources
+        if info.get("international_clone", "NOIC") == "NOIC" and st_key.isdigit():
+            for ic_name, scheme_map in self.ic_mapping.items():
+                if st_key in scheme_map.get(scheme, []):
+                    info["international_clone"] = ic_name
+                    info["ic_assignment_source"] = "AcinetoScope ic_mapping fallback"
+                    break
+
+        return info
 
     def get_empty_results(self, sample_name: str, scheme: str) -> Dict:
         return {
@@ -2325,10 +2365,8 @@ class AcinetoMLSTAnalyzer:
         }
 
     def generate_output_files(self, mlst_results: Dict, output_dir: Path):
+        # One self-contained HTML report per sample/scheme. CSS and report data are embedded.
         self.generate_html_report(mlst_results, output_dir)
-        self.generate_text_report(mlst_results, output_dir)
-        self.generate_tsv_report(mlst_results, output_dir)
-        self.generate_json_report(mlst_results, output_dir)
 
     def generate_text_report(self, mlst_results: Dict, output_dir: Path):
         sample_display = mlst_results['sample']
@@ -2407,7 +2445,7 @@ Literature Sources:
                 "analysis_date": datetime.now().isoformat(),
                 "scheme": mlst_results['scheme'],
                 "scheme_display": mlst_results['scheme_display'],
-                "version": "1.1.0",
+                "version": "1.2.0",
                 "tool": "AcinetoScope"
             },
             "mlst_results": {
@@ -2450,6 +2488,8 @@ Literature Sources:
         scheme_display = mlst_results['scheme_display']
         confidence = mlst_results['confidence']
         international_clone = mlst_results.get('international_clone', 'NOIC')
+        oxa51_variant = mlst_results.get('oxa51_variant', 'Not assessed')
+        ic_assignment_source = mlst_results.get('ic_assignment_source', 'AcinetoScope lineage metadata')
         clonal_complex = mlst_results.get('clonal_complex', 'Unknown')
         allele_profile = mlst_results['allele_profile'] or "No allele profile detected"
         classification = mlst_results.get('classification', 'Unknown')
@@ -2879,7 +2919,12 @@ Literature Sources:
                     <div class="metric-label">Clonal Complex</div>
                     <div class="metric-value no-truncate">{clonal_complex}</div>
                 </div>
+                <div class="metric-card">
+                    <div class="metric-label">Intrinsic OXA-51-like Variant</div>
+                    <div class="metric-value no-truncate">{oxa51_variant}</div>
+                </div>
             </div>
+            <p class="small-note">IC assignment source: {ic_assignment_source}. For Pasteur STs represented in the supplied lookup table, the IC label and OXA-51-like variant use the table's majority consensus across repeated rows.</p>
 
             <div class="alert-box alert-info">
                 <span class="alert-icon">💡</span>
@@ -2948,20 +2993,34 @@ Literature Sources:
         </div>
 
         <div class="footer">
-            <p><strong>ACINETOSCOPE</strong> - A. baumannii MLST Analysis Module</p>
-            <p class="timestamp">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p><strong>ACINETOSCOPE</strong> &mdash; MLST Analysis Module</p>
+            <p class="timestamp">Generated: <span id="acinetoscope-timestamp"></span></p>
             <div class="authorship">
-                <p><strong>Technical Support & Inquiries:</strong></p>
+                <p><strong>Technical Support &amp; Inquiries:</strong></p>
                 <p>Author: Brown Beckley | GitHub: bbeckley-hub</p>
                 <p>Email: brownbeckley94@gmail.com</p>
                 <p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>
             </div>
+            <script>document.addEventListener("DOMContentLoaded", () => document.getElementById("acinetoscope-timestamp").textContent = new Date().toLocaleString());</script>
         </div>
     </div>
 </body>
 </html>'''
 
-        with open(output_dir / "mlst_report.html", 'w', encoding='utf-8') as f:
+        # Strip FASTA-style extension so we write
+        #   "<accession>_mlst_report.html"  (not "<accession>.fasta_mlst_report.html")
+        display_name = sample
+        for _ in range(2):  # handle .fna.gz → .fna → ""
+            if Path(display_name).suffix.lower() in (
+                ".fna", ".fasta", ".fa", ".fn", ".gz",
+                ".gb", ".gbk", ".gbff",
+            ):
+                display_name = Path(display_name).stem
+            else:
+                break
+        safe_sample = "".join(c if c.isalnum() or c in "._-" else "_" for c in display_name)
+        out_file = output_dir / f"{safe_sample}_mlst_report.html"
+        with open(out_file, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
     def run_mlst_dual_scheme(self, input_file: Path, output_dir: Path) -> Dict[str, Dict]:
@@ -2976,8 +3035,8 @@ Literature Sources:
 
         print(f"\n📁 Output directory: {main_output_dir}")
 
-        oxford_dir = main_output_dir / "Oxford"
-        pasteur_dir = main_output_dir / "Pasteur"
+        oxford_dir = main_output_dir / "oxford_results"
+        pasteur_dir = main_output_dir / "pasteur_results"
         oxford_dir.mkdir(parents=True, exist_ok=True)
         pasteur_dir.mkdir(parents=True, exist_ok=True)
 
@@ -2997,7 +3056,7 @@ Literature Sources:
     def create_combined_summary(self, oxford_results: Dict, pasteur_results: Dict, output_dir: Path, sample_name: str):
         print("\n📊 Creating Combined Summary...")
 
-        combined_dir = output_dir / "Combined"
+        combined_dir = output_dir / "combined_results"
         combined_dir.mkdir(parents=True, exist_ok=True)
 
         oxford_st = oxford_results.get('st', 'UNKNOWN')
@@ -3060,34 +3119,43 @@ RECOMMENDATIONS:
             combined_report += f"2. Oxford scheme failed or returned unknown.\n"
             combined_report += f"3. International Clone: {pasteur_ic}\n"
 
-        with open(combined_dir / "combined_summary.txt", 'w') as f:
-            f.write(combined_report)
+        safe_sample = "".join(c if c.isalnum() or c in "._-" else "_" for c in sample_name)
+        match_label = "MATCH" if oxford_ic == pasteur_ic else "MISMATCH"
+        match_class = "match" if oxford_ic == pasteur_ic else "mismatch"
 
-        json_summary = {
-            "sample": sample_name,
-            "analysis_date": datetime.now().isoformat(),
-            "oxford": {
-                "st": oxford_st,
-                "international_clone": oxford_ic,
-                "confidence": oxford_results.get('confidence', 'LOW'),
-                "allele_profile": oxford_results.get('allele_profile', '')
-            },
-            "pasteur": {
-                "st": pasteur_st,
-                "international_clone": pasteur_ic,
-                "confidence": pasteur_results.get('confidence', 'LOW'),
-                "allele_profile": pasteur_results.get('allele_profile', '')
-            },
-            "comparison": {
-                "ic_match": oxford_ic == pasteur_ic,
-                "recommendation": "See combined_summary.txt for details"
-            }
-        }
+        combined_html = (
+            "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>"
+            f"<title>ACINETOSCOPE - Combined MLST Summary - {sample_name}</title>"
+            "<style>"
+            "body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:20px;min-height:100vh;}"
+            ".container{max-width:1200px;margin:0 auto;}"
+            ".report-section{background:rgba(255,255,255,.95);color:#1f2937;padding:25px;border-radius:10px;margin-bottom:20px;box-shadow:0 4px 15px rgba(0,0,0,.2);}"
+            "h1,h2{color:#1e3a8a;}h2{border-bottom:3px solid #3b82f6;padding-bottom:10px;}"
+            ".match{color:#16a34a;font-weight:bold;}.mismatch{color:#dc2626;font-weight:bold;}"
+            "pre{background:#f8fafc;padding:15px;border-radius:6px;border-left:4px solid #3b82f6;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word;font-size:13px;color:#1f2937;}"
+            ".footer{text-align:center;margin-top:30px;padding:20px;background:rgba(0,0,0,.3);border-radius:10px;font-size:14px;}"
+            ".timestamp{color:#fbbf24;font-weight:bold;}"
+            "</style></head><body><div class='container'>"
+            "<h1>ACINETOSCOPE - Combined Dual-Scheme MLST Summary</h1>"
+            f"<p style='color:#d1d5db;'>Sample: <strong>{sample_name}</strong> | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
+            "<div class='report-section'>"
+            f"<h2>IC Match: <span class='{match_class}'>{match_label}</span></h2>"
+            f"<pre>{escape(combined_report)}</pre>"
+            "</div>"
+            "<div class='footer'>"
+            "<p><strong>ACINETOSCOPE</strong> - A. baumannii MLST Analysis Module</p>"
+            f"<p class='timestamp'>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
+            "<div style='margin-top:15px;padding:15px;background:rgba(255,255,255,.1);border-radius:8px;font-size:12px;'>"
+            "<p><strong>Technical Support & Inquiries:</strong></p>"
+            "<p>Author: Brown Beckley | GitHub: bbeckley-hub</p>"
+            "<p>Email: brownbeckley94@gmail.com</p>"
+            "<p>Affiliation: University of Ghana Medical School - Department of Medical Biochemistry</p>"
+            "</div></div></div></body></html>"
+        )
+        with open(combined_dir / f"{safe_sample}_combined_summary.html", 'w', encoding='utf-8') as f:
+            f.write(combined_html)
 
-        with open(combined_dir / "combined_summary.json", 'w') as f:
-            json.dump(json_summary, f, indent=2)
-
-        print(f"✅ Combined summary created: {combined_dir}/")
+        print(f"✅ Combined HTML summary created: {combined_dir}/")
 
     def run_mlst_dual_batch(self, input_path: str, output_dir: Path) -> Dict[str, Dict]:
         print("🔍 Searching for FASTA files...")
@@ -3101,7 +3169,7 @@ RECOMMENDATIONS:
         for i, fasta_file in enumerate(fasta_files, 1):
             print(f"  {i}. {fasta_file}")
 
-        main_output_dir = output_dir / "Dual_Scheme_MLST"
+        main_output_dir = output_dir / "dual_scheme_mlst"
         main_output_dir.mkdir(parents=True, exist_ok=True)
 
         results = {}
@@ -3125,9 +3193,7 @@ RECOMMENDATIONS:
             print("\n🔍 Running Pasteur MLST Scheme (abaumannii_2)...")
             pasteur_results = self.run_mlst_single(fasta_file, pasteur_dir, "abaumannii_2")
 
-            combined_dir = sample_output_dir / "Combined"
-            combined_dir.mkdir(parents=True, exist_ok=True)
-            self.create_combined_summary(oxford_results, pasteur_results, combined_dir, fasta_file.name)
+            self.create_combined_summary(oxford_results, pasteur_results, sample_output_dir, fasta_file.name)
 
             results[fasta_file.name] = {
                 "abaumannii": oxford_results,
@@ -3453,7 +3519,7 @@ RECOMMENDATIONS:
             print(f"  {i}. {fasta_file}")
 
         scheme_display = self.scheme_display_names.get(scheme, scheme.upper())
-        scheme_output_dir = output_dir / f"{scheme_display}_MLST"
+        scheme_output_dir = output_dir / f"{scheme_display.lower()}_results"
         scheme_output_dir.mkdir(parents=True, exist_ok=True)
 
         results = {}
@@ -3689,6 +3755,15 @@ RECOMMENDATIONS:
             th, td {{ padding: 8px 10px; font-size: 14px; }}
             .download-links {{ flex-direction: column; align-items: center; }}
         }}
+    
+        /* ════════ AcinetoScope uniformity override (auto-added) ════════ */
+        .ascii-container {{ text-align: center !important; }}
+        .ascii-art {{ display: inline-block !important; text-align: left !important; }}
+        .footer {{ text-align: center !important; margin-top: 30px !important; padding: 20px !important; background: rgba(0, 0, 0, 0.3) !important; border-radius: 10px !important; font-size: 14px !important; overflow-wrap: break-word !important; }}
+        .footer a {{ color: #fbbf24 !important; text-decoration: none !important; }}
+        .footer a:hover {{ text-decoration: underline !important; }}
+        .footer .timestamp {{ color: #fbbf24 !important; font-weight: bold !important; }}
+        .footer .authorship {{ margin-top: 15px !important; padding: 15px !important; background: rgba(255, 255, 255, 0.1) !important; border-radius: 8px !important; font-size: 12px !important; line-height: 1.7 !important; }}
     </style>
 </head>
 <body>
@@ -3764,6 +3839,135 @@ RECOMMENDATIONS:
         print(f"  ✅ HTML summary: {html_file}")
 
 
+def update_mlst_database(db_dir: Path, script_dir: Path) -> bool:
+    """
+    Download / refresh PubMLST Acinetobacter baumannii MLST schemes using mlstdb.
+
+    Both schemes are preserved because AcinetoScope dual-scheme analysis needs
+    Oxford (``abaumannii``) AND Pasteur (``abaumannii_2``) simultaneously.
+
+    Returns True on success, False on any failure.
+    """
+    if not shutil.which('mlstdb'):
+        print("❌ 'mlstdb' not found. Install with: pip install mlstdb")
+        print("   Then configure PubMLST access: mlstdb connect --db pubmlst --api-key")
+        return False
+
+    db_dir = Path(db_dir).resolve()
+    db_dir.mkdir(parents=True, exist_ok=True)
+    temp_dir = Path(tempfile.mkdtemp(prefix="acinetoscope_mlst_update_"))
+    print(f"📁 Temporary download directory: {temp_dir}")
+
+    try:
+        print("⬇️  Running mlstdb update (full download, 10-20 min)...")
+        result = subprocess.run(
+            ['mlstdb', 'update'],
+            input='y\n',
+            text=True,
+            cwd=temp_dir,
+            env=os.environ.copy(),
+        )
+        if result.returncode != 0:
+            print(f"❌ mlstdb update failed with exit code {result.returncode}")
+            return False
+        print("\n✅ Download completed.")
+
+        temp_pubmlst = temp_dir / "pubmlst"
+        if not temp_pubmlst.exists():
+            print("❌ pubmlst directory not found in downloaded data.")
+            return False
+
+        target_pubmlst = db_dir / "pubmlst"
+        target_pubmlst.mkdir(parents=True, exist_ok=True)
+
+        schemes_needed = ['abaumannii', 'abaumannii_2']
+        aliases = {
+            'abaumannii':   ['abaumannii', 'acinetobacter_baumannii', 'abaumannii_oxford'],
+            'abaumannii_2': ['abaumannii_2', 'acinetobacter_baumannii_2', 'abaumannii_pasteur'],
+        }
+        installed = []
+        for scheme_name in schemes_needed:
+            src_dir = None
+            for alias in aliases[scheme_name]:
+                candidate = temp_pubmlst / alias
+                if candidate.exists() and candidate.is_dir():
+                    src_dir = candidate
+                    if alias != scheme_name:
+                        print(f"  Source folder '{alias}' → installed as '{scheme_name}'")
+                    break
+            if src_dir is None:
+                print(f"  ⚠️  Scheme '{scheme_name}' not found. Available:")
+                for d in sorted(p.name for p in temp_pubmlst.iterdir() if p.is_dir()):
+                    print(f"     - {d}")
+                continue
+            target = target_pubmlst / scheme_name
+            if target.exists():
+                shutil.rmtree(target)
+            shutil.copytree(src_dir, target)
+            installed.append(scheme_name)
+            print(f"  ✓ Installed: {scheme_name}")
+
+        if not installed:
+            print("❌ No A. baumannii schemes could be installed.")
+            return False
+
+        # BLAST db from mlstdb download
+        blast_src = temp_dir / "blast"
+        if blast_src.exists():
+            target_blast = db_dir / "blast"
+            if target_blast.exists():
+                shutil.rmtree(target_blast)
+            shutil.copytree(blast_src, target_blast)
+            print(f"  ✓ BLAST database copied to {target_blast}")
+
+        # Prune any other schemes so the DB stays lean
+        removed = 0
+        for item in target_pubmlst.iterdir():
+            if item.is_dir() and item.name not in schemes_needed:
+                shutil.rmtree(item)
+                removed += 1
+                print(f"  🗑  Removed scheme: {item.name}")
+        if removed:
+            print(f"  Removed {removed} other scheme(s)")
+
+        # Optional BLAST rebuild via mlst-make_blast_db
+        rebuild_script = Path(script_dir).resolve().parent / "scripts" / "mlst-make_blast_db"
+        if not rebuild_script.exists():
+            alt = Path(script_dir).resolve() / "scripts" / "mlst-make_blast_db"
+            if alt.exists():
+                rebuild_script = alt
+        if rebuild_script.exists():
+            print("🔨 Rebuilding BLAST database...")
+            rebuild_env = os.environ.copy()
+            rebuild_env["MLST_DATADIR"] = str(db_dir)
+            try:
+                subprocess.run(
+                    ['perl', str(rebuild_script)],
+                    check=True,
+                    cwd=str(Path(script_dir).resolve().parent),
+                    env=rebuild_env,
+                )
+                print("  ✓ BLAST database rebuilt")
+            except subprocess.CalledProcessError as e:
+                print(f"  ⚠️  BLAST rebuild failed ({e}); mlstdb output likely sufficient")
+        else:
+            print(f"  ⚠️  mlst-make_blast_db not found at {rebuild_script}")
+            print("      mlstdb download already produced blast/, so analysis can proceed")
+
+        print(f"\n✅ MLST database updated. Schemes: {', '.join(installed)} in {db_dir}")
+        return True
+
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Update failed: {e}")
+        return False
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        return False
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        print(f"🧹 Removed temporary directory: {temp_dir}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='AcinetoScope MLST Analyzer',
@@ -3787,10 +3991,12 @@ Examples:
         """
     )
 
-    parser.add_argument('-i', '--input', required=True,
-                       help='Input FASTA file, directory, or glob pattern')
-    parser.add_argument('-o', '--output-dir', required=True,
-                       help='Output directory for results')
+    parser.add_argument('-i', '--input', required=False, default=None,
+                       help='Input FASTA file, directory, or glob pattern '
+                            '(required unless using --pull-db / --update-db)')
+    parser.add_argument('-o', '--output-dir', required=False, default=None,
+                       help='Output directory for results '
+                            '(required unless using --pull-db / --update-db)')
     parser.add_argument('-db', '--database-dir', required=True,
                        help='Database directory')
     parser.add_argument('-sc', '--script-dir', required=True,
@@ -3802,8 +4008,31 @@ Examples:
                        help='Process multiple files with single scheme')
     parser.add_argument('--dual', action='store_true',
                        help='Run both Oxford and Pasteur schemes')
+    parser.add_argument('--pull-db', action='store_true',
+                       help='Download a fresh PubMLST A. baumannii database '
+                            '(Oxford + Pasteur) and exit')
+    parser.add_argument('--update-db', action='store_true',
+                       help='Update the PubMLST A. baumannii database in place and exit')
 
     args = parser.parse_args()
+
+    # ── Database operations (do not require -i / -o) ────────────
+    if args.pull_db or args.update_db:
+        try:
+            success = update_mlst_database(
+                db_dir=Path(args.database_dir),
+                script_dir=Path(args.script_dir),
+            )
+        except Exception as e:
+            print(f"❌ Database update failed: {e}")
+            success = False
+        sys.exit(0 if success else 1)
+
+    if not args.input or not args.output_dir:
+        parser.error(
+            "When not using --pull-db or --update-db, -i/--input and "
+            "-o/--output-dir are required."
+        )
 
     if args.batch and args.dual:
         print("❌ Error: --batch and --dual are mutually exclusive")
@@ -3878,10 +4107,8 @@ Examples:
     else:
         input_file = Path(args.input)
         if input_file.exists() and input_file.is_file():
-            sample_output_dir = output_dir / input_file.stem
-            sample_output_dir.mkdir(parents=True, exist_ok=True)
-
-            result = analyzer.run_mlst_single(input_file, sample_output_dir, database_scheme)
+            # run_mlst_single() itself appends input_file.stem — do NOT pre-nest here.
+            result = analyzer.run_mlst_single(input_file, output_dir, database_scheme)
 
             print(f"\n{'='*80}")
             print(f"🎉 MLST completed for {input_file.name}: ST{result.get('st', 'UNKNOWN')}")
@@ -3891,10 +4118,7 @@ Examples:
             fasta_files = analyzer.find_fasta_files(args.input)
             if len(fasta_files) == 1:
                 input_file = fasta_files[0]
-                sample_output_dir = output_dir / input_file.stem
-                sample_output_dir.mkdir(parents=True, exist_ok=True)
-
-                result = analyzer.run_mlst_single(input_file, sample_output_dir, database_scheme)
+                result = analyzer.run_mlst_single(input_file, output_dir, database_scheme)
 
                 print(f"\n{'='*80}")
                 print(f"🎉 MLST completed for {input_file.name}: ST{result.get('st', 'UNKNOWN')}")

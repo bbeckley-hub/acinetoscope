@@ -1,16 +1,20 @@
 
-
-# Build and distribution directories
+acinetoscope.egg-info/
+acinetoscope/modules/amr_module/data/
+acinetoscope/modules/mge_module/mobileOG-db
+acinetoscope/modules/mge_module/mobileOG-db/
+acinetoscope/modules/mlst_module/bin
+acinetoscope/modules/mlst_module/db
+acinetoscope/modules/mlst_module/perl5
+acinetoscope/modules/mlst_module/scripts
 build/
+# Build and distribution directories
+# Database files (only exclude AMRfinder, keep MLST)
 dist/
 *.egg-info/
-acinetoscope.egg-info/
-
-# Database files (only exclude AMRfinder, keep MLST)
-acinetoscope/modules/amr_module/data/
+*.fa
+*.fna
+*.gbk
 # Large files
 *.LIB
-*.fna
-*.fa
-*.gbk
-
+test/GCA_*.zip

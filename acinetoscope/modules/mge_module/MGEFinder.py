@@ -1,0 +1,1493 @@
+#!/usr/bin/env python3
+"""
+AcinetoScope MGEFinder - Mobile Genetic Element Detection for A. baumannii
+========================================================================================
+Detects mobile genetic elements in Acinetobacter baumannii assemblies using
+Prodigal for ORF prediction and DIAMOND against the mobileOG-db, then joins
+hits to the mobileOG-db metadata for categorisation by functional class
+(integration/excision, transfer, phage, stability/defense,
+replication/recombination/repair) and by source database class (insertion
+sequences, integrative elements, plasmids, bacteriophages, multiple).
+
+Supports automatic CPU and RAM detection with tiered scaling, plus two-level
+parallelism: multiple genomes processed concurrently while DIAMOND threads are
+split evenly across workers.
+(updated 2026-11-01)
+
+Per-sample output (1 file each, inside ONE level of subfolder):
+    <output>/<sample>/<sample>_mge_report.html
+
+Batch-level outputs (at top of -o):
+    <prefix>_summary.tsv             (per-sample aggregate counts)
+    <prefix>_all_hits.tsv            (gene-level: one row per mobileOG hit across all samples)
+    <prefix>_summary.json            (single batch JSON)
+    <prefix>_summary.html
+
+All Prodigal intermediates (.faa files) live inside a TemporaryDirectory that
+self-destructs on exit — no intermediate files are left on disk.
+
+Acknowledgements
+----------------
+* mobileOG-db team (Brown et al.) for the curated database
+* Doug Hyatt for Prodigal
+* Benjamin Buchfink for DIAMOND
+* James I. Mullet and Connor L. Brown for the mobileOG-pl parsing scripts
+
+Database layout expected inside -db_dir:
+    *.dmnd                            (DIAMOND database)
+    mobileOG-db-beatrix-*-All.csv     (metadata)
+
+Author: Brown Beckley <brownbeckley94@gmail.com>
+Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
+License: MIT
+
+Usage
+-----
+    python3 MGEFinder.py -i *.fna -d mge_results -db_dir database
+    python3 MGEFinder.py -i *.fna -d mge_results -db_dir database --cpus 8
+    python3 MGEFinder.py -i *.fna -d mge_results -db_dir mobileOG-db/beatrix-1-6_v1_all
+"""
+
+import argparse
+import io
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
+import pandas as pd
+import psutil
+
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+NOT_ASSIGNED = "Not Assigned"
+
+CATEGORY_ORDER = [
+    "integration/excision",
+    "transfer",
+    "stability/transfer/defense",
+    "phage",
+    "replication/recombination/repair",
+]
+
+CATEGORY_LABELS = {
+    "integration/excision": "Integration / Excision",
+    "transfer": "Transfer (Conjugation / Competence)",
+    "stability/transfer/defense": "Stability / Defense",
+    "phage": "Phage",
+    "replication/recombination/repair": "Replication / Repair",
+}
+
+SOURCE_CLASS_ORDER = [
+    "Insertion sequences",
+    "Integrative elements",
+    "Plasmids",
+    "Bacteriophages",
+    "Multiple",
+]
+
+SOURCE_COLUMN_MAP = {
+    "ISFinder": "Insertion sequences",
+    "AICE": "Integrative elements",
+    "ICE": "Integrative elements",
+    "CIME": "Integrative elements",
+    "IME": "Integrative elements",
+    "immedb": "Integrative elements",
+    "COMPASS": "Plasmids",
+    "PlasmidRefSeq": "Plasmids",
+    "ACLAME": "Multiple",
+    "pVOG": "Bacteriophages",
+    "GPD": "Bacteriophages",
+}
+
+# Mobile genetic element genes relevant to Acinetobacter baumannii: its
+# ISAba insertion-sequence family, blaOXA-23 transposons, AbaR resistance
+# islands, class 1/2 integrons, Ab plasmid replicons, CRISPR-Cas systems,
+# restriction-modification systems, Type IV pili and natural-competence
+# machinery, and shared MGE functions (transposases, integrases, conjugation,
+# prophage modules, stability/defense systems).
+KEY_GENES = {
+    # ----- A. baumannii insertion sequences (ISAba family) -----
+    "isaBa1", "isaBa2", "isaBa3", "isaBa4", "isaBa11", "isaBa12", "isaBa13",
+    "isaBa14", "isaBa15", "isaBa16", "isaBa17", "isaBa18", "isaBa19",
+    "isaBa20", "isaBa21", "isaBa22", "isaBa23", "isaBa24", "isaBa25",
+    "isaBa33", "isaBa125", "isaBa825",
+
+    # ----- Transposons associated with blaOXA-23 / blaOXA-58 in A. baumannii -----
+    "tn2006", "tn2008", "tn2008b", "tn2009", "tn2010", "tn6022", "tn6167",
+    "tnAbaR", "tnAba125", "tn125",
+
+    # ----- AbaR resistance islands -----
+    "abaR1", "abaR2", "abaR3", "abaR4", "abaR5",
+    "aadB", "aacC1", "aacA4", "aacA7", "aadA1", "aphA1",
+    "catA1", "sul1", "sul2", "dfrA1", "dfrA7", "dfrA12", "tetM",
+    "qacE", "qacEdelta1", "qacE1",
+
+    # ----- Carbapenemases commonly on MGEs in A. baumannii -----
+    "blaOXA-23", "blaOXA-24", "blaOXA-40", "blaOXA-58", "blaOXA-143",
+    "blaOXA-235", "blaOXA-48", "blaOXA-51", "blaOXA-66", "blaOXA-72",
+    "blaNDM", "blaIMP", "blaVIM", "blaSIM", "blaGIM", "blaSPM",
+    "blaADC", "blaPER", "blaVEB", "blaGES", "blaCTX-M", "blaSHV", "blaTEM",
+
+    # ----- Class 1 / 2 / 3 integrons (very common in Ab) -----
+    "intI1", "intI2", "intI3", "intI4",
+    "attI1", "attI2", "attI3", "attC",
+
+    # ----- Transposases and resolvases -----
+    "tnpA", "tnpA5", "tnpA7", "tnpB", "tnpC", "tnpR", "tnpM", "tnpX",
+    "tniA", "tniB", "tniQ", "tniR",
+
+    # ----- Conjugation (Type IV Secretion Systems) -----
+    "traA", "traB", "traC", "traD", "traE", "traF", "traG", "traH",
+    "traI", "traJ", "traK", "traL", "traM", "traN", "traO", "traP",
+    "traQ", "traR", "traS", "traT", "traU", "traV", "traW", "traX", "traY",
+    "trbA", "trbB", "trbC", "trbD", "trbE", "trbF", "trbG", "trbH",
+    "trbI", "trbJ", "trbK", "trbL",
+    "virB1", "virB2", "virB3", "virB4", "virB5", "virB6", "virB7",
+    "virB8", "virB9", "virB10", "virB11",
+    "virD2", "virD4", "virE1", "virE2",
+    "mobA", "mobB", "mobC", "mobD", "mobL", "mobQ", "mobS",
+    "relaxase", "nikA", "nikB",
+    "trwB", "trwC", "trwD", "trwE", "trwF", "trwG", "trwH", "trwI",
+    "trwJ", "trwK", "trwL", "trwM", "trwN",
+
+    # ----- A. baumannii plasmid replication initiators -----
+    "repA", "repB", "repC", "repAci", "repAci1", "repAci2", "repAci3",
+    "repAci4", "repAci5", "repAci6", "repAci7", "repAci8", "repAci9",
+    "repAci10", "repAci11", "repAci12", "repAci13", "repAci14", "repAci15",
+    "rep_Ac", "repAb",
+    "incP", "incQ", "incN", "incW", "incU",
+    "pAC", "pAB2", "pMMA", "pRAY", "pAC12",
+
+    # ----- Stability / addiction systems -----
+    "parA", "parB", "parM", "parR",
+    "mazE", "mazF", "pemI", "pemK",
+    "hok", "sok", "relB", "relE",
+    "ccdA", "ccdB", "vapB", "vapC",
+    "higA", "higB", "dinJ", "yafQ",
+    "stbA", "stbB", "stbC", "stbD", "stbE",
+    "mukB", "mukE", "mukF",
+
+    # ----- Restriction-modification systems (very common in Ab) -----
+    "hsdM", "hsdR", "hsdS",
+    "ecoRIIM", "ecoRIIR",
+    "dam", "dcm", "mrr",
+    "mcrA", "mcrB", "mcrC", "mcrBC",
+
+    # ----- CRISPR-Cas systems (found in some Ab genomes) -----
+    "cas1", "cas2", "cas3", "cas9", "cpf1", "cas12a", "cas13a",
+    "csy1", "csy2", "csy3", "csy4",
+    "cse1", "cse2", "cse3", "cse4",
+    "csa1", "csa2", "csa3", "csa4", "csa5",
+    "cmr1", "cmr2", "cmr3", "cmr4", "cmr5", "cmr6",
+    "csm1", "csm2", "csm3", "csm4", "csm5", "csm6",
+
+    # ----- Phage integration and lysogeny -----
+    "int", "intS", "xis",
+    "attB", "attP",
+    "cI", "cro", "cII", "cIII",
+    "N", "Q", "O", "P",
+
+    # ----- Phage structural and lysis -----
+    "lytA", "lytB", "lytC",
+    "holin", "endolysin", "spanin",
+    "rrz", "rz", "Rz1",
+    "terminase", "portal", "capsid", "tail", "head", "tape",
+
+    # ----- Type IV pili (competence in Ab) -----
+    "pilA", "pilB", "pilC", "pilD", "pilE", "pilF", "pilG", "pilH", "pilI",
+    "pilJ", "pilK", "pilL", "pilM", "pilN", "pilO", "pilP", "pilQ",
+    "pilR", "pilS", "pilT", "pilU", "pilV", "pilW", "pilX", "pilY1",
+    "pilY2", "pilZ",
+
+    # ----- Natural competence machinery (Ab is naturally competent) -----
+    "comA", "comB", "comC", "comD", "comE", "comF",
+    "comM", "comN", "comO", "comP", "comQ", "comR", "comZ",
+
+    # ----- Other mobile element features -----
+    "rdmA", "rci", "rlgA", "rlgB",
+    "ardA", "ardB",
+    "samA", "samB",
+    "xerC", "xerD",
+}
+
+
+# ---------------------------------------------------------------------------
+# Data containers
+# ---------------------------------------------------------------------------
+
+@dataclass
+class BlastHit:
+    """A single DIAMOND alignment record with joined metadata and ORF context."""
+    qseqid: str
+    qtitle: str
+    sseqid: str
+    mobileog_id: str
+    pident: float
+    length: int
+    qlen: int
+    evalue: float = 0.0
+    bitscore: float = 0.0
+    orf_start: Optional[int] = None
+    orf_stop: Optional[int] = None
+    strand: str = ""
+    partial: str = ""
+    start_codon: str = ""
+    rbs_motif: str = ""
+    rbs_spacer: str = ""
+    gc_content: Optional[float] = None
+    gene_name: str = ""
+    annotation: str = ""
+    major_category: str = "other"
+    minor_category: str = ""
+    database: str = ""
+    evidence: str = ""
+    taxonomy: str = ""
+    source_databases: List[str] = field(default_factory=list)
+    source_classes: List[str] = field(default_factory=list)
+
+    @property
+    def coverage(self) -> float:
+        if self.qlen <= 0:
+            return 0.0
+        return (self.length / self.qlen) * 100.0
+
+    @property
+    def specific_contig(self) -> str:
+        if "_" in self.qseqid:
+            return "_".join(self.qseqid.split("_")[:-1])
+        return self.qseqid
+
+
+@dataclass
+class SampleResult:
+    """All MGE detection results and supporting evidence for one sample."""
+    sample: str
+    input_file: str
+    total_hits: int = 0
+    category_hits: Dict[str, List[BlastHit]] = field(default_factory=dict)
+    key_gene_hits: List[BlastHit] = field(default_factory=list)
+    raw_hits: List[BlastHit] = field(default_factory=list)
+    contig_purity: List[Dict[str, Any]] = field(default_factory=list)
+    evidence: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+    @property
+    def category_counts(self) -> Dict[str, int]:
+        return {cat: len(hits) for cat, hits in self.category_hits.items()}
+
+    @property
+    def source_class_counts(self) -> Dict[str, int]:
+        counts = {cls: 0 for cls in SOURCE_CLASS_ORDER}
+        for h in self.raw_hits:
+            for cls in (h.source_classes or ["Multiple"]):
+                if cls in counts:
+                    counts[cls] += 1
+        return counts
+
+    @property
+    def elements_summary(self) -> str:
+        names: Set[str] = set()
+        for hits in self.category_hits.values():
+            for h in hits:
+                if h.gene_name and h.gene_name != "NA":
+                    names.add(h.gene_name)
+        return ";".join(sorted(names)) if names else NOT_ASSIGNED
+
+
+# ---------------------------------------------------------------------------
+# AcinetoMGETyper
+# ---------------------------------------------------------------------------
+
+class AcinetoMGETyper:
+    """Mobile genetic element detection for A. baumannii via Prodigal + DIAMOND + mobileOG-db."""
+
+    def __init__(
+        self,
+        database_dir: Path,
+        min_id: float = 80.0,
+        min_cov: float = 60.0,
+        max_evalue: float = 1e-20,
+        cpus: Optional[int] = None,
+    ):
+        self.database_dir = Path(database_dir)
+        self.min_id = min_id
+        self.min_cov = min_cov
+        self.max_evalue = max_evalue
+        self.available_ram = self._get_available_ram()
+        self.cpus = self._calculate_optimal_cpus(cpus)
+        self.dmnd = self._locate_dmnd()
+        self.metadata_csv = self._locate_metadata()
+        self.metadata = self._load_metadata()
+
+        self.tool_metadata = {
+            "tool_name": "AcinetoScope MGEFinder",
+            "version": "1.4.0",
+            "authors": ["Brown Beckley"],
+            "email": "brownbeckley94@gmail.com",
+            "github": "https://github.com/bbeckley-hub",
+            "affiliation": "University of Ghana Medical School - Department of Medical Biochemistry",
+            "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "database": "mobileOG-db (Beatrix v1.6)",
+            "thresholds": f"identity >= {self.min_id}%, query coverage >= {self.min_cov}%, e-value <= {self.max_evalue:.0e}",
+        }
+
+        self.ascii_art = r"""
+ █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝
+██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
+╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
+""".strip("\n")
+
+        self.science_quotes = [
+            {"text": "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
+             "author": "Albert Einstein"},
+            {"text": "Science is not only a disciple of reason but also one of romance and passion.",
+             "author": "Stephen Hawking"},
+            {"text": "Somewhere, something incredible is waiting to be known.", "author": "Carl Sagan"},
+            {"text": "The good thing about science is that it's true whether or not you believe in it.",
+             "author": "Neil deGrasse Tyson"},
+            {"text": "In science, there are no shortcuts to truth.", "author": "Karl Popper"},
+            {"text": "Science knows no country, because knowledge belongs to humanity.",
+             "author": "Louis Pasteur"},
+            {"text": "The science of today is the technology of tomorrow.", "author": "Edward Teller"},
+            {"text": "Nothing in life is to be feared, it is only to be understood.",
+             "author": "Marie Curie"},
+            {"text": "Research is what I'm doing when I don't know what I'm doing.",
+             "author": "Wernher von Braun"},
+            {"text": "The universe is not required to be in harmony with human ambition.",
+             "author": "Carl Sagan"},
+        ]
+
+    # ------------------------------------------------------------------
+    # System resource helpers
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _get_available_ram() -> float:
+        try:
+            return psutil.virtual_memory().available / (1024 ** 3)
+        except Exception:
+            return 8.0
+
+    @staticmethod
+    def _calculate_optimal_cpus(user_cpus: Optional[int] = None) -> int:
+        if user_cpus is not None:
+            return max(1, user_cpus)
+        try:
+            total = psutil.cpu_count(logical=False) or os.cpu_count() or 2
+            if total <= 4:
+                optimal = total
+            elif total <= 8:
+                optimal = total - 1
+            elif total <= 16:
+                optimal = max(8, total - 1)
+            elif total <= 32:
+                optimal = max(16, total - 3)
+            else:
+                optimal = min(32, int(total * 0.95))
+            return max(1, min(optimal, total))
+        except Exception:
+            return os.cpu_count() or 4
+
+    # ------------------------------------------------------------------
+    # Database loading
+    # ------------------------------------------------------------------
+    def _locate_dmnd(self) -> Path:
+        matches = sorted(self.database_dir.glob("*.dmnd"))
+        if not matches:
+            raise FileNotFoundError(
+                f"Missing database: no .dmnd file in {self.database_dir}"
+            )
+        return matches[0]
+
+    def _locate_metadata(self) -> Path:
+        matches = sorted(self.database_dir.glob("*metadata*.csv")) or \
+                  sorted(self.database_dir.glob("mobileOG-db-*.csv"))
+        if not matches:
+            raise FileNotFoundError(
+                f"Missing metadata: no metadata CSV in {self.database_dir}"
+            )
+        return matches[0]
+
+    def _load_metadata(self) -> Dict[str, Dict[str, Any]]:
+        try:
+            df = pd.read_csv(self.metadata_csv, low_memory=False)
+        except Exception:
+            return {}
+
+        available_cols = set(df.columns)
+        source_cols = [c for c in SOURCE_COLUMN_MAP if c in available_cols]
+
+        index: Dict[str, Dict[str, Any]] = {}
+        for _, row in df.iterrows():
+            mid = str(row.get("mobileOG Entry Name", "")).strip()
+            if not mid:
+                continue
+
+            source_databases: List[str] = []
+            source_classes: Set[str] = set()
+            for col in source_cols:
+                val = row.get(col)
+                try:
+                    if pd.notna(val) and float(val) > 0:
+                        source_databases.append(col)
+                        source_classes.add(SOURCE_COLUMN_MAP[col])
+                except (ValueError, TypeError):
+                    pass
+
+            index[mid] = {
+                "name": str(row.get("Name", "") or "").strip(),
+                "annotation": str(row.get("Manual Annotation", "") or "").strip(),
+                "major_category": str(row.get("Major mobileOG Category", "other") or "other").strip(),
+                "minor_category": str(row.get("Minor mobileOG Categories", "") or "").strip(),
+                "database": str(row.get("Database", "") or "").strip(),
+                "evidence": str(row.get("Evidence", "") or "").strip(),
+                "taxonomy": str(row.get("Taxonomy", "") or "").strip(),
+                "source_databases": source_databases,
+                "source_classes": sorted(source_classes),
+            }
+        return index
+
+    def check_db(self) -> bool:
+        return self.dmnd.exists() and bool(self.metadata)
+
+    # ------------------------------------------------------------------
+    # Shared CSS + footer (AcinetoScope theme)
+    # ------------------------------------------------------------------
+    def _get_shared_css(self) -> str:
+        return """
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff; padding: 20px; min-height: 100vh;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .card {
+            background: rgba(255, 255, 255, 0.95); color: #1f2937;
+            padding: 25px; margin: 20px 0; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .card h2 {
+            color: #1e3a8a; border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px; margin-bottom: 20px; font-size: 24px;
+        }
+        .card h3 { color: #1e40af; margin-top: 20px; margin-bottom: 10px; font-size: 18px; }
+        .metrics-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px; margin-top: 15px;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white; padding: 20px; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); text-align: center;
+        }
+        .metric-label {
+            font-size: 13px; opacity: 0.9; margin-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .metric-value { font-size: 24px; font-weight: bold; }
+        .status-badge {
+            display: inline-block; padding: 8px 16px; border-radius: 20px;
+            font-weight: bold; font-size: 16px; margin: 10px 0;
+        }
+        .status-detected { background: #7c3aed; color: white; }
+        .status-none { background: #6b7280; color: white; }
+        .detailed-table {
+            width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;
+        }
+        .detailed-table th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white; padding: 12px; text-align: left;
+            font-weight: bold; position: sticky; top: 0;
+        }
+        .detailed-table td {
+            padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;
+        }
+        .detailed-table tr:hover { background: #f3f4f6; }
+        .highlight-red { background-color: #fee2e2 !important; color: #dc2626 !important; font-weight: bold; }
+        .highlight-orange { background-color: #ffedd5 !important; color: #ea580c !important; }
+        .highlight-yellow { background-color: #fef3c7 !important; color: #d97706 !important; }
+        .element-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px; margin-top: 10px;
+        }
+        .element-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white; padding: 10px; border-radius: 8px;
+            text-align: center; font-weight: bold; font-size: 12px;
+            word-break: break-word;
+        }
+        .warning-box {
+            background: #fef3c7; border-left: 4px solid #f59e0b;
+            padding: 15px; margin: 15px 0; border-radius: 6px; color: #92400e;
+        }
+        .interpretation-box {
+            background: #eff6ff; border-left: 4px solid #3b82f6;
+            padding: 15px; margin: 15px 0; border-radius: 6px; color: #1e3a8a;
+            font-size: 0.95em; line-height: 1.6;
+        }
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center;
+            min-height: 100px; display: flex; flex-direction: column;
+            justify-content: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2); transition: opacity 0.5s ease-in-out;
+        }
+        .quote-text { font-size: 18px; font-style: italic; margin-bottom: 10px; color: #ffffff; }
+        .quote-author { font-size: 14px; color: #fbbf24; font-weight: bold; }
+        .footer {
+            background: rgba(0, 0, 0, 0.8); color: white; padding: 30px;
+            border-radius: 12px; margin-top: 40px;
+        }
+        .footer a { color: #667eea; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .footer .timestamp { color: #fbbf24; font-weight: bold; margin-top: 10px; }
+        @media (max-width: 768px) {
+            .detailed-table { font-size: 11px; }
+        }
+        """
+
+    def _get_ascii_css(self) -> str:
+        return """
+        .ascii-container {
+            background: rgba(0, 0, 0, 0.9); padding: 20px; border-radius: 15px;
+            margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.3); overflow-x: auto;
+        }
+        pre.ascii-art {
+            font-family: 'Consolas', 'Courier New', 'DejaVu Sans Mono',
+                         'Liberation Mono', 'Menlo', 'Monaco', monospace;
+            font-size: 12px; line-height: 1.05; white-space: pre;
+            color: #00ff00; text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            font-variant-ligatures: none; font-kerning: none;
+            letter-spacing: 0; word-spacing: 0; margin: 0; padding: 0;
+            display: inline-block; min-width: max-content; tab-size: 4;
+        }
+        @media (max-width: 768px) { pre.ascii-art { font-size: 6px; } }
+        """
+
+    def _get_footer_html(self, title: str) -> str:
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return f"""
+        <div class="footer">
+            <h3 style="color: #fff; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">Contact Information</h3>
+            <p><strong>{title}</strong></p>
+            <p><strong>Author:</strong> Brown Beckley</p>
+            <p><strong>Email:</strong> <a href="mailto:brownbeckley94@gmail.com">brownbeckley94@gmail.com</a></p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bbeckley-hub" target="_blank">bbeckley-hub</a></p>
+            <p><strong>Affiliation:</strong> University of Ghana Medical School - Department of Medical Biochemistry</p>
+            <p class="timestamp">Generated: {current_time}</p>
+            <p style="margin-top:15px;font-size:0.9em;color:#ccc;">
+                Powered by mobileOG-db (Brown et al.), Prodigal (Hyatt et al.), and DIAMOND (Buchfink et al.)<br>
+                Parsing logic adapted from mobileOG-pl (Mullet &amp; Brown)
+            </p>
+        </div>
+        """
+
+    def _get_quote_js(self) -> str:
+        return f"""
+        <script>
+            const quotes = {json.dumps(self.science_quotes)};
+            let currentQuote = 0;
+            const quoteContainer = document.getElementById('quoteContainer');
+            const quoteText = document.getElementById('quoteText');
+            const quoteAuthor = document.getElementById('quoteAuthor');
+            function displayQuote() {{
+                quoteContainer.style.opacity = '0';
+                setTimeout(() => {{
+                    const q = quotes[currentQuote];
+                    quoteText.textContent = '"' + q.text + '"';
+                    quoteAuthor.textContent = '\\u2014 ' + q.author;
+                    quoteContainer.style.opacity = '1';
+                    currentQuote = (currentQuote + 1) % quotes.length;
+                }}, 500);
+            }}
+            document.addEventListener('DOMContentLoaded', function() {{
+                const q = quotes[currentQuote];
+                quoteText.textContent = '"' + q.text + '"';
+                quoteAuthor.textContent = '\\u2014 ' + q.author;
+                currentQuote = (currentQuote + 1) % quotes.length;
+                setInterval(displayQuote, 10000);
+            }});
+        </script>
+        """
+
+    # ------------------------------------------------------------------
+    # Per-genome pipeline 
+    # ------------------------------------------------------------------
+    def run(self, assembly_path: Path, diamond_threads: Optional[int] = None) -> SampleResult:
+        sample_name = assembly_path.stem
+        threads = max(1, diamond_threads or self.cpus)
+
+        with tempfile.TemporaryDirectory(prefix=f"mge_{sample_name}_") as temp_dir:
+            temp_path = Path(temp_dir)
+            faa_path = self._annotate(assembly_path, temp_path)
+            if faa_path is None:
+                result = SampleResult(sample=sample_name, input_file=str(assembly_path))
+                result.warnings.append("ORF prediction failed; unable to run MGE detection.")
+                return result
+
+            raw_hits = self._diamond_search(faa_path, threads)
+
+        result = SampleResult(
+            sample=sample_name,
+            input_file=str(assembly_path),
+            raw_hits=raw_hits,
+            total_hits=len(raw_hits),
+        )
+
+        if not raw_hits:
+            result.warnings.append("No mobile genetic element proteins detected above thresholds.")
+            result.evidence.append("No mobileOG-db matches found")
+            return result
+
+        for hit in raw_hits:
+            result.category_hits.setdefault(hit.major_category, []).append(hit)
+            if self._is_key_gene(hit):
+                result.key_gene_hits.append(hit)
+
+        result.contig_purity = self._compute_contig_purity(raw_hits)
+        result.evidence.append(f"{result.total_hits} mobileOG-associated protein(s) matched")
+
+        functional_counts = result.category_counts
+        for cat in CATEGORY_ORDER:
+            n = functional_counts.get(cat, 0)
+            if n:
+                result.evidence.append(f"{CATEGORY_LABELS[cat]}: {n}")
+
+        source_counts = result.source_class_counts
+        for cls in SOURCE_CLASS_ORDER:
+            n = source_counts.get(cls, 0)
+            if n:
+                result.evidence.append(f"Source class {cls}: {n}")
+
+        if result.key_gene_hits:
+            key_names = sorted({h.gene_name for h in result.key_gene_hits if h.gene_name})
+            if key_names:
+                result.evidence.append(f"Key genes: {', '.join(key_names)}")
+
+        if functional_counts.get("transfer", 0) >= 5:
+            result.warnings.append(
+                "Transfer-associated protein signatures detected; these may be consistent with "
+                "conjugative machinery. Element-level assignment as an ICE or conjugative plasmid "
+                "requires genomic context and co-localization of compatible genes."
+            )
+
+        return result
+
+    @staticmethod
+    def _annotate(assembly_path: Path, working_dir: Path) -> Optional[Path]:
+        working_dir.mkdir(parents=True, exist_ok=True)
+        faa_path = working_dir / f"{assembly_path.stem}.faa"
+
+        cmd = [
+            "prodigal",
+            "-i", str(assembly_path),
+            "-a", str(faa_path),
+            "-p", "single",
+            "-q",
+            "-o", os.devnull,
+        ]
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+            return faa_path if faa_path.exists() else None
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return None
+
+    def _diamond_search(self, faa_path: Path, threads: int) -> List[BlastHit]:
+        cmd = [
+            "diamond", "blastp",
+            "--query", str(faa_path),
+            "--db", str(self.dmnd),
+            "--outfmt", "6", "qseqid", "qtitle", "sseqid", "pident", "length", "qlen", "evalue", "bitscore",
+            "--max-target-seqs", "1",
+            "--evalue", str(self.max_evalue),
+            "--threads", str(threads),
+            "--quiet",
+        ]
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            if not res.stdout or not res.stdout.strip():
+                return []
+
+            df = pd.read_csv(
+                io.StringIO(res.stdout),
+                sep="\t",
+                names=["qseqid", "qtitle", "sseqid", "pident", "length", "qlen", "evalue", "bitscore"],
+                dtype={"qtitle": str, "sseqid": str, "qseqid": str},
+            )
+            if df.empty:
+                return []
+
+            df["cov"] = (df["length"] / df["qlen"]) * 100
+            df = df[(df["pident"] >= self.min_id) & (df["cov"] >= self.min_cov)]
+            if df.empty:
+                return []
+
+            hits: List[BlastHit] = []
+            for _, row in df.iterrows():
+                mid = self._extract_mobileog_id(row["sseqid"])
+                meta = self.metadata.get(mid, {})
+                parsed = self._parse_qtitle(str(row["qtitle"]))
+
+                hits.append(BlastHit(
+                    qseqid=str(row["qseqid"]),
+                    qtitle=str(row["qtitle"]),
+                    sseqid=str(row["sseqid"]),
+                    mobileog_id=mid,
+                    pident=float(row["pident"]),
+                    length=int(row["length"]),
+                    qlen=int(row["qlen"]),
+                    evalue=float(row["evalue"]),
+                    bitscore=float(row["bitscore"]),
+                    orf_start=parsed.get("orf_start"),
+                    orf_stop=parsed.get("orf_stop"),
+                    strand=parsed.get("strand", ""),
+                    partial=parsed.get("partial", ""),
+                    start_codon=parsed.get("start_codon", ""),
+                    rbs_motif=parsed.get("rbs_motif", ""),
+                    rbs_spacer=parsed.get("rbs_spacer", ""),
+                    gc_content=parsed.get("gc_content"),
+                    gene_name=meta.get("name", ""),
+                    annotation=meta.get("annotation", ""),
+                    major_category=meta.get("major_category", "other"),
+                    minor_category=meta.get("minor_category", ""),
+                    database=meta.get("database", ""),
+                    evidence=meta.get("evidence", ""),
+                    taxonomy=meta.get("taxonomy", ""),
+                    source_databases=list(meta.get("source_databases", [])),
+                    source_classes=list(meta.get("source_classes", [])),
+                ))
+
+            hits.sort(key=lambda h: (h.bitscore, h.pident), reverse=True)
+            return hits
+
+        except FileNotFoundError:
+            return []
+        except Exception:
+            return []
+
+    @staticmethod
+    def _extract_mobileog_id(sseqid: str) -> str:
+        return str(sseqid).split("|")[0].strip()
+
+    @staticmethod
+    def _parse_qtitle(qtitle: str) -> Dict[str, Any]:
+        result: Dict[str, Any] = {
+            "orf_start": None, "orf_stop": None, "strand": "",
+            "partial": "", "start_codon": "", "rbs_motif": "",
+            "rbs_spacer": "", "gc_content": None,
+        }
+
+        parts = qtitle.split(" # ")
+        if len(parts) < 5:
+            return result
+
+        try:
+            result["orf_start"] = int(parts[1].strip())
+            result["orf_stop"] = int(parts[2].strip())
+            result["strand"] = "+" if parts[3].strip() == "1" else "-"
+        except (ValueError, IndexError):
+            return result
+
+        for kv in parts[4].split(";"):
+            if "=" not in kv:
+                continue
+            k, v = kv.split("=", 1)
+            k = k.strip().lower()
+            v = v.strip()
+            if k == "partial":
+                result["partial"] = v
+            elif k == "start_type":
+                result["start_codon"] = v
+            elif k == "rbs_motif":
+                result["rbs_motif"] = v
+            elif k == "rbs_spacer":
+                result["rbs_spacer"] = v
+            elif k == "gc_cont":
+                try:
+                    result["gc_content"] = float(v)
+                except ValueError:
+                    pass
+
+        return result
+
+    @staticmethod
+    def _compute_contig_purity(hits: List[BlastHit]) -> List[Dict[str, Any]]:
+        if not hits:
+            return []
+
+        counts: Dict[str, Dict[str, int]] = {}
+        for h in hits:
+            contig = h.specific_contig
+            if contig not in counts:
+                counts[contig] = {cls: 0 for cls in SOURCE_CLASS_ORDER}
+            classes = h.source_classes if h.source_classes else ["Multiple"]
+            for cls in classes:
+                if cls in counts[contig]:
+                    counts[contig][cls] += 1
+
+        rows: List[Dict[str, Any]] = []
+        for contig, class_counts in counts.items():
+            total = sum(class_counts.values())
+            if total == 0:
+                continue
+            row: Dict[str, Any] = {"contig": contig}
+            row.update(class_counts)
+            row["Total"] = total
+            for cls in SOURCE_CLASS_ORDER:
+                row[f"{cls} %"] = round(class_counts[cls] / total * 100, 1)
+
+            dominant = max(class_counts.items(), key=lambda kv: kv[1])
+            row["Dominant"] = dominant[0] if dominant[1] > 0 else NOT_ASSIGNED
+            rows.append(row)
+
+        rows.sort(key=lambda r: r["Total"], reverse=True)
+        return rows
+
+    @staticmethod
+    def _is_key_gene(hit: BlastHit) -> bool:
+        if not hit.gene_name:
+            return False
+        lower = hit.gene_name.lower()
+        return any(k.lower() in lower for k in KEY_GENES)
+
+    # ------------------------------------------------------------------
+    # Per-sample HTML report (the ONLY per-sample output)
+    # ------------------------------------------------------------------
+    def _create_sample_html(self, result: SampleResult, output_dir: Path) -> Path:
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        badge_class = "status-detected" if result.total_hits > 0 else "status-none"
+        badge_label = "MGE-associated protein evidence detected" if result.total_hits > 0 else NOT_ASSIGNED
+
+        evidence_items = "".join(f"<li>{e}</li>" for e in result.evidence) or "<li>No evidence recorded</li>"
+        warning_html = ""
+        if result.warnings:
+            warning_html = "<div class='warning-box'><strong>Warnings:</strong><ul>" + \
+                "".join(f"<li>{w}</li>" for w in result.warnings) + "</ul></div>"
+
+        category_html = _category_cards_html(result)
+        key_genes_html = _key_genes_table_html(result)
+        contig_purity_html = _contig_purity_table_html(result)
+
+        all_hits_sorted = sorted(result.raw_hits, key=lambda h: h.bitscore, reverse=True)
+        all_rows = _hit_rows_html(all_hits_sorted)
+
+        counts = result.category_counts
+        source_counts = result.source_class_counts
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcinetoScope - {result.sample} MGE Report</title>
+<style>{self._get_shared_css()}{self._get_ascii_css()}</style>
+</head>
+<body>
+<div class="container">
+    <div class="ascii-container">
+        <pre class="ascii-art">{self.ascii_art}</pre>
+    </div>
+
+    <div class="quote-container" id="quoteContainer">
+        <div class="quote-text" id="quoteText"></div>
+        <div class="quote-author" id="quoteAuthor"></div>
+    </div>
+
+    <div class="card">
+        <h2>Sample Information</h2>
+        <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">Sample</div><div class="metric-value" style="font-size:16px;">{result.sample}</div></div>
+            <div class="metric-card"><div class="metric-label">mobileOG Hits</div><div class="metric-value">{result.total_hits}</div></div>
+            <div class="metric-card"><div class="metric-label">Key MGE Genes</div><div class="metric-value">{len(result.key_gene_hits)}</div></div>
+            <div class="metric-card"><div class="metric-label">Categories</div><div class="metric-value">{len(result.category_hits)}</div></div>
+        </div>
+        <p style="margin-top:15px;"><strong>Database:</strong> {self.tool_metadata['database']}</p>
+        <p><strong>Thresholds:</strong> {self.tool_metadata['thresholds']}</p>
+        <p><strong>Tool Version:</strong> {self.tool_metadata['version']}</p>
+        <p><strong>Analysis Date:</strong> {self.tool_metadata['analysis_date']}</p>
+    </div>
+
+    <div class="card">
+        <h2>MGE-associated Protein Evidence</h2>
+        <div class="status-badge {badge_class}">{badge_label}</div>
+        <div class="interpretation-box">
+            <strong>Interpretation note:</strong> mobileOG-db identifies protein families associated with
+            mobile genetic element biology. Individual matches represent MGE-associated protein signatures
+            and should not be interpreted as independent mobile genetic elements. Multiple proteins from
+            the same element may generate multiple hits, and some families &mdash; particularly replication,
+            recombination, and repair proteins &mdash; also occur in the bacterial chromosome. Stronger
+            element-level inference requires genomic context, co-localization of compatible MGE-associated
+            genes, and, where appropriate, complementary databases or analyses.
+        </div>
+        <h3>Evidence</h3>
+        <ul style="margin-left:20px; line-height:1.8;">{evidence_items}</ul>
+        {warning_html}
+    </div>
+
+    <div class="card">
+        <h2>Functional Category Breakdown</h2>
+        <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">Integration</div><div class="metric-value">{counts.get('integration/excision', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">Transfer</div><div class="metric-value">{counts.get('transfer', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">Stability</div><div class="metric-value">{counts.get('stability/transfer/defense', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">Phage</div><div class="metric-value">{counts.get('phage', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">Replication</div><div class="metric-value">{counts.get('replication/recombination/repair', 0)}</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Source-class Association Breakdown</h2>
+        <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">IS-associated</div><div class="metric-value">{source_counts.get('Insertion sequences', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">ICE-associated</div><div class="metric-value">{source_counts.get('Integrative elements', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">Plasmid-associated</div><div class="metric-value">{source_counts.get('Plasmids', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">Phage-associated</div><div class="metric-value">{source_counts.get('Bacteriophages', 0)}</div></div>
+            <div class="metric-card"><div class="metric-label">Multi-source</div><div class="metric-value">{source_counts.get('Multiple', 0)}</div></div>
+        </div>
+        <p style="margin-top:15px;font-size:0.9em;color:#6b7280;">
+            Counts reflect associations with source databases, not reconstructed elements. A single protein
+            may match multiple source classes; the total across classes may exceed the number of distinct ORFs.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Contig Source-class Composition</h2>
+        {contig_purity_html}
+    </div>
+
+    <div class="card">
+        <h2>Key MGE-associated Genes</h2>
+        {key_genes_html}
+    </div>
+
+    <div class="card">
+        <h2>Detected Protein Families by Functional Category</h2>
+        {category_html}
+    </div>
+
+    <div class="card">
+        <h2>All mobileOG-db Hits</h2>
+        <div style="max-height:600px; overflow-y:auto;">
+            <table class="detailed-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th><th>mobileOG ID</th><th>Gene</th><th>Contig</th>
+                        <th>Start</th><th>Stop</th><th>Strand</th>
+                        <th>Major Category</th><th>Minor Category</th>
+                        <th>% Identity</th><th>Align/Qlen</th><th>Coverage %</th>
+                    </tr>
+                </thead>
+                <tbody>{all_rows}</tbody>
+            </table>
+        </div>
+        <p style="margin-top:10px; font-size:12px; color:#666;">
+            Top hit in RED &nbsp;|&nbsp; Coverage &ge;90% in ORANGE &nbsp;|&nbsp; Coverage &ge;70% in YELLOW
+        </p>
+    </div>
+
+    {self._get_footer_html("AcinetoScope - MGE Per-Sample Report")}
+</div>
+{self._get_quote_js()}
+</body>
+</html>
+"""
+        path = output_dir / f"{result.sample}_mge_report.html"
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(html)
+        return path
+
+    # ------------------------------------------------------------------
+    # Batch summaries
+    # ------------------------------------------------------------------
+    def _create_summary_tsv(self, results: List[SampleResult], output_path: Path) -> None:
+        columns = [
+            "sample", "total_hits", "key_genes",
+            "functional_integration", "functional_transfer", "functional_stability",
+            "functional_phage", "functional_replication",
+            "source_IS", "source_integrative", "source_plasmid",
+            "source_bacteriophage", "source_multiple",
+            "detected_elements",
+        ]
+        with open(output_path, "w") as fh:
+            fh.write("\t".join(columns) + "\n")
+            for r in results:
+                counts = r.category_counts
+                source = r.source_class_counts
+                row = [
+                    r.sample, r.total_hits, len(r.key_gene_hits),
+                    counts.get("integration/excision", 0),
+                    counts.get("transfer", 0),
+                    counts.get("stability/transfer/defense", 0),
+                    counts.get("phage", 0),
+                    counts.get("replication/recombination/repair", 0),
+                    source.get("Insertion sequences", 0),
+                    source.get("Integrative elements", 0),
+                    source.get("Plasmids", 0),
+                    source.get("Bacteriophages", 0),
+                    source.get("Multiple", 0),
+                    r.elements_summary,
+                ]
+                fh.write("\t".join(str(v) for v in row) + "\n")
+
+    def _create_all_hits_tsv(self, results: List[SampleResult], output_path: Path) -> None:
+        columns = [
+            "Sample", "Rank", "mobileOG_ID", "Gene", "Contig",
+            "Start", "Stop", "Strand",
+            "Major_Category", "Minor_Category",
+            "Percent_Identity", "Align_Over_Qlen", "Coverage_Percent",
+        ]
+        with open(output_path, "w", encoding="utf-8") as fh:
+            fh.write("\t".join(columns) + "\n")
+            for r in results:
+                sorted_hits = sorted(r.raw_hits, key=lambda h: h.bitscore, reverse=True)
+                for rank, h in enumerate(sorted_hits, 1):
+                    start = h.orf_start if h.orf_start is not None else "-"
+                    stop = h.orf_stop if h.orf_stop is not None else "-"
+                    strand = h.strand or "-"
+                    gene = h.gene_name or "-"
+                    minor = h.minor_category or "-"
+                    row = [
+                        r.sample, rank, h.mobileog_id, gene, h.specific_contig,
+                        start, stop, strand,
+                        h.major_category or "", minor,
+                        f"{h.pident:.2f}", f"{h.length}/{h.qlen}", f"{h.coverage:.2f}",
+                    ]
+                    fh.write("\t".join(str(v) for v in row) + "\n")
+
+    def _create_summary_json(self, results: List[SampleResult], output_path: Path) -> None:
+        payload = {
+            "metadata": {
+                **self.tool_metadata,
+                "total_samples": len(results),
+                "interpretation": {
+                    "hit_definition": "mobileOG-associated protein hit",
+                    "element_definition": "Individual protein hits do not represent independent mobile genetic elements",
+                    "element_level_inference": False,
+                    "caveats": [
+                        "Multiple proteins from the same mobile element may generate multiple hits.",
+                        "Some mobileOG-db families, particularly replication/recombination/repair proteins, also occur in the bacterial chromosome.",
+                        "A single protein may match multiple source databases and be counted in more than one source class.",
+                        "Stronger element-level inference requires genomic context, co-localization of compatible MGE-associated genes, and, where appropriate, complementary databases or analyses."
+                    ],
+                    "functional_category_note": "Functional categories are inherited from mobileOG-db and indicate association with MGE-related protein families. A protein classified as 'Transfer' is not thereby asserted to mediate horizontal transfer itself."
+                }
+            },
+            "samples": []
+        }
+        for r in results:
+            payload["samples"].append({
+                "sample": r.sample,
+                "mobileog_hits": r.total_hits,
+                "category_counts": r.category_counts,
+                "source_class_counts": r.source_class_counts,
+                "key_mge_associated_genes": sorted({h.gene_name for h in r.key_gene_hits if h.gene_name}),
+                "detected_elements": r.elements_summary,
+                "evidence": r.evidence,
+                "warnings": r.warnings,
+                "contig_source_class_composition": r.contig_purity,
+            })
+        with open(output_path, "w") as fh:
+            json.dump(payload, fh, indent=2)
+
+    def _create_summary_html(self, results: List[SampleResult], output_path: Path, elapsed: float) -> None:
+        total = len(results)
+        with_mges = sum(1 for r in results if r.total_hits > 0)
+        without_mges = total - with_mges
+        total_hits = sum(r.total_hits for r in results)
+        total_key = sum(len(r.key_gene_hits) for r in results)
+
+        rows = []
+        for r in results:
+            badge_class = "status-detected" if r.total_hits > 0 else "status-none"
+            badge_label = str(r.total_hits) if r.total_hits > 0 else NOT_ASSIGNED
+            c = r.category_counts
+            s = r.source_class_counts
+            rows.append(
+                f"<tr>"
+                f"<td><strong>{r.sample}</strong></td>"
+                f"<td><span class='status-badge {badge_class}' style='font-size:12px;padding:4px 8px;'>{badge_label}</span></td>"
+                f"<td>{c.get('integration/excision', 0)}</td>"
+                f"<td>{c.get('transfer', 0)}</td>"
+                f"<td>{c.get('stability/transfer/defense', 0)}</td>"
+                f"<td>{c.get('phage', 0)}</td>"
+                f"<td>{c.get('replication/recombination/repair', 0)}</td>"
+                f"<td>{s.get('Insertion sequences', 0)}</td>"
+                f"<td>{s.get('Integrative elements', 0)}</td>"
+                f"<td>{s.get('Plasmids', 0)}</td>"
+                f"<td>{s.get('Bacteriophages', 0)}</td>"
+                f"<td>{len(r.key_gene_hits)}</td>"
+                f"</tr>"
+            )
+        table_rows = "\n".join(rows)
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcinetoScope - MGE Batch Summary</title>
+<style>{self._get_shared_css()}{self._get_ascii_css()}</style>
+</head>
+<body>
+<div class="container">
+    <div class="ascii-container">
+        <pre class="ascii-art">{self.ascii_art}</pre>
+    </div>
+
+    <div class="quote-container" id="quoteContainer">
+        <div class="quote-text" id="quoteText"></div>
+        <div class="quote-author" id="quoteAuthor"></div>
+    </div>
+
+    <div class="card">
+        <h2>MGE-associated Protein Summary</h2>
+        <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">Total Samples</div><div class="metric-value">{total}</div></div>
+            <div class="metric-card"><div class="metric-label">With mobileOG Hits</div><div class="metric-value">{with_mges}</div></div>
+            <div class="metric-card"><div class="metric-label">Without mobileOG Hits</div><div class="metric-value">{without_mges}</div></div>
+            <div class="metric-card"><div class="metric-label">Total mobileOG Hits</div><div class="metric-value">{total_hits}</div></div>
+            <div class="metric-card"><div class="metric-label">Key MGE Genes</div><div class="metric-value">{total_key}</div></div>
+            <div class="metric-card"><div class="metric-label">Runtime</div><div class="metric-value" style="font-size:20px;">{elapsed:.1f}s</div></div>
+        </div>
+        <div class="interpretation-box">
+            <strong>Interpretation note:</strong> mobileOG-db identifies protein families associated with
+            mobile genetic element biology. Individual matches represent MGE-associated protein signatures
+            and should not be interpreted as independent mobile genetic elements. Multiple proteins from
+            the same element may generate multiple hits, and some families &mdash; particularly replication,
+            recombination, and repair proteins &mdash; also occur in the bacterial chromosome. Stronger
+            element-level inference requires genomic context and co-localization of compatible
+            MGE-associated genes.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Detailed Results</h2>
+        <div style="max-height:700px; overflow-y:auto;">
+            <table class="detailed-table">
+                <thead>
+                    <tr>
+                        <th>Sample</th>
+                        <th>mobileOG Hits</th>
+                        <th>Integr.</th>
+                        <th>Transfer</th>
+                        <th>Stab.</th>
+                        <th>Phage</th>
+                        <th>Repl.</th>
+                        <th>IS-assoc.</th>
+                        <th>ICE-assoc.</th>
+                        <th>Plasmid-assoc.</th>
+                        <th>Phage-assoc.</th>
+                        <th>Key MGE-assoc.</th>
+                    </tr>
+                </thead>
+                <tbody>{table_rows}</tbody>
+            </table>
+        </div>
+        <p style="margin-top:15px;font-size:0.9em;color:#6b7280;">
+            Counts reflect associations with mobileOG-db families and source databases, not reconstructed
+            elements. A single protein may match multiple source classes; the total across classes may
+            exceed the number of distinct ORFs.
+        </p>
+    </div>
+
+    {self._get_footer_html("AcinetoScope - MGE Batch Summary")}
+</div>
+{self._get_quote_js()}
+</body>
+</html>
+"""
+        with open(output_path, "w", encoding="utf-8") as fh:
+            fh.write(html)
+
+
+# ---------------------------------------------------------------------------
+# Module-level HTML fragment helpers
+# ---------------------------------------------------------------------------
+
+def _hit_rows_html(hits: List[BlastHit]) -> str:
+    if not hits:
+        return "<tr><td colspan='12' style='text-align:center;color:#9ca3af;'>No hits above thresholds</td></tr>"
+    rows = []
+    for i, h in enumerate(hits):
+        if i == 0:
+            cls = "highlight-red"
+        elif h.coverage >= 90.0:
+            cls = "highlight-orange"
+        elif h.coverage >= 70.0:
+            cls = "highlight-yellow"
+        else:
+            cls = ""
+        start = h.orf_start if h.orf_start is not None else "-"
+        stop = h.orf_stop if h.orf_stop is not None else "-"
+        strand = h.strand or "-"
+        rows.append(
+            f"<tr class='{cls}'>"
+            f"<td>{i + 1}</td>"
+            f"<td><strong>{h.mobileog_id}</strong></td>"
+            f"<td>{h.gene_name or '-'}</td>"
+            f"<td>{h.specific_contig}</td>"
+            f"<td>{start}</td>"
+            f"<td>{stop}</td>"
+            f"<td>{strand}</td>"
+            f"<td>{h.major_category}</td>"
+            f"<td>{h.minor_category or '-'}</td>"
+            f"<td>{h.pident:.2f}</td>"
+            f"<td>{h.length}/{h.qlen}</td>"
+            f"<td>{h.coverage:.2f}</td>"
+            f"</tr>"
+        )
+    return "\n".join(rows)
+
+
+def _category_cards_html(result: SampleResult) -> str:
+    blocks = []
+    counts = result.category_counts
+    for category in CATEGORY_ORDER:
+        n = counts.get(category, 0)
+        if not n:
+            continue
+        label = CATEGORY_LABELS[category]
+        hits = result.category_hits.get(category, [])
+        names = sorted({h.gene_name for h in hits if h.gene_name and h.gene_name != "NA"})
+        cards = "".join(f"<div class='element-card'>{name}</div>" for name in names)
+        blocks.append(f"<h3>{label} ({n})</h3><div class='element-grid'>{cards}</div>")
+    if not blocks:
+        return "<p style='color:#6b7280;'>No mobile genetic element proteins detected above thresholds.</p>"
+    return "\n".join(blocks)
+
+
+def _key_genes_table_html(result: SampleResult) -> str:
+    if not result.key_gene_hits:
+        return "<p style='color:#6b7280;'>No key A. baumannii MGE-associated genes detected.</p>"
+    rows = []
+    for h in sorted(result.key_gene_hits, key=lambda x: (x.gene_name or "", x.specific_contig)):
+        start = h.orf_start if h.orf_start is not None else "-"
+        stop = h.orf_stop if h.orf_stop is not None else "-"
+        strand = h.strand or "-"
+        rows.append(
+            f"<tr>"
+            f"<td><strong>{h.gene_name}</strong></td>"
+            f"<td>{h.major_category}</td>"
+            f"<td>{h.mobileog_id}</td>"
+            f"<td>{h.specific_contig}</td>"
+            f"<td>{start}..{stop} ({strand})</td>"
+            f"<td>{h.pident:.2f}</td>"
+            f"<td>{h.coverage:.2f}</td>"
+            f"</tr>"
+        )
+    return f"""<table class="detailed-table">
+<thead>
+<tr><th>Gene</th><th>Category</th><th>mobileOG ID</th><th>Contig</th><th>Position</th><th>% Identity</th><th>Coverage %</th></tr>
+</thead>
+<tbody>{"".join(rows)}</tbody>
+</table>"""
+
+
+def _contig_purity_table_html(result: SampleResult) -> str:
+    if not result.contig_purity:
+        return "<p style='color:#6b7280;'>No contig source-class composition data available.</p>"
+
+    header_cells = "".join(f"<th>{cls}</th>" for cls in SOURCE_CLASS_ORDER)
+    body_rows = []
+    for row in result.contig_purity:
+        cells = f"<td><strong>{row['contig']}</strong></td>"
+        for cls in SOURCE_CLASS_ORDER:
+            count = row.get(cls, 0)
+            pct = row.get(f"{cls} %", 0.0)
+            cells += f"<td>{count} <span style='color:#6b7280;font-size:11px;'>({pct:.1f}%)</span></td>"
+        cells += f"<td><strong>{row['Total']}</strong></td>"
+        cells += f"<td>{row['Dominant']}</td>"
+        body_rows.append(f"<tr>{cells}</tr>")
+
+    return f"""<table class="detailed-table">
+<thead>
+<tr>
+<th>Contig</th>
+{header_cells}
+<th>Total Hits</th>
+<th>Dominant Source Class</th>
+</tr>
+</thead>
+<tbody>{"".join(body_rows)}</tbody>
+</table>
+<p style="margin-top:10px;font-size:12px;color:#666;">
+Counts reflect associations with source databases, not reconstructed elements. Multi-label hits are counted once per matched source class; the total across classes may exceed the number of distinct ORFs.
+</p>"""
+
+
+# ---------------------------------------------------------------------------
+# Batch orchestration
+# ---------------------------------------------------------------------------
+
+def _resolve_batch_plan(total_cpus: int, n_jobs: int, ram_gb: float,
+                        user_workers: Optional[int] = None):
+    workers = max(1, min(total_cpus, n_jobs, int(ram_gb / 1.5)))
+    if user_workers is not None:
+        workers = max(1, min(user_workers, total_cpus, n_jobs))
+    threads_per_worker = max(1, total_cpus // workers)
+    return workers, threads_per_worker
+
+
+def _process_one(typer: AcinetoMGETyper, fasta_path: Path,
+                 diamond_threads: int) -> SampleResult:
+    return typer.run(fasta_path, diamond_threads=diamond_threads)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="AcinetoScope MGEFinder - Mobile genetic element detection for A. baumannii via Prodigal + DIAMOND + mobileOG-db",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("-i", "--input", nargs="+", required=True,
+                        help="One or more input FASTA files")
+    parser.add_argument("-d", "--output-dir", required=True,
+                        help="Top-level output directory; per-sample folders and summary files are written here")
+    parser.add_argument("-db_dir", "--database-dir", required=True,
+                        help="Directory containing the mobileOG-db .dmnd and metadata CSV")
+    parser.add_argument("-p", "--prefix", default="acineto_mge",
+                        help="Prefix for top-level summary files")
+    parser.add_argument("--min-id", type=float, default=80.0,
+                        help="Minimum percent identity for a DIAMOND hit")
+    parser.add_argument("--min-cov", type=float, default=60.0,
+                        help="Minimum query coverage for a DIAMOND hit")
+    parser.add_argument("--max-evalue", type=float, default=1e-20,
+                        help="Maximum e-value for a DIAMOND hit")
+    parser.add_argument("--cpus", "-c", type=int, default=None,
+                        help="Total CPU core budget (default: auto-detect optimal for this system)")
+    parser.add_argument("--workers", "-w", type=int, default=None,
+                        help="Override number of concurrent workers (default: auto-computed from CPU and RAM)")
+    args = parser.parse_args()
+
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    start = time.time()
+    try:
+        typer = AcinetoMGETyper(
+            Path(args.database_dir),
+            min_id=args.min_id,
+            min_cov=args.min_cov,
+            max_evalue=args.max_evalue,
+            cpus=args.cpus,
+        )
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+    # Print banner ONCE
+    print("\n" + "=" * 80)
+    print(typer.ascii_art)
+    print("=" * 80)
+    print("AcinetoScope MGEFinder - A. baumannii MGE Detection")
+    print("=" * 80)
+    print("Author: Brown Beckley | Email: brownbeckley94@gmail.com")
+    print("Affiliation: University of Ghana Medical School - Department of Medical Biochemistry")
+    print("=" * 80)
+
+    if not typer.check_db():
+        print(f"Error: mobileOG-db .dmnd or metadata missing in {args.database_dir}")
+        sys.exit(1)
+
+    print(f"Using DIAMOND database: {typer.dmnd.name}")
+    print(f"Using metadata: {typer.metadata_csv.name}")
+    print(f"Loaded {len(typer.metadata)} mobileOG entries")
+    print(f"System resources: {typer.cpus} CPU cores | {typer.available_ram:.1f} GB available RAM")
+    print()
+
+    fasta_paths = [Path(f) for f in args.input if Path(f).exists()]
+    missing = [f for f in args.input if not Path(f).exists()]
+    for f in missing:
+        print(f"Skipping missing file: {f}")
+
+    if not fasta_paths:
+        print("No samples processed.")
+        sys.exit(1)
+
+    workers, threads_per_worker = _resolve_batch_plan(
+        total_cpus=typer.cpus,
+        n_jobs=len(fasta_paths),
+        ram_gb=typer.available_ram,
+        user_workers=args.workers,
+    )
+
+    if len(fasta_paths) == 1 or workers == 1:
+        print(f"Batch plan: sequential (1 worker x {threads_per_worker} thread(s) per worker)")
+    else:
+        print(f"Batch plan: {workers} concurrent worker(s) x {threads_per_worker} thread(s) per worker")
+    print(f"Total thread budget: {workers * threads_per_worker} of {typer.cpus} available cores")
+    print()
+
+    results: List[SampleResult] = []
+
+    if workers == 1 or len(fasta_paths) == 1:
+        for fasta in fasta_paths:
+            print(f"Processing {fasta.name} ...")
+            result = typer.run(fasta, diamond_threads=threads_per_worker)
+            results.append(result)
+            print(f"  {result.sample}: {result.total_hits} mobileOG hit(s) | "
+                  f"{len(result.key_gene_hits)} key MGE-associated gene(s)")
+            sample_out = output_dir / result.sample
+            typer._create_sample_html(result, sample_out)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {
+                executor.submit(_process_one, typer, fasta, threads_per_worker): fasta
+                for fasta in fasta_paths
+            }
+            for future in as_completed(futures):
+                fasta = futures[future]
+                try:
+                    result = future.result()
+                    results.append(result)
+                    print(f"  {result.sample}: {result.total_hits} mobileOG hit(s) | "
+                          f"{len(result.key_gene_hits)} key MGE-associated gene(s)")
+                    sample_out = output_dir / result.sample
+                    typer._create_sample_html(result, sample_out)
+                except Exception as e:
+                    print(f"  Failed: {fasta.name} - {e}")
+
+    if not results:
+        print("No samples processed successfully.")
+        sys.exit(1)
+
+    typer._create_summary_tsv(results, output_dir / f"{args.prefix}_summary.tsv")
+    typer._create_all_hits_tsv(results, output_dir / f"{args.prefix}_all_hits.tsv")
+    typer._create_summary_json(results, output_dir / f"{args.prefix}_summary.json")
+    typer._create_summary_html(results, output_dir / f"{args.prefix}_summary.html", time.time() - start)
+
+    elapsed = time.time() - start
+    total_hits_written = sum(r.total_hits for r in results)
+
+    print(f"\nResults written to {output_dir}")
+    print(f"  {args.prefix}_summary.tsv              (per-sample aggregate counts)")
+    print(f"  {args.prefix}_all_hits.tsv             ({total_hits_written} gene-level hits across all samples)")
+    print(f"  {args.prefix}_summary.json             (single batch JSON)")
+    print(f"  {args.prefix}_summary.html")
+    print(f"  <sample>/<sample>_mge_report.html  (per-sample deep-dive, 1 file each)")
+    print(f"\nCompleted {len(results)} sample(s) in {elapsed:.1f} seconds")
+    print(f"Processing mode: {'parallel (' + str(workers) + ' workers)' if workers > 1 else 'sequential'}")
+
+
+if __name__ == "__main__":
+    main()

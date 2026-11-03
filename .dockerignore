@@ -1,0 +1,30 @@
+# Virtual envs and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Test data — keep image lean
+*.fna
+*.fasta
+*.fa
+GCA_*.fasta
+results/
+resultssssssss/
+build/
+dist/
+*.egg-info/
+acinetoscope.egg-info/
+
+# VCS + docs
+.git/
+.gitignore
+docs/_build/
+*.md
+
+# Local backups
+*.bak_*

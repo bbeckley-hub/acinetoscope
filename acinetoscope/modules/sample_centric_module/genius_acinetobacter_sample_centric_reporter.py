@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """
-GENIUS ACINETOBACTER SAMPLE‑CENTRIC REPORTER
-Interactive per‑isolate boxes for AMR, Virulence, BACMET, Plasmids, Mutations
-Gene‑centric for MLST, Kaptive, QC, Combinations, Co‑occurrence, Patterns
+GENIUS ACINETOBACTER SAMPLE-CENTRIC REPORTER
+Interactive per-isolate boxes for AMR, Virulence, BACMET, Plasmids, Mutations, MGE
+Gene-centric for MLST, Kaptive, QC, Combinations, Co-occurrence, Patterns
 
-Version: 1.1.0
+Version: 1.2.0
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School
-Date: 2026-08-22
+Date: 2026-11-01
+Changes in 1.2.0:
+  - Fixed highlight search (added highlightTableCells JS + CSS)
+  - Lazy-rendered isolate boxes for browser-safe large datasets
+  - Added MGE tab (mobileOG hits per sample)
+  - Removed AI meta-commentary from report
+  - Updated AcinetoScope citation (Sci Rep 2026)
 """
 
 import os
@@ -28,7 +34,7 @@ from bs4 import BeautifulSoup
 
 
 class SampleCentricParser:
-    """Parse HTML reports and TSV files for AcinetoScope sample‑centric analysis."""
+    """Parse HTML reports and TSV files for AcinetoScope sample-centric analysis."""
 
     def __init__(self):
         self.abricate_tsv_files = {
@@ -83,9 +89,6 @@ class SampleCentricParser:
             print(f"  ⚠️ Table parsing error: {e}")
             return pd.DataFrame()
 
-    # ------------------------------------------------------------------------
-    # TSV loaders
-    # ------------------------------------------------------------------------
     def load_amrfinder_tsv(self, input_dir: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, int]]:
         path = input_dir / 'acineto_amrfinder_summary.tsv'
         if not path.exists():
@@ -170,9 +173,37 @@ class SampleCentricParser:
             })
         return dict(muts)
 
-    # ------------------------------------------------------------------------
-    # HTML parsers (gene‑centric)
-    # ------------------------------------------------------------------------
+    def load_mge_tsv(self, input_dir: Path) -> Dict[str, List[Dict]]:
+        """Load MGE hits from acineto_mge_all_hits.tsv."""
+        path = input_dir / 'acineto_mge_all_hits.tsv'
+        if not path.exists():
+            return {}
+        df = pd.read_csv(path, sep='\t')
+
+        def clean(v):
+            return '' if pd.isna(v) else str(v)
+
+        mge = defaultdict(list)
+        for _, row in df.iterrows():
+            sample = str(row.get('Sample', '')).strip()
+            if not sample:
+                continue
+            mge[sample].append({
+                'rank':              clean(row.get('Rank', '')),
+                'mobileog_id':       clean(row.get('mobileOG_ID', '')),
+                'gene':              clean(row.get('Gene', '')),
+                'contig':            clean(row.get('Contig', '')),
+                'start':             clean(row.get('Start', '')),
+                'stop':              clean(row.get('Stop', '')),
+                'strand':            clean(row.get('Strand', '')),
+                'major_category':    clean(row.get('Major_Category', '')),
+                'minor_category':    clean(row.get('Minor_Category', '')),
+                'percent_identity':  clean(row.get('Percent_Identity', '')),
+                'align_over_qlen':   clean(row.get('Align_Over_Qlen', '')),
+                'coverage_percent':  clean(row.get('Coverage_Percent', '')),
+            })
+        return dict(mge)
+
     def parse_mlst_report(self, file_path: Path, scheme: str = "pasteur") -> Dict[str, Dict]:
         print(f"  🧬 Parsing {scheme.upper()} MLST: {file_path.name}")
         try:
@@ -409,7 +440,7 @@ class SampleCentricParser:
 
 
 class SampleCentricAnalyzer:
-    """Build gene‑centric frequencies, cross‑genome patterns, and typing maps."""
+    """Build gene-centric frequencies, cross-genome patterns, and typing maps."""
 
     def __init__(self):
         self.critical_carbapenemases = {
@@ -422,9 +453,7 @@ class SampleCentricAnalyzer:
             'blaGES', 'blaGES-1', 'blaGES-2', 'blaGES-5', 'blaGES-14',
             'blaSIM', 'blaSPM', 'blaAIM'
         }
-        self.critical_esbls = {
-            'blaCTX-M', 'blaSHV', 'blaPER', 'blaVEB', 'blaBEL', 'blaGES'
-        }
+        self.critical_esbls = {'blaCTX-M', 'blaSHV', 'blaPER', 'blaVEB', 'blaBEL', 'blaGES'}
         self.critical_colistin = {
             'mcr-1', 'mcr-2', 'mcr-3', 'mcr-4', 'mcr-5', 'mcr-6', 'mcr-7', 'mcr-8', 'mcr-9', 'mcr-10',
             'pmrA', 'pmrB', 'pmrC', 'pmrE', 'pmrF', 'lpxA', 'lpxC', 'lpxD', 'lpxL', 'lpxM',
@@ -484,13 +513,10 @@ class SampleCentricAnalyzer:
                                        abricate_details: Dict[str, Dict[str, List[Dict]]],
                                        total_samples: int) -> Dict[str, Any]:
         gene_centric = {
-            'amr_databases': {},
-            'virulence_databases': {},
-            'bacmet_databases': {},
-            'plasmid_databases': {},
+            'amr_databases': {}, 'virulence_databases': {},
+            'bacmet_databases': {}, 'plasmid_databases': {},
             'gene_categories': defaultdict(list),
         }
-
         if amr_details:
             all_amr = []
             for genes in amr_details.values():
@@ -504,11 +530,8 @@ class SampleCentricAnalyzer:
                 category = self.categorize_gene(gene)
                 percentage = (count / total_samples) * 100 if total_samples else 0
                 amr_list.append({
-                    'gene': gene,
-                    'category': category,
-                    'database': 'AMRfinder',
-                    'count': count,
-                    'percentage': round(percentage, 2),
+                    'gene': gene, 'category': category, 'database': 'AMRfinder',
+                    'count': count, 'percentage': round(percentage, 2),
                     'frequency_display': f"{count} ({percentage:.1f}%)",
                     'genomes': []
                 })
@@ -540,11 +563,8 @@ class SampleCentricAnalyzer:
                 category = self.categorize_gene(gene)
                 percentage = (count / total_samples) * 100 if total_samples else 0
                 gene_list.append({
-                    'gene': gene,
-                    'category': category,
-                    'database': db.upper(),
-                    'count': count,
-                    'percentage': round(percentage, 2),
+                    'gene': gene, 'category': category, 'database': db.upper(),
+                    'count': count, 'percentage': round(percentage, 2),
                     'frequency_display': f"{count} ({percentage:.1f}%)",
                     'genomes': []
                 })
@@ -560,12 +580,9 @@ class SampleCentricAnalyzer:
                     gene_centric['plasmid_databases'][db] = gene_list
                 for gd in gene_list:
                     gene_centric['gene_categories'][gd['category']].append(gd)
-
         return gene_centric
 
-    def build_cross_genome_patterns(self,
-                                    samples_data: Dict[str, Dict],
-                                    gene_centric: Dict[str, Any]) -> Dict[str, Any]:
+    def build_cross_genome_patterns(self, samples_data: Dict[str, Dict], gene_centric: Dict[str, Any]) -> Dict[str, Any]:
         patterns = {
             'pasteur_st_distribution': Counter(),
             'oxford_st_distribution': Counter(),
@@ -622,28 +639,17 @@ class SampleCentricHTMLGenerator:
     def __init__(self, analyzer: SampleCentricAnalyzer):
         self.analyzer = analyzer
         self.tab_colors = {
-            'summary': '#4CAF50',
-            'samples': '#2196F3',
-            'qc': '#607D8B',
-            'mlst': '#FF9800',
-            'kaptive': '#9C27B0',
-            'combinations': '#009688',
-            'amr': '#F44336',
-            'virulence': '#E91E63',
-            'bacmet': '#795548',
-            'plasmids': '#673AB7',
-            'mutation': '#00BCD4',
-            'cooccurrence': '#3F51B5',
-            'patterns': '#FF5722',
-            'aiguide': '#3F51B5',
-            'citation': '#8BC34A',
-            'funding': '#FFC107',
-            'export': '#9E9E9E',
-            'calltoaction': '#2E7D32'
+            'summary': '#4CAF50', 'samples': '#2196F3', 'qc': '#607D8B',
+            'mlst': '#FF9800', 'kaptive': '#9C27B0', 'combinations': '#009688',
+            'amr': '#F44336', 'virulence': '#E91E63', 'bacmet': '#795548',
+            'plasmids': '#673AB7', 'mutation': '#00BCD4', 'mge': '#16A085',
+            'cooccurrence': '#3F51B5', 'patterns': '#FF5722',
+            'aiguide': '#3F51B5', 'citation': '#8BC34A', 'funding': '#FFC107',
+            'export': '#9E9E9E', 'calltoaction': '#2E7D32'
         }
 
     def generate_report(self, integrated_data: Dict[str, Any], output_dir: Path) -> str:
-        print("\n🎨 Generating SAMPLE‑CENTRIC HTML report...")
+        print("\n🎨 Generating SAMPLE-CENTRIC HTML report...")
         samples_data = integrated_data.get('samples', {})
         patterns = integrated_data.get('patterns', {})
         gene_centric = integrated_data.get('gene_centric', {})
@@ -653,20 +659,16 @@ class SampleCentricHTMLGenerator:
         abricate_details = integrated_data.get('abricate_details', {})
         apt_data = integrated_data.get('apt_data', {})
         mutation_details = integrated_data.get('mutation_details', {})
+        mge_details = integrated_data.get('mge_details', {})
         typing_map = self.analyzer.build_sample_typing_map(samples_data)
 
         html = self._create_html(
-            metadata=metadata,
-            samples_data=samples_data,
-            patterns=patterns,
-            gene_centric=gene_centric,
-            qc_data=qc_data,
+            metadata=metadata, samples_data=samples_data, patterns=patterns,
+            gene_centric=gene_centric, qc_data=qc_data,
             total_samples=len(samples_data),
-            amr_details=amr_details,
-            abricate_details=abricate_details,
-            apt_data=apt_data,
-            mutation_details=mutation_details,
-            typing_map=typing_map
+            amr_details=amr_details, abricate_details=abricate_details,
+            apt_data=apt_data, mutation_details=mutation_details,
+            mge_details=mge_details, typing_map=typing_map
         )
         output_file = output_dir / "genius_acinetobacter_sample_centric_report.html"
         with open(output_file, 'w', encoding='utf-8') as f:
@@ -685,6 +687,7 @@ class SampleCentricHTMLGenerator:
         abricate_details = kwargs.get('abricate_details', {})
         apt_data = kwargs.get('apt_data', {})
         mutation_details = kwargs.get('mutation_details', {})
+        mge_details = kwargs.get('mge_details', {})
         typing_map = kwargs.get('typing_map', {})
 
         total_amr = sum(len(db) for db in gene_centric.get('amr_databases', {}).values())
@@ -695,18 +698,19 @@ class SampleCentricHTMLGenerator:
         carbapenemase_count = sum(1 for db in gene_centric.get('amr_databases', {}).values() for g in db if g['category'] == 'Carbapenemases')
         env_count = total_bacmet
         mutation_count = len([s for s, muts in mutation_details.items() if muts])
+        mge_count = len([s for s, hits in mge_details.items() if hits])
 
-        typing_json = json.dumps(typing_map)
+        typing_json = json.dumps(typing_map).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
         css = self._get_css()
         js = self._get_js(typing_json)
 
         html = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>GENIUS Acinetobacter baumannii Sample‑Centric Report</title>
+<html><head><meta charset="UTF-8"><title>GENIUS Acinetobacter baumannii Sample-Centric Report v1.2.0</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 {css}{js}</head>
 <body><div class="container">
-<div class="main-header"><h1><i class="fas fa-bacterium"></i> GENIUS Acinetobacter baumannii Sample‑Centric Analysis Report</h1>
-<p>Interactive per‑isolate boxes for AMR, Virulence, BACMET, Plasmids, Mutations – with full TSV details</p>
+<div class="main-header"><h1><i class="fas fa-bacterium"></i> GENIUS Acinetobacter baumannii Sample-Centric Analysis Report</h1>
+<p>Per-isolate view for AMR, Virulence, BACMET, Plasmids, Mutations, MGE</p>
 <div class="metadata-bar"><div class="metadata-item"><i class="fas fa-calendar"></i> {metadata.get('analysis_date','Unknown')}</div>
 <div class="metadata-item"><i class="fas fa-database"></i> Samples: {total_samples}</div>
 <div class="metadata-item"><i class="fas fa-vial"></i> Pathogen: Acinetobacter baumannii</div>
@@ -719,6 +723,7 @@ class SampleCentricHTMLGenerator:
 <div class="dashboard-card card-virulence" onclick="switchTab('virulence')"><div class="card-number">{total_vir}</div><div class="card-label">Virulence Genes</div><i class="fas fa-virus fa-2x" style="color:var(--virulence-color)"></i></div>
 <div class="dashboard-card card-bacmet" onclick="switchTab('bacmet')"><div class="card-number">{total_bacmet}</div><div class="card-label">Bacmet</div><i class="fas fa-flask fa-2x" style="color:var(--bacmet-color)"></i></div>
 <div class="dashboard-card card-plasmids" onclick="switchTab('plasmids')"><div class="card-number">{total_plasmid}</div><div class="card-label">Plasmid Replicons</div><i class="fas fa-dna fa-2x" style="color:var(--plasmids-color)"></i></div>
+<div class="dashboard-card card-mge" onclick="switchTab('mge')"><div class="card-number">{mge_count}</div><div class="card-label">MGE-profiled</div><i class="fas fa-mobile-alt fa-2x" style="color:var(--mge-color)"></i></div>
 <div class="dashboard-card card-patterns" onclick="switchTab('patterns')"><div class="card-number">{high_risk}</div><div class="card-label">CRAB High-Risk</div><i class="fas fa-exclamation-triangle fa-2x" style="color:var(--patterns-color)"></i></div>
 </div>
 <div class="tab-navigation">
@@ -733,8 +738,10 @@ class SampleCentricHTMLGenerator:
 <button class="tab-button bacmet" onclick="switchTab('bacmet')"><i class="fas fa-flask"></i> Bacmet</button>
 <button class="tab-button plasmids" onclick="switchTab('plasmids')"><i class="fas fa-dna"></i> Plasmids</button>
 <button class="tab-button mutation" onclick="switchTab('mutation')"><i class="fas fa-dna"></i> Mutations</button>
-<button class="tab-button cooccurrence" onclick="switchTab('cooccurrence')"><i class="fas fa-link"></i> Co‑occurrence</button>
+<button class="tab-button mge" onclick="switchTab('mge')"><i class="fas fa-mobile-alt"></i> MGE</button>
+<button class="tab-button cooccurrence" onclick="switchTab('cooccurrence')"><i class="fas fa-link"></i> Co-occurrence</button>
 <button class="tab-button patterns" onclick="switchTab('patterns')"><i class="fas fa-project-diagram"></i> Patterns</button>
+<button class="tab-button calltoaction" onclick="switchTab('calltoaction')"><i class="fas fa-globe"></i> Call to Action</button>
 <button class="tab-button aiguide" onclick="switchTab('aiguide')"><i class="fas fa-robot"></i> AI Guide</button>
 <button class="tab-button citation" onclick="switchTab('citation')"><i class="fas fa-book"></i> Citations</button>
 <button class="tab-button funding" onclick="switchTab('funding')"><i class="fas fa-coffee"></i> Funding</button>
@@ -751,20 +758,22 @@ class SampleCentricHTMLGenerator:
 <div id="bacmet-tab" class="tab-content">{self._bacmet_boxes(kwargs)}</div>
 <div id="plasmids-tab" class="tab-content">{self._plasmids_boxes(kwargs)}</div>
 <div id="mutation-tab" class="tab-content">{self._mutation_boxes(kwargs)}</div>
+<div id="mge-tab" class="tab-content">{self._mge_boxes(kwargs)}</div>
 <div id="cooccurrence-tab" class="tab-content">{self._cooccurrence_section(kwargs)}</div>
 <div id="patterns-tab" class="tab-content">{self._patterns_section(kwargs)}</div>
+<div id="calltoaction-tab" class="tab-content">{self._calltoaction_section()}</div>
 <div id="aiguide-tab" class="tab-content">{self._aiguide_section()}</div>
 <div id="citation-tab" class="tab-content">{self._citation_section()}</div>
 <div id="funding-tab" class="tab-content">{self._funding_section()}</div>
 <div id="export-tab" class="tab-content">{self._export_section()}</div>
-<div class="footer"><h3>GENIUS Acinetobacter baumannii Sample‑Centric Reporter v1.1.0</h3><p>University of Ghana Medical School | Brown Beckley &lt;brownbeckley94@gmail.com&gt;</p><p>If you find this tool helpful, please <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank">⭐ star us on GitHub</a> and share with your network.</p><p>Generated on {metadata.get('analysis_date','Unknown')}</p></div>
+<div class="footer"><h3>GENIUS Acinetobacter baumannii Sample-Centric Reporter v1.2.0</h3><p>University of Ghana Medical School | Brown Beckley &lt;brownbeckley94@gmail.com&gt;</p><p>If you find this tool helpful, please <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank">⭐ star us on GitHub</a> and share with your network.</p><p>Generated on {metadata.get('analysis_date','Unknown')}</p></div>
 </div></body></html>"""
         return html
 
     def _get_css(self) -> str:
         return """
         <style>
-        :root { --summary-color:#4CAF50; --samples-color:#2196F3; --mlst-color:#FF9800; --kaptive-color:#9C27B0; --amr-color:#F44336; --virulence-color:#E91E63; --bacmet-color:#795548; --combinations-color:#009688; --patterns-color:#FF5722; --plasmids-color:#673AB7; --databases-color:#607D8B; --qc-color:#17a2b8; --aiguide-color:#3F51B5; --calltoaction-color:#2E7D32; --export-color:#3F51B5; --mutation-color:#00BCD4; --cooccurrence-color:#3F51B5; --citation-color:#8BC34A; --funding-color:#FFC107; }
+        :root { --summary-color:#4CAF50; --samples-color:#2196F3; --mlst-color:#FF9800; --kaptive-color:#9C27B0; --amr-color:#F44336; --virulence-color:#E91E63; --bacmet-color:#795548; --combinations-color:#009688; --patterns-color:#FF5722; --plasmids-color:#673AB7; --databases-color:#607D8B; --qc-color:#17a2b8; --aiguide-color:#3F51B5; --calltoaction-color:#2E7D32; --export-color:#3F51B5; --mutation-color:#00BCD4; --cooccurrence-color:#3F51B5; --citation-color:#8BC34A; --funding-color:#FFC107; --mge-color:#16A085; }
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;min-width:1200px}
         .container{max-width:none;margin:0 auto;padding:20px;width:100%;overflow-x:auto}
@@ -790,8 +799,10 @@ class SampleCentricHTMLGenerator:
         .tab-button.bacmet.active{background:var(--bacmet-color)}
         .tab-button.plasmids.active{background:var(--plasmids-color)}
         .tab-button.mutation.active{background:var(--mutation-color)}
+        .tab-button.mge.active{background:var(--mge-color)}
         .tab-button.cooccurrence.active{background:var(--cooccurrence-color)}
         .tab-button.patterns.active{background:var(--patterns-color)}
+        .tab-button.calltoaction.active{background:var(--calltoaction-color)}
         .tab-button.aiguide.active{background:var(--aiguide-color)}
         .tab-button.citation.active{background:var(--citation-color)}
         .tab-button.funding.active{background:var(--funding-color)}
@@ -809,17 +820,16 @@ class SampleCentricHTMLGenerator:
         .data-table tr:hover{background:#f8f9fa}
         .master-scrollable-container{width:100%;overflow-x:auto;border:1px solid #e0e0e0;border-radius:8px;margin:20px 0}
         .genome-list{display:flex;flex-wrap:wrap;gap:5px;max-height:200px;overflow-y:auto;padding:5px;background:#f8f9fa;border-radius:5px}
-        .genome-group{margin-bottom:10px;width:100%}
-        .genome-group-header{font-weight:bold;background:#e0e0e0;padding:4px 8px;border-radius:4px;margin:5px 0;font-size:0.85em;display:inline-block}
-        .genome-group-tags{display:flex;flex-wrap:wrap;gap:5px;margin-left:10px}
         .genome-tag{display:inline-block;background:#e6ffe6;color:#006400;padding:3px 10px;border-radius:12px;font-size:0.85em;border:1px solid #b3ffb3;white-space:nowrap;margin:2px}
         .genome-tag.highlight{background-color:#ffff99 !important;color:#000 !important;border:1px solid #ffc107}
+        .cell-highlight{background-color:#ffff99 !important;color:#000 !important}
         .search-box{width:100%;padding:12px;margin-bottom:15px;border:2px solid #e0e0e0;border-radius:8px;font-size:1em;transition:all 0.3s ease}
         .search-box:focus{outline:none;border-color:#00695c;box-shadow:0 0 0 3px rgba(0,105,92,0.1)}
         .badge{display:inline-block;padding:5px 15px;border-radius:20px;font-size:0.85em;font-weight:600;margin:2px}
         .badge-critical{background:#9C27B0;color:white}
         .badge-high{background:#F44336;color:white}
         .badge-medium{background:#FF9800;color:black}
+        .badge-low{background:#9E9E9E;color:white}
         .alert-box{padding:20px;border-radius:10px;margin:20px 0;display:flex;align-items:center;gap:20px;border-left:5px solid}
         .alert-success{background:#d4edda;color:#155724;border-left-color:#28a745}
         .alert-warning{background:#fff3cd;color:#856404;border-left-color:#ffc107}
@@ -862,35 +872,30 @@ class SampleCentricHTMLGenerator:
         .citation-card.cite-db .cite-badge{background:#9C27B0}
         .citation-card.cite-tool .cite-badge{background:#FF9800}
         .citation-card.cite-other .cite-badge{background:#607D8B}
-        .isolate-box {
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #fafafa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-bottom: 2px dashed #ccc;
-        }
-        .isolate-box .sample-header { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
-        .isolate-box .sample-header h3 { font-size: 1.4em; margin: 0; }
-        .isolate-box .sample-header .total-badge { background: #00695c; color: white; padding: 4px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
-        .isolate-box .sample-header .typing-info { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
-        .isolate-box .sample-header .typing-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8em; font-weight: 600; background: #e0e0e0; color: #333; border: 1px solid #ccc; }
-        .isolate-box .sample-header .typing-badge.capsule-badge { background: #9C27B0; color: white; border-color: #9C27B0; }
-        .isolate-box .sample-header .typing-badge.st-badge { background: #FF9800; color: white; border-color: #FF9800; }
-        .isolate-box .sample-header .typing-badge.k-badge { background: #4CAF50; color: white; border-color: #4CAF50; }
-        .isolate-box .sample-header .typing-badge.ocl-badge { background: #2196F3; color: white; border-color: #2196F3; }
-        .isolate-box .sample-header .typing-badge.oxford-badge { background: #795548; color: white; border-color: #795548; }
-        .isolate-box .database-table-wrapper { margin: 15px 0; overflow-x: auto; }
-        .isolate-box .database-table-wrapper table { width: 100%; border-collapse: collapse; font-size: 0.85em; min-width: 800px; }
-        .isolate-box .database-table-wrapper table th { background: #2c3e50; color: white; padding: 8px 12px; text-align: left; white-space: nowrap; }
-        .isolate-box .database-table-wrapper table td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; white-space: nowrap; }
-        .isolate-box .database-table-wrapper table tr:hover { background: #f1f1f1; }
-        .isolate-box .db-title { font-weight: bold; color: #00695c; margin: 10px 0 5px 0; font-size: 1.1em; border-left: 4px solid #00695c; padding-left: 10px; }
-        .isolate-box .apt-rep-list { background: #f8f9fa; padding: 10px 15px; border-radius: 6px; margin: 5px 0 10px 0; font-size: 0.95em; }
-        .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .filter-controls select { padding: 10px; border-radius: 8px; border: 2px solid #ddd; background: white; min-width: 150px; }
-        @media print{body *{visibility:hidden}.tab-content.active,.tab-content.active *{visibility:visible}.tab-content.active{position:absolute;left:0;top:0;width:100%;padding:20px;box-shadow:none;border-radius:0}.print-section-btn,.tab-navigation,.dashboard-grid,.search-box,.action-buttons,.grouping-controls,.filter-controls{display:none !important}.data-table{page-break-inside:auto}.data-table tr{page-break-inside:avoid;page-break-after:auto}}
+        .isolate-box { border:1px solid #ddd; border-radius:12px; margin-bottom:20px; padding:20px; background:#fafafa; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+        .isolate-box .sample-header { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
+        .isolate-box .sample-header h3 { font-size:1.4em; margin:0; }
+        .isolate-box .sample-header .total-badge { background:#00695c; color:white; padding:4px 16px; border-radius:20px; font-weight:bold; font-size:0.9em; }
+        .isolate-box .sample-header .typing-info { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; }
+        .isolate-box .sample-header .typing-badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:0.8em; font-weight:600; background:#e0e0e0; color:#333; border:1px solid #ccc; }
+        .isolate-box .sample-header .typing-badge.capsule-badge { background:#9C27B0; color:white; border-color:#9C27B0; }
+        .isolate-box .sample-header .typing-badge.st-badge { background:#FF9800; color:white; border-color:#FF9800; }
+        .isolate-box .sample-header .typing-badge.k-badge { background:#4CAF50; color:white; border-color:#4CAF50; }
+        .isolate-box .sample-header .typing-badge.ocl-badge { background:#2196F3; color:white; border-color:#2196F3; }
+        .isolate-box .sample-header .typing-badge.oxford-badge { background:#795548; color:white; border-color:#795548; }
+        .isolate-box .toggle-btn { background:#00695c; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.85em; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s; }
+        .isolate-box .toggle-btn:hover { background:#004d40; }
+        .isolate-box .box-details { margin-top:15px; }
+        .isolate-box .database-table-wrapper { margin:15px 0; overflow-x:auto; border:1px solid #e0e0e0; border-radius:8px; }
+        .isolate-box .database-table-wrapper table { width:100%; border-collapse:collapse; font-size:0.85em; min-width:800px; }
+        .isolate-box .database-table-wrapper table th { background:#2c3e50; color:white; padding:8px 12px; text-align:left; white-space:nowrap; }
+        .isolate-box .database-table-wrapper table td { padding:8px 12px; border-bottom:1px solid #e0e0e0; white-space:nowrap; }
+        .isolate-box .database-table-wrapper table tr:hover { background:#f1f1f1; }
+        .isolate-box .db-title { font-weight:bold; color:#00695c; margin:10px 0 5px 0; font-size:1.05em; border-left:4px solid #00695c; padding-left:10px; }
+        .isolate-box .apt-rep-list { background:#f8f9fa; padding:10px 15px; border-radius:6px; margin:5px 0 10px 0; font-size:0.95em; }
+        .filter-controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px; }
+        .filter-controls select { padding:10px; border-radius:8px; border:2px solid #ddd; background:white; min-width:150px; }
+        @media print{body *{visibility:hidden}.tab-content.active,.tab-content.active *{visibility:visible}.tab-content.active{position:absolute;left:0;top:0;width:100%;padding:20px;box-shadow:none;border-radius:0}.print-section-btn,.tab-navigation,.dashboard-grid,.search-box,.action-buttons,.grouping-controls,.filter-controls,.toggle-btn{display:none !important}.isolate-box .box-details{display:block !important}.data-table{page-break-inside:auto}.data-table tr{page-break-inside:avoid;page-break-after:auto}}
         @media (max-width:768px){.container{padding:10px}.main-header{padding:20px}.main-header h1{font-size:2em}.tab-button{padding:8px 12px;font-size:0.8em}.dashboard-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.data-table{font-size:0.8em}body{min-width:auto;overflow-x:auto}}
         </style>
         """
@@ -900,265 +905,306 @@ class SampleCentricHTMLGenerator:
         <script>
         var sampleTyping = {typing_json};
         var originalGenomeLists = {{}};
+        window.STAPHSCOPE_BOX_DATA = window.STAPHSCOPE_BOX_DATA || {{}};
 
         function switchTab(tabName) {{
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabName + '-tab').classList.add('active');
-            event.currentTarget.classList.add('active');
+            var content = document.getElementById(tabName + '-tab');
+            var button = document.querySelector('.tab-button.' + tabName);
+            if (content) content.classList.add('active');
+            if (button) button.classList.add('active');
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
             window.location.hash = tabName;
         }}
 
+        function escapeHtml(str) {{
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }}
+
         function searchTable(tableId, searchId) {{
-            var filter = document.getElementById(searchId).value.toUpperCase();
-            var rows = document.getElementById(tableId).getElementsByTagName('tr');
-            for (var i = 1; i < rows.length; i++) {{
+            var input = document.getElementById(searchId); if (!input) return;
+            var filter = input.value.toUpperCase();
+            var table = document.getElementById(tableId);
+            if (!table || !table.tBodies[0]) return;
+            var rows = table.tBodies[0].rows;
+            for (var i = 0; i < rows.length; i++) {{
+                var cells = rows[i].getElementsByTagName('td');
                 var found = false;
-                for (var cell of rows[i].getElementsByTagName('td')) {{
-                    if (cell.textContent.toUpperCase().indexOf(filter) > -1) {{ found = true; break; }}
+                for (var j = 0; j < cells.length; j++) {{
+                    if (cells[j] && (cells[j].textContent || cells[j].innerText).toUpperCase().indexOf(filter) > -1) {{ found = true; break; }}
                 }}
                 rows[i].style.display = found ? '' : 'none';
             }}
         }}
 
-        function highlightGenome(tableId, searchId) {{
-            var filter = document.getElementById(searchId).value.toUpperCase().trim();
-            var table = document.getElementById(tableId);
-            var allTags = table.querySelectorAll('.genome-tag');
-            allTags.forEach(tag => tag.classList.remove('highlight'));
-            if (filter === '') return;
-            allTags.forEach(tag => {{
-                if (tag.textContent.toUpperCase().indexOf(filter) > -1) {{
-                    tag.classList.add('highlight');
+        function highlightTableCells(tableId, searchId) {{
+            var el = document.getElementById(searchId); if (!el) return;
+            var filter = el.value.toUpperCase().trim();
+            var table = document.getElementById(tableId); if (!table) return;
+            table.querySelectorAll('td').forEach(function(td) {{
+                td.classList.remove('cell-highlight');
+                if (filter && (td.textContent || td.innerText).toUpperCase().indexOf(filter) > -1) {{
+                    td.classList.add('cell-highlight');
                 }}
             }});
         }}
 
-        function getTypingValue(genome, groupBy) {{
-            var info = sampleTyping[genome];
-            if (!info) return "Unknown";
-            if (groupBy === "pasteur_st") {{
-                var st = info.pasteur_st;
-                return st !== 'ND' ? "ST " + st : "ND";
-            }}
-            if (groupBy === "oxford_st") {{
-                var st = info.oxford_st;
-                return st !== 'ND' ? "ST " + st : "ND";
-            }}
-            if (groupBy === "k_locus") return info.k_locus;
-            if (groupBy === "o_locus") return info.o_locus;
-            if (groupBy === "capsule") return info.capsule;
-            if (groupBy === "st_k") {{
-                var st = info.pasteur_st;
-                var st_pre = st !== 'ND' ? "ST " + st : "ND";
-                return st_pre + " - " + info.k_locus;
-            }}
-            if (groupBy === "st_o") {{
-                var st = info.pasteur_st;
-                var st_pre = st !== 'ND' ? "ST " + st : "ND";
-                return st_pre + " - " + info.o_locus;
-            }}
-            if (groupBy === "k_o") return info.k_locus + ":" + info.o_locus;
-            if (groupBy === "st_ko") {{
-                var st = info.pasteur_st;
-                var st_pre = st !== 'ND' ? "ST " + st : "ND";
-                return st_pre + " - " + info.k_locus + ":" + info.o_locus;
-            }}
-            return "Unknown";
+        function highlightGenome(tableId, searchId) {{
+            var el = document.getElementById(searchId); if (!el) return;
+            var filter = el.value.toUpperCase().trim();
+            var table = document.getElementById(tableId); if (!table) return;
+            table.querySelectorAll('.genome-tag').forEach(function(tag) {{
+                tag.classList.remove('highlight');
+                if (filter && tag.textContent.toUpperCase().indexOf(filter) > -1) tag.classList.add('highlight');
+            }});
         }}
 
-        function groupRowGenomes(row, groupBy, originalList) {{
-            var genomesCell = null;
-            for (var i = 0; i < row.cells.length; i++) {{
-                if (row.cells[i].querySelector('.genome-list')) {{
-                    genomesCell = row.cells[i];
-                    break;
-                }}
-            }}
-            if (!genomesCell) return;
-            var genomes = originalList.slice();
-            if (genomes.length === 0) {{
-                genomesCell.innerHTML = '<div class="genome-list">None</div>';
+        function toggleBoxDetails(tabId, sample) {{
+            var box = document.querySelector('#' + tabId + '-tab .isolate-box[data-sample="' + CSS.escape(sample) + '"]');
+            if (!box) return;
+            var details = box.querySelector('.box-details');
+            var btn = box.querySelector('.toggle-btn');
+            var isOpen = details.style.display === 'block';
+            if (isOpen) {{
+                details.style.display = 'none';
+                if (btn) btn.innerHTML = '<i class="fas fa-chevron-down"></i> Show Details';
                 return;
             }}
-            var groups = {{}};
-            genomes.forEach(function(genome) {{
-                var key = getTypingValue(genome, groupBy);
-                if (!groups[key]) groups[key] = [];
-                groups[key].push(genome);
+            if (!details.innerHTML.trim()) {{
+                details.innerHTML = buildBoxContent(tabId, sample);
+                applyCurrentDBFilter(box, tabId);
+            }}
+            details.style.display = 'block';
+            if (btn) btn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Details';
+        }}
+
+        function applyCurrentDBFilter(box, tabId) {{
+            var dbEl = document.getElementById('dbFilter-' + tabId);
+            if (!dbEl) return;
+            var dbFilter = dbEl.value;
+            var wrappers = box.querySelectorAll('.database-table-wrapper');
+            var titles = box.querySelectorAll('.db-title');
+            if (dbFilter === 'all') {{
+                wrappers.forEach(function(w) {{ w.style.display = ''; }});
+                titles.forEach(function(t) {{ t.style.display = ''; }});
+                return;
+            }}
+            wrappers.forEach(function(w) {{
+                w.style.display = (w.getAttribute('data-db') === dbFilter) ? '' : 'none';
             }});
-            var html = '<div class="genome-list">';
-            for (var key in groups) {{
-                var tags = groups[key].map(g => `<span class="genome-tag">${{g}}</span>`).join('');
-                html += `<div class="genome-group"><div class="genome-group-header">${{key}}</div><div class="genome-group-tags">${{tags}}</div></div>`;
+            titles.forEach(function(t) {{
+                var wrapper = t.nextElementSibling;
+                if (wrapper && wrapper.style.display === 'none') t.style.display = 'none';
+                else t.style.display = '';
+            }});
+        }}
+
+        function buildBoxContent(tabId, sample) {{
+            var root = window.STAPHSCOPE_BOX_DATA || {{}};
+            var entry = (root[tabId] || {{}})[sample];
+            if (!entry) return '<p>No data available</p>';
+            var html = '';
+            if (entry.mutations && entry.mutations.length) html += buildMutationTable(entry.mutations);
+            if (entry.mge && entry.mge.length) html += buildMgeTable(entry.mge);
+            if (entry.amrfinder && entry.amrfinder.length) html += buildDBTable('AMRfinder', entry.amrfinder, 'amrfinder');
+            if (entry.abricate) {{
+                for (var db in entry.abricate) {{
+                    var genes = entry.abricate[db];
+                    if (genes && genes.length) html += buildDBTable(db.toUpperCase(), genes, db);
+                }}
             }}
+            if (entry.apt && entry.apt.rep_types && entry.apt.rep_types.length) html += buildAptSection(entry.apt);
+            return html || '<p>No gene details</p>';
+        }}
+
+        function buildDBTable(dbName, genes, dbKey) {{
+            if (!genes || !genes.length) return '';
+            var keys = Object.keys(genes[0]);
+            var priority = ['gene','product','coverage_percent','identity_percent','accession','contig','start','stop','class','subclass','scope','resistance'];
+            var ordered = priority.filter(function(k) {{ return keys.indexOf(k) !== -1; }});
+            keys.forEach(function(k) {{ if (ordered.indexOf(k) === -1) ordered.push(k); }});
+            var html = '<div class="database-table-wrapper" data-db="' + dbKey + '">';
+            html += '<div class="db-title">' + escapeHtml(dbName) + '</div><table><thead><tr>';
+            ordered.forEach(function(c) {{
+                var display = c.replace(/_/g, ' ').replace(/\\b\\w/g, function(x) {{ return x.toUpperCase(); }});
+                html += '<th>' + escapeHtml(display) + '</th>';
+            }});
+            html += '</tr></thead><tbody>';
+            genes.forEach(function(g) {{
+                html += '<tr>';
+                ordered.forEach(function(c) {{
+                    var v = (g[c] == null) ? '' : g[c];
+                    html += '<td>' + escapeHtml(v) + '</td>';
+                }});
+                html += '</tr>';
+            }});
+            html += '</tbody></table></div>';
+            return html;
+        }}
+
+        function buildMutationTable(mutations) {{
+            if (!mutations || !mutations.length) return '';
+            var cols = ['gene','mutation','class','subclass','contig','start','stop','strand','coverage','identity','accession'];
+            var html = '<div class="database-table-wrapper" data-db="mutations"><div class="db-title">Mutations</div><table><thead><tr>';
+            cols.forEach(function(c) {{
+                var display = c.replace(/_/g, ' ').replace(/\\b\\w/g, function(x) {{ return x.toUpperCase(); }});
+                html += '<th>' + escapeHtml(display) + '</th>';
+            }});
+            html += '</tr></thead><tbody>';
+            mutations.forEach(function(m) {{
+                html += '<tr>';
+                cols.forEach(function(c) {{
+                    var v = (m[c] == null) ? '' : m[c];
+                    html += '<td>' + escapeHtml(v) + '</td>';
+                }});
+                html += '</tr>';
+            }});
+            html += '</tbody></table></div>';
+            return html;
+        }}
+
+        function buildMgeTable(hits) {{
+            if (!hits || !hits.length) return '';
+            var cols = ['rank','mobileog_id','gene','contig','start','stop','strand','major_category','minor_category','percent_identity','align_over_qlen','coverage_percent'];
+            var headers = ['Rank','mobileOG ID','Gene','Contig','Start','Stop','Strand','Major Category','Minor Category','% Identity','Align/Qlen','Coverage %'];
+            var html = '<div class="database-table-wrapper" data-db="mge"><div class="db-title">MGE (mobileOG-db)</div><table><thead><tr>';
+            headers.forEach(function(h) {{ html += '<th>' + h + '</th>'; }});
+            html += '</tr></thead><tbody>';
+            hits.forEach(function(m) {{
+                html += '<tr>';
+                cols.forEach(function(c) {{
+                    var v = (m[c] == null) ? '' : m[c];
+                    html += '<td>' + escapeHtml(v) + '</td>';
+                }});
+                html += '</tr>';
+            }});
+            html += '</tbody></table></div>';
+            return html;
+        }}
+
+        function buildAptSection(apt) {{
+            if (!apt || !apt.rep_types || !apt.rep_types.length) return '';
+            var hit_count = apt.hit_count || 0;
+            var html = '<div class="database-table-wrapper apt-section" data-db="apt">';
+            html += '<div class="db-title">APT Rep Types</div>';
+            html += '<div class="apt-rep-list"><strong>Hit Count:</strong> ' + escapeHtml(hit_count) + ' &nbsp;|&nbsp; <strong>Rep Types:</strong> ' + escapeHtml(apt.rep_types.join(', ')) + '</div>';
             html += '</div>';
-            genomesCell.innerHTML = html;
+            return html;
         }}
 
-        function groupGenomesByTyping(tableId, groupBy) {{
-            var table = document.getElementById(tableId);
-            if (!table) return;
-            var tbody = table.tBodies[0];
-            if (!tbody) return;
-            var rows = tbody.rows;
-            for (var i = 0; i < rows.length; i++) {{
-                var row = rows[i];
-                var geneNameCell = row.cells[0];
-                if (!geneNameCell) continue;
-                var geneName = geneNameCell.textContent.trim().replace(/⚠️/g, '').trim();
-                if (!originalGenomeLists[geneName]) {{
-                    var genomesCell = null;
-                    for (var j = 0; j < row.cells.length; j++) {{
-                        if (row.cells[j].querySelector('.genome-list')) {{
-                            genomesCell = row.cells[j];
-                            break;
+        function expandAllBoxes(tabId) {{
+            var boxes = document.querySelectorAll('#' + tabId + '-tab .isolate-box');
+            var visible = [];
+            boxes.forEach(function(b) {{ if (b.style.display !== 'none') visible.push(b); }});
+            if (visible.length > 100) {{
+                if (!confirm('You have ' + visible.length + ' visible samples. This may take a moment. Continue?')) return;
+            }}
+            var i = 0, batch = 20;
+            function step() {{
+                var end = Math.min(i + batch, visible.length);
+                for (; i < end; i++) {{
+                    var box = visible[i];
+                    var sample = box.getAttribute('data-sample');
+                    var details = box.querySelector('.box-details');
+                    var btn = box.querySelector('.toggle-btn');
+                    if (details && details.style.display !== 'block') {{
+                        if (!details.innerHTML.trim()) {{
+                            details.innerHTML = buildBoxContent(tabId, sample);
+                            applyCurrentDBFilter(box, tabId);
                         }}
-                    }}
-                    if (genomesCell) {{
-                        var tags = genomesCell.querySelectorAll('.genome-tag');
-                        var genomes = Array.from(tags).map(tag => tag.textContent.trim());
-                        originalGenomeLists[geneName] = genomes;
-                    }} else {{
-                        originalGenomeLists[geneName] = [];
+                        details.style.display = 'block';
+                        if (btn) btn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Details';
                     }}
                 }}
+                if (i < visible.length) setTimeout(step, 30);
             }}
-            for (var i = 0; i < rows.length; i++) {{
-                var row = rows[i];
-                var geneNameCell = row.cells[0];
-                if (!geneNameCell) continue;
-                var geneName = geneNameCell.textContent.trim().replace(/⚠️/g, '').trim();
-                var original = originalGenomeLists[geneName] || [];
-                groupRowGenomes(row, groupBy, original);
-            }}
-            var container = table.closest('.tab-content');
-            if (container) {{
-                var btns = container.querySelectorAll('.group-btn');
-                btns.forEach(btn => btn.classList.remove('active'));
-                var activeBtn = container.querySelector(`.group-btn[data-group="${{groupBy}}"]`);
-                if (activeBtn) activeBtn.classList.add('active');
-            }}
+            step();
         }}
 
-        function resetGenomeList(tableId) {{
-            var table = document.getElementById(tableId);
-            if (!table) return;
-            var tbody = table.tBodies[0];
-            if (!tbody) return;
-            var rows = tbody.rows;
-            for (var i = 0; i < rows.length; i++) {{
-                var row = rows[i];
-                var geneNameCell = row.cells[0];
-                if (!geneNameCell) continue;
-                var geneName = geneNameCell.textContent.trim().replace(/⚠️/g, '').trim();
-                var original = originalGenomeLists[geneName] || [];
-                var genomesCell = null;
-                for (var j = 0; j < row.cells.length; j++) {{
-                    if (row.cells[j].querySelector('.genome-list')) {{
-                        genomesCell = row.cells[j];
-                        break;
-                    }}
-                }}
-                if (genomesCell) {{
-                    var tags = original.map(g => `<span class="genome-tag">${{g}}</span>`).join('');
-                    genomesCell.innerHTML = `<div class="genome-list">${{tags}}</div>`;
-                }}
-            }}
-            var container = table.closest('.tab-content');
-            if (container) {{
-                var btns = container.querySelectorAll('.group-btn');
-                btns.forEach(btn => btn.classList.remove('active'));
-            }}
+        function collapseAllBoxes(tabId) {{
+            document.querySelectorAll('#' + tabId + '-tab .isolate-box').forEach(function(box) {{
+                var details = box.querySelector('.box-details');
+                if (details) details.style.display = 'none';
+                var btn = box.querySelector('.toggle-btn');
+                if (btn) btn.innerHTML = '<i class="fas fa-chevron-down"></i> Show Details';
+            }});
         }}
 
         function filterBoxes(tabId) {{
-            var search = document.getElementById('search-' + tabId).value.toUpperCase();
-            var dbFilter = document.getElementById('dbFilter-' + tabId).value;
+            var searchEl = document.getElementById('search-' + tabId);
+            var dbEl = document.getElementById('dbFilter-' + tabId);
+            var search = (searchEl ? searchEl.value : '').toUpperCase();
             var boxes = document.querySelectorAll('#' + tabId + '-tab .isolate-box');
+            var visible = 0;
             boxes.forEach(function(box) {{
                 var sample = box.getAttribute('data-sample') || '';
-                var show = true;
-                if (search && sample.toUpperCase().indexOf(search) === -1) show = false;
-                var dbWrappers = box.querySelectorAll('.database-table-wrapper');
-                if (dbFilter !== 'all') {{
-                    dbWrappers.forEach(function(wrapper) {{
-                        var dbName = wrapper.getAttribute('data-db') || '';
-                        if (dbName === dbFilter) {{
-                            wrapper.style.display = '';
-                        }} else {{
-                            wrapper.style.display = 'none';
-                        }}
-                    }});
-                    var dbTitles = box.querySelectorAll('.db-title');
-                    dbTitles.forEach(function(title) {{
-                        var wrapper = title.nextElementSibling;
-                        if (wrapper && wrapper.style.display === 'none') {{
-                            title.style.display = 'none';
-                        }} else {{
-                            title.style.display = '';
-                        }}
-                    }});
-                }} else {{
-                    dbWrappers.forEach(function(wrapper) {{ wrapper.style.display = ''; }});
-                    box.querySelectorAll('.db-title').forEach(function(title) {{ title.style.display = ''; }});
-                }}
-                var aptSection = box.querySelector('.apt-section');
-                if (aptSection) {{
-                    if (dbFilter === 'APT' || dbFilter === 'all') {{
-                        aptSection.style.display = '';
-                    }} else {{
-                        aptSection.style.display = 'none';
-                    }}
-                }}
+                var show = (!search || sample.toUpperCase().indexOf(search) !== -1);
                 box.style.display = show ? '' : 'none';
+                if (show) visible++;
+                if (box.querySelector('.box-details').innerHTML.trim()) {{
+                    applyCurrentDBFilter(box, tabId);
+                }}
             }});
+            var counter = document.getElementById('counter-' + tabId);
+            if (counter) counter.textContent = visible + ' shown';
         }}
 
         function resetBoxFilters(tabId) {{
-            document.getElementById('search-' + tabId).value = '';
-            document.getElementById('dbFilter-' + tabId).value = 'all';
+            var s = document.getElementById('search-' + tabId);
+            var d = document.getElementById('dbFilter-' + tabId);
+            if (s) s.value = '';
+            if (d) d.value = 'all';
+            document.querySelectorAll('#' + tabId + '-tab .isolate-box').forEach(function(box) {{
+                if (box.querySelector('.box-details').innerHTML.trim()) {{
+                    applyCurrentDBFilter(box, tabId);
+                }}
+            }});
             filterBoxes(tabId);
         }}
 
         function sortTable(tableId, colIndex, type) {{
             var table = document.getElementById(tableId);
+            if (!table || !table.tBodies[0]) return;
             var tbody = table.tBodies[0];
             var rows = Array.from(tbody.rows);
-            var isAscending = table.getAttribute('data-sort-dir') !== 'asc';
-            rows.sort((a,b) => {{
-                var aVal = a.cells[colIndex].innerText.trim();
-                var bVal = b.cells[colIndex].innerText.trim();
+            var asc = table.getAttribute('data-sort-dir') !== 'asc';
+            rows.sort(function(a, b) {{
+                var av = a.cells[colIndex].innerText.trim();
+                var bv = b.cells[colIndex].innerText.trim();
                 if (type === 'number') {{
-                    aVal = parseFloat(aVal.replace(/,/g,'')) || 0;
-                    bVal = parseFloat(bVal.replace(/,/g,'')) || 0;
-                    return isAscending ? aVal - bVal : bVal - aVal;
-                }} else {{
-                    return isAscending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                    av = parseFloat(av.replace(/,/g, '')) || 0;
+                    bv = parseFloat(bv.replace(/,/g, '')) || 0;
+                    return asc ? av - bv : bv - av;
                 }}
+                return asc ? av.localeCompare(bv) : bv.localeCompare(av);
             }});
-            tbody.append(...rows);
-            table.setAttribute('data-sort-dir', isAscending ? 'asc' : 'desc');
-            var headers = table.querySelectorAll('th');
-            headers.forEach((th,idx) => {{
-                var icon = th.querySelector('.sort-icon');
-                if (icon) icon.innerHTML = '⇅';
-            }});
-            var currentHeader = headers[colIndex];
-            var icon = currentHeader.querySelector('.sort-icon');
-            if (icon) icon.innerHTML = isAscending ? '↑' : '↓';
+            tbody.append.apply(tbody, rows);
+            table.setAttribute('data-sort-dir', asc ? 'asc' : 'desc');
         }}
 
         function printSection(sectionId) {{
-            var content = document.getElementById(sectionId);
-            var win = window.open('', '_blank');
-            win.document.write('<html><head><title>Print</title><style>'+document.querySelector('style').textContent+'</style></head><body>'+content.innerHTML+'</body></html>');
-            win.document.close();
-            win.print();
+            var content = document.getElementById(sectionId); if (!content) return;
+            content.querySelectorAll('.isolate-box').forEach(function(box) {{
+                var tabId = box.getAttribute('data-tab') || sectionId.replace('-tab','');
+                var sample = box.getAttribute('data-sample');
+                var details = box.querySelector('.box-details');
+                if (details && !details.innerHTML.trim()) {{
+                    details.innerHTML = buildBoxContent(tabId, sample);
+                }}
+                if (details) details.style.display = 'block';
+            }});
+            var w = window.open('', '_blank');
+            var style = document.querySelector('style');
+            w.document.write('<html><head><title>Print</title>');
+            if (style) w.document.write('<style>' + style.textContent + '</style>');
+            w.document.write('</head><body>' + content.innerHTML + '</body></html>');
+            w.document.close();
+            w.print();
         }}
 
         function exportTableToCSV(tableId, filename) {{
-            var table = document.getElementById(tableId);
+            var table = document.getElementById(tableId); if (!table) return;
             var rows = table.querySelectorAll('tr');
             var csv = [];
             for (var i = 0; i < rows.length; i++) {{
@@ -1168,32 +1214,35 @@ class SampleCentricHTMLGenerator:
                 }}
                 csv.push(row.join(','));
             }}
-            var blob = new Blob([csv.join('\\n')], {{type:'text/csv'}});
+            var blob = new Blob([csv.join('\\n')], {{type: 'text/csv'}});
             var a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(a.href);
+            a.download = filename; a.href = URL.createObjectURL(blob);
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }}
 
         document.addEventListener('DOMContentLoaded', function() {{
             var hash = window.location.hash.substring(1);
-            if (hash) {{
-                var btn = document.querySelector(`.tab-button.${{hash}}`);
-                if (btn) btn.click();
-            }} else {{
-                document.querySelector('.tab-button').click();
-            }}
-            document.querySelectorAll('.data-table').forEach(table => {{
+            var target = hash ? document.querySelector('.tab-button.' + hash) : document.querySelector('.tab-button');
+            if (target) target.click();
+            document.querySelectorAll('.data-table').forEach(function(table) {{
                 var headers = table.querySelectorAll('th');
-                headers.forEach((th, idx) => {{
-                    var type = th.getAttribute('data-sort') || 'string';
-                    th.style.cursor = 'pointer';
-                    th.addEventListener('click', () => sortTable(table.id, idx, type));
+                headers.forEach(function(h, idx) {{
+                    var type = h.getAttribute('data-sort') || 'string';
+                    h.style.cursor = 'pointer';
+                    h.addEventListener('click', function() {{ sortTable(table.id, idx, type); }});
                     var icon = document.createElement('span');
-                    icon.className = 'sort-icon';
-                    icon.innerHTML = '⇅';
-                    th.appendChild(icon);
+                    icon.className = 'sort-icon'; icon.innerHTML = '\\u21C5';
+                    h.appendChild(icon);
+                }});
+            }});
+            document.querySelectorAll('.copy-btn').forEach(function(b) {{
+                b.addEventListener('click', function() {{
+                    var c = this.getAttribute('data-citation') || '';
+                    navigator.clipboard.writeText(c).then(() => {{
+                        var t = this.innerHTML;
+                        this.innerHTML = 'Copied';
+                        setTimeout(() => {{ this.innerHTML = t; }}, 2000);
+                    }});
                 }});
             }});
         }});
@@ -1208,76 +1257,43 @@ class SampleCentricHTMLGenerator:
             return ''
         keys = list(genes[0].keys()) if genes else []
         priority = ['gene', 'product', 'coverage_percent', 'identity_percent', 'accession', 'contig', 'start', 'stop', 'class', 'subclass', 'scope', 'resistance']
-        ordered = []
-        for p in priority:
-            if p in keys:
-                ordered.append(p)
+        ordered = [p for p in priority if p in keys]
         for k in keys:
             if k not in ordered:
                 ordered.append(k)
-        html = f"""
-                <div class="database-table-wrapper" data-db="{db_key}">
-                    <div class="db-title">{db_name}</div>
-                    <table>
-                        <thead>
-                            <tr>
-        """
+        html = f'<div class="database-table-wrapper" data-db="{db_key}"><div class="db-title">{db_name}</div><table><thead><tr>'
         for col in ordered:
-            display = col.replace('_', ' ').title()
-            html += f'<th>{display}</th>'
+            html += f'<th>{col.replace("_"," ").title()}</th>'
         html += '</tr></thead><tbody>'
         for gene_dict in genes:
             html += '<tr>'
             for col in ordered:
                 val = gene_dict.get(col, '')
-                if val is None:
-                    val = ''
+                if val is None: val = ''
                 html += f'<td>{val}</td>'
             html += '</tr>'
-        html += """
-                        </tbody>
-                    </table>
-                </div>
-        """
+        html += '</tbody></table></div>'
         return html
 
     def _make_mutation_table(self, mutations: List[Dict]) -> str:
         if not mutations:
             return ''
         cols = ['gene', 'mutation', 'class', 'subclass', 'contig', 'start', 'stop', 'strand', 'coverage', 'identity', 'accession']
-        html = """
-        <div class="database-table-wrapper" data-db="mutations">
-            <div class="db-title">Mutations</div>
-            <table>
-                <thead>
-                    <tr>
-        """
+        html = '<div class="database-table-wrapper" data-db="mutations"><div class="db-title">Mutations</div><table><thead><tr>'
         for col in cols:
-            display = col.replace('_', ' ').title()
-            html += f'<th>{display}</th>'
+            html += f'<th>{col.replace("_"," ").title()}</th>'
         html += '</tr></thead><tbody>'
         for mut in mutations:
             html += '<tr>'
             for col in cols:
                 val = mut.get(col, '')
-                if val is None or (isinstance(val, float) and val != val):
-                    val = ''
+                if val is None: val = ''
                 html += f'<td>{val}</td>'
             html += '</tr>'
-        html += """
-                </tbody>
-            </table>
-        </div>
-        """
+        html += '</tbody></table></div>'
         return html
 
-    def _build_isolate_box(self, sample: str, kwargs: Dict,
-                           amr_details: Dict = None,
-                           abricate_details: Dict = None,
-                           apt_data: Dict = None,
-                           db_list: List[str] = None,
-                           include_apt: bool = False,
-                           mutation_details: Dict = None) -> str:
+    def _build_isolate_box_header(self, sample: str, kwargs: Dict, total_items: int, tab_id: str) -> str:
         samples_data = kwargs.get('samples_data', {})
         data = samples_data.get(sample, {})
         pasteur = data.get('pasteur_mlst', {}).get('ST', 'ND')
@@ -1285,21 +1301,8 @@ class SampleCentricHTMLGenerator:
         k = data.get('kaptive', {}).get('K_Locus', 'ND')
         o = data.get('kaptive', {}).get('O_Locus', 'ND')
         capsule = data.get('kaptive', {}).get('Capsule_Type', 'ND')
-
-        total_items = 0
-        if amr_details and sample in amr_details and 'amrfinder' in db_list:
-            total_items += len(amr_details[sample])
-        if abricate_details and sample in abricate_details:
-            for db, genes in abricate_details[sample].items():
-                if db in db_list:
-                    total_items += len(genes)
-        if apt_data and include_apt and sample in apt_data:
-            total_items += len(apt_data[sample].get('rep_types', []))
-        if mutation_details and sample in mutation_details:
-            total_items += len(mutation_details[sample])
-
-        html = f'<div class="isolate-box" data-sample="{sample}">'
-        html += f"""
+        return f'''
+        <div class="isolate-box" data-sample="{sample}" data-tab="{tab_id}">
             <div class="sample-header">
                 <h3><i class="fas fa-microbe"></i> {sample}</h3>
                 <span class="total-badge">Total Items: {total_items}</span>
@@ -1310,37 +1313,12 @@ class SampleCentricHTMLGenerator:
                     <span class="typing-badge ocl-badge">OCL: {o}</span>
                     <span class="typing-badge capsule-badge">Capsule: {capsule}</span>
                 </div>
+                <button class="toggle-btn" onclick="toggleBoxDetails('{tab_id}', '{sample}')">
+                    <i class="fas fa-chevron-down"></i> Show Details
+                </button>
             </div>
-        """
-
-        if 'amrfinder' in db_list and amr_details and sample in amr_details and amr_details[sample]:
-            html += self._make_database_table('AMRfinder', amr_details[sample], 'amrfinder')
-
-        if abricate_details and sample in abricate_details:
-            for db, genes in abricate_details[sample].items():
-                if db in db_list:
-                    html += self._make_database_table(db.upper(), genes, db)
-
-        if include_apt and apt_data and sample in apt_data:
-            apt_info = apt_data[sample]
-            rep_types = apt_info.get('rep_types', [])
-            hit_count = apt_info.get('hit_count', 0)
-            if rep_types:
-                html += f"""
-                <div class="apt-section" data-db="APT">
-                    <div class="db-title">APT Rep Types</div>
-                    <div class="apt-rep-list">
-                        <strong>Hit Count:</strong> {hit_count} &nbsp;|&nbsp;
-                        <strong>Rep Types:</strong> {', '.join(rep_types)}
-                    </div>
-                </div>
-                """
-
-        if mutation_details and sample in mutation_details:
-            html += self._make_mutation_table(mutation_details[sample])
-
-        html += '</div>'
-        return html
+            <div class="box-details" style="display:none;"></div>
+        </div>'''
 
     def _sample_boxes_generic(self, kwargs, tab_id: str, title: str,
                               db_list: List[str], credit_type: str = '',
@@ -1365,157 +1343,71 @@ class SampleCentricHTMLGenerator:
         relevant_samples.sort()
 
         if not relevant_samples:
-            return f"""
-            <div class="alert-box alert-warning">
-                <i class="fas fa-exclamation-circle fa-2x"></i>
-                <div><h3>No {title} Data Available</h3><p>No samples with {title} genes were found.</p></div>
-            </div>
-            """
+            return f'<div class="alert-box alert-warning"><i class="fas fa-exclamation-circle fa-2x"></i><div><h3>No {title} Data Available</h3><p>No samples with {title} genes were found.</p></div></div>'
+
+        box_data = {}
+        for sample in relevant_samples:
+            entry = {'amrfinder': [], 'abricate': {}, 'apt': None}
+            if 'amrfinder' in db_list:
+                entry['amrfinder'] = amr_details.get(sample, [])
+            for db in db_list:
+                if db != 'amrfinder':
+                    entry['abricate'][db] = abricate_details.get(sample, {}).get(db, [])
+            if include_apt and sample in apt_data:
+                entry['apt'] = apt_data[sample]
+            box_data[sample] = entry
+        box_json = json.dumps(box_data, default=str, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
 
         credit_html = self._get_credit_bar(credit_type)
-
-        html = f"""
-        {credit_html}
-        <div class="alert-box alert-info">
-            <i class="fas fa-info-circle fa-2x"></i>
-            <div>
-                <h3>🧬 {title} – Interactive Isolate Boxes</h3>
-                <p>Each box represents one isolate. Inside, you will find separate tables for each database with full gene details – horizontally scrollable.</p>
-                <p>Use the filters below to search by sample name or to show only a specific database.</p>
-            </div>
-        </div>
-        <div class="filter-controls">
-            <input type="text" class="search-box" id="search-{tab_id}" onkeyup="filterBoxes('{tab_id}')" placeholder="🔍 Search sample...">
-            <select id="dbFilter-{tab_id}" onchange="filterBoxes('{tab_id}')">
-                <option value="all">All Databases</option>
-        """
+        db_options = '<option value="all">All Databases</option>'
         if 'amrfinder' in db_list:
-            html += '<option value="amrfinder">AMRfinder</option>'
+            db_options += '<option value="amrfinder">AMRfinder</option>'
         for db in db_list:
             if db != 'amrfinder':
-                html += f'<option value="{db}">{db.upper()}</option>'
+                db_options += f'<option value="{db}">{db.upper()}</option>'
         if include_apt:
-            html += '<option value="APT">APT</option>'
-        html += f"""
-            </select>
-            <button class="action-btn btn-success" onclick="resetBoxFilters('{tab_id}')"><i class="fas fa-sync"></i> Clear Filters</button>
+            db_options += '<option value="apt">APT</option>'
+
+        html = f'''
+        {credit_html}
+        <div class="filter-controls">
+            <input type="text" class="search-box" id="search-{tab_id}" onkeyup="filterBoxes('{tab_id}')" placeholder="🔍 Search sample..." style="max-width:320px;">
+            <select id="dbFilter-{tab_id}" onchange="filterBoxes('{tab_id}')">{db_options}</select>
+            <button class="action-btn btn-info" onclick="expandAllBoxes('{tab_id}')"><i class="fas fa-expand-alt"></i> Expand All (visible)</button>
+            <button class="action-btn btn-light" onclick="collapseAllBoxes('{tab_id}')"><i class="fas fa-compress-alt"></i> Collapse All</button>
+            <button class="action-btn btn-success" onclick="resetBoxFilters('{tab_id}')"><i class="fas fa-sync"></i> Clear</button>
+            <span class="results-counter" style="font-size:.9em;color:#555;font-weight:600;padding:8px 12px;background:#f0f0f0;border-radius:6px;" id="counter-{tab_id}">{len(relevant_samples)} shown</span>
         </div>
         <div id="box-container-{tab_id}">
-        """
-
+        '''
         for sample in relevant_samples:
-            html += self._build_isolate_box(sample, kwargs, amr_details=amr_details,
-                                            abricate_details=abricate_details,
-                                            apt_data=apt_data,
-                                            db_list=db_list,
-                                            include_apt=include_apt)
-        html += """
-        </div>
-        """
+            total = 0
+            if 'amrfinder' in db_list: total += len(amr_details.get(sample, []))
+            for db in db_list:
+                if db != 'amrfinder': total += len(abricate_details.get(sample, {}).get(db, []))
+            if include_apt and sample in apt_data: total += len(apt_data[sample].get('rep_types', []))
+            html += self._build_isolate_box_header(sample, kwargs, total, tab_id)
+        html += '</div>'
+        html += f'''
+        <script>
+        window.STAPHSCOPE_BOX_DATA = window.STAPHSCOPE_BOX_DATA || {{}};
+        window.STAPHSCOPE_BOX_DATA["{tab_id}"] = {box_json};
+        </script>'''
         return html
 
     def _get_credit_bar(self, credit_type: str) -> str:
         if credit_type == 'amr':
-            return """
-            <div class="scientific-note" style="background: linear-gradient(135deg, #f8f9fa 0%, #f8d7da 100%); border-left: 6px solid #dc3545; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                    <span style="font-size: 1.4em;">🧬</span>
-                    <div>
-                        <strong style="font-size: 1.2em; color: #a71d2a;">AMR Detection Tools & Databases</strong><br>
-                        <span style="font-size: 0.95em; color: #333;">
-                            <strong>ABRicate</strong> by <a href="https://github.com/tseemann/abricate" target="_blank" style="color: #dc3545; font-weight: bold;">Prof. Torsten Seemann</a> 
-                            <i class="fas fa-arrow-right"></i> Powered by databases:
-                            <a href="https://card.mcmaster.ca/" target="_blank" style="color: #28a745; font-weight: 600;">CARD</a>, 
-                            <a href="https://www.mediterranee-infection.com/amr-databases/" target="_blank" style="color: #17a2b8; font-weight: 600;">ARG-ANNOT</a>, 
-                            <a href="https://www.ncbi.nlm.nih.gov/pathogens/antimicrobial-resistance/" target="_blank" style="color: #007bff; font-weight: 600;">NCBI AMR</a>, 
-                            <a href="https://megares.meglab.org/" target="_blank" style="color: #fd7e14; font-weight: 600;">MEGARes</a>, 
-                            <a href="https://genepi.food.dtu.dk/resfinder" target="_blank" style="color: #20c997; font-weight: 600;">ResFinder</a>
-                            <br>
-                            <strong>AMRFinderPlus</strong> by <a href="https://github.com/ncbi/amr" target="_blank" style="color: #dc3545; font-weight: bold;">NCBI</a> 
-                            <i class="fas fa-arrow-right"></i> Comprehensive resistance gene and point mutation detection.
-                            <br>
-                            <span style="color: #6c757d;">
-                                <i class="fas fa-gratipay"></i> We are deeply grateful to all developers and curators for their open‑source contributions.
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            """
+            return """<div class="scientific-note" style="background:linear-gradient(135deg,#f8f9fa 0%,#f8d7da 100%);border-left:6px solid #dc3545;margin-bottom:20px;padding:15px;border-radius:8px;"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-size:1.4em;">🧬</span><div><strong style="font-size:1.2em;color:#a71d2a;">AMR Detection Tools & Databases</strong><br><span style="font-size:0.95em;color:#333;"><strong>ABRicate</strong> by <a href="https://github.com/tseemann/abricate" target="_blank" style="color:#dc3545;font-weight:bold;">Prof. Torsten Seemann</a> → CARD, ARG-ANNOT, NCBI AMR, MEGARes, ResFinder. <strong>AMRFinderPlus</strong> by <a href="https://github.com/ncbi/amr" target="_blank" style="color:#dc3545;font-weight:bold;">NCBI</a>.</span></div></div></div>"""
         elif credit_type == 'virulence':
-            return """
-            <div class="scientific-note" style="background: linear-gradient(135deg, #f8f9fa 0%, #fce4ec 100%); border-left: 6px solid #E91E63; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                    <span style="font-size: 1.4em;">🦠</span>
-                    <div>
-                        <strong style="font-size: 1.2em; color: #880e4f;">Virulence Detection Tools & Databases</strong><br>
-                        <span style="font-size: 0.95em; color: #333;">
-                            <strong>ABRicate</strong> by <a href="https://github.com/tseemann/abricate" target="_blank" style="color: #E91E63; font-weight: bold;">Prof. Torsten Seemann</a> 
-                            <i class="fas fa-arrow-right"></i> Powered by the 
-                            <a href="http://www.mgc.ac.cn/VFs/" target="_blank" style="color: #E91E63; font-weight: bold;">VFDB (Virulence Factor Database)</a> 
-                            – an open‑source resource for bacterial virulence factors.<br>
-                            <span style="color: #6c757d;">
-                                <i class="fas fa-gratipay"></i> We thank the VFDB curators and Prof. Seemann for their invaluable contributions.
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            """
+            return """<div class="scientific-note" style="background:linear-gradient(135deg,#f8f9fa 0%,#fce4ec 100%);border-left:6px solid #E91E63;margin-bottom:20px;padding:15px;border-radius:8px;"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-size:1.4em;">🦠</span><div><strong style="font-size:1.2em;color:#880e4f;">Virulence Detection Tools & Databases</strong><br><span style="font-size:0.95em;color:#333;"><strong>ABRicate</strong> → <strong>VFDB</strong>.</span></div></div></div>"""
         elif credit_type == 'bacmet':
-            return """
-            <div class="scientific-note" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff3e0 100%); border-left: 6px solid #FF5722; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                    <span style="font-size: 1.4em;">🧪</span>
-                    <div>
-                        <strong style="font-size: 1.2em; color: #bf360c;">BACMET – Biocide & Heavy Metal Resistance</strong><br>
-                        <span style="font-size: 0.95em; color: #333;">
-                            <strong>ABRicate</strong> by <a href="https://github.com/tseemann/abricate" target="_blank" style="color: #FF5722; font-weight: bold;">Prof. Torsten Seemann</a> 
-                            <i class="fas fa-arrow-right"></i> Powered by the 
-                            <a href="https://bacmet.biomedicine.gu.se/" target="_blank" style="color: #FF5722; font-weight: bold;">BacMet database</a> 
-                            (Pal C, et al. Nucleic Acids Res. 2014;42:D737-43)
-                            – an open‑source resource for antibacterial biocide and metal resistance genes.<br>
-                            <span style="color: #6c757d;">
-                                <i class="fas fa-gratipay"></i> We thank the BacMet curators and Prof. Seemann for their invaluable contributions.
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            """
+            return """<div class="scientific-note" style="background:linear-gradient(135deg,#f8f9fa 0%,#fff3e0 100%);border-left:6px solid #FF5722;margin-bottom:20px;padding:15px;border-radius:8px;"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-size:1.4em;">🧪</span><div><strong style="font-size:1.2em;color:#bf360c;">BACMET – Biocide & Heavy Metal Resistance</strong><br><span style="font-size:0.95em;color:#333;"><strong>ABRicate</strong> → <strong>BacMet</strong> (Pal et al., 2014).</span></div></div></div>"""
         elif credit_type == 'plasmids':
-            return """
-            <div class="scientific-note" style="background: linear-gradient(135deg, #f8f9fa 0%, #ede7f6 100%); border-left: 6px solid #673AB7; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                    <span style="font-size: 1.4em;">🔌</span>
-                    <div>
-                        <strong style="font-size: 1.2em; color: #4a148c;">Plasmid Typing Tools & Databases</strong><br>
-                        <span style="font-size: 0.95em; color: #333;">
-                            <strong>APT (Acinetobacter Plasmid Typing)</strong> by 
-                            <a href="https://github.com/MehradHamidian/AcinetobacterPlasmidTyping" target="_blank" style="color: #673AB7; font-weight: bold;">Hamidian Lab</a>
-                            (Lam MMC, et al. Microbiol Spectr. 2023;11(1):e0247822.
-                            <a href="https://doi.org/10.1128/spectrum.02478-22" target="_blank" style="color: #673AB7; font-weight: 600;">doi:10.1128/spectrum.02478-22</a>)
-                            <i class="fas fa-arrow-right"></i> Species‑specific plasmid typing for <em>Acinetobacter</em>.
-                            <br>
-                            <strong>PlasmidFinder</strong> by 
-                            <a href="https://genepi.food.dtu.dk/PlasmidFinder/" target="_blank" style="color: #673AB7; font-weight: bold;">Center for Genomic Epidemiology (DTU)</a>
-                            (Carattoli A, et al. Antimicrob Agents Chemother. 2014;58(7):3895-903.
-                            <a href="https://doi.org/10.1128/AAC.02412-14" target="_blank" style="color: #673AB7; font-weight: 600;">doi:10.1128/AAC.02412-14</a>)
-                            – generalist database for plasmid replicon detection.
-                            <br>
-                            <span style="color: #6c757d;">
-                                <i class="fas fa-gratipay"></i> We thank the developers and curators for making these resources freely available.
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            """
+            return """<div class="scientific-note" style="background:linear-gradient(135deg,#f8f9fa 0%,#ede7f6 100%);border-left:6px solid #673AB7;margin-bottom:20px;padding:15px;border-radius:8px;"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-size:1.4em;">🔌</span><div><strong style="font-size:1.2em;color:#4a148c;">Plasmid Typing Tools & Databases</strong><br><span style="font-size:0.95em;color:#333;"><strong>APT</strong> (Hamidian Lab, Lam et al., 2023) + <strong>PlasmidFinder</strong> (CGE, DTU, Carattoli et al., 2014).</span></div></div></div>"""
+        elif credit_type == 'mge':
+            return """<div class="scientific-note" style="background:linear-gradient(135deg,#f8f9fa 0%,#e0f2f1 100%);border-left:6px solid #16A085;margin-bottom:20px;padding:15px;border-radius:8px;"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-size:1.4em;">🧬</span><div><strong style="font-size:1.2em;color:#006064;">Mobile Genetic Elements – mobileOG-db</strong><br><span style="font-size:0.95em;color:#333;"><strong>mobileOG-db</strong> by <a href="https://github.com/clb21565/mobileOG-db" target="_blank" style="color:#16A085;font-weight:bold;">Brown, Mullet and colleagues</a> (Brown CL, et al. <em>Appl Environ Microbiol</em>. 2022;88(18):e00991-22).</span></div></div></div>"""
         return ""
 
-    # ------------------------------------------------------------------------
-    # Tab content methods
-    # ------------------------------------------------------------------------
     def _summary_section(self, kwargs, carb_count, env_count, mutation_count):
         samples = kwargs['samples_data']
         patterns = kwargs['patterns']
@@ -1527,16 +1419,16 @@ class SampleCentricHTMLGenerator:
         bac_total = sum(len(db) for db in kwargs['gene_centric'].get('bacmet_databases', {}).values())
         high_risk = len(patterns.get('high_risk_crab', []))
         ic_unique = len(set(d.get('pasteur_mlst',{}).get('International_Clone','Unknown') for d in samples.values() if d.get('pasteur_mlst',{}).get('International_Clone') not in ['Unknown','ND']))
-        return f"""
-        <div class="alert-box alert-info"><i class="fas fa-info-circle fa-2x"></i><div><h3>Sample‑Centric Analysis with Isolate Boxes</h3>
-        <p>This report provides an <strong>interactive per‑isolate view</strong> of all genomic features for <strong>{total}</strong> A. baumannii genomes.</p>
-        <ul><li>Each isolate is displayed in its own box with typing badges (Pasteur ST, Oxford ST, K, OCL, Capsule).</li>
-        <li>Inside each box, you will find tables with full details from TSV files – horizontally scrollable.</li>
-        <li>Filter boxes by sample name or by database (AMR, Virulence, BACMET, Plasmids).</li>
-        <li>Gene‑centric tabs (MLST, Kaptive, QC, Combinations, Co‑occurrence, Patterns) are also available.</li></ul>
+        mge_details = kwargs.get('mge_details', {})
+        mge_count = len([s for s, hits in mge_details.items() if hits])
+        return f'''
+        <div class="alert-box alert-info"><i class="fas fa-info-circle fa-2x"></i><div>
+            <h3>Sample-Centric Analysis</h3>
+            <p>Interactive per-isolate view for <strong>{total}</strong> A. baumannii genomes. Each isolate is displayed in its own box with typing badges. Details are lazily loaded on click to keep the report responsive on large datasets.</p>
+            <p>Gene-centric tabs (MLST, Kaptive, QC, Combinations, Co-occurrence, Patterns) are also available.</p>
         </div></div>
         {f'<div class="alert-box alert-danger"><i class="fas fa-exclamation-triangle fa-2x"></i><div><h3>⚠️ Critical Resistance Alert</h3><p><strong>{carb_count} carbapenemase genes</strong> detected across samples. Carbapenem-resistant A. baumannii (CRAB) is a WHO Critical Priority pathogen.</p></div></div>' if carb_count>0 else ''}
-        {f'<div class="alert-box alert-info"><i class="fas fa-globe-africa fa-2x"></i><div><h3>⚠️ Environmental Co-Selection Alert</h3><p><strong>{env_count} environmental resistance markers</strong> detected. These genes can co-select for antibiotic resistance in hospital environments.</p></div></div>' if env_count>0 else ''}
+        {f'<div class="alert-box alert-info"><i class="fas fa-globe-africa fa-2x"></i><div><h3>⚠️ Environmental Co-Selection Alert</h3><p><strong>{env_count} environmental resistance markers</strong> detected.</p></div></div>' if env_count>0 else ''}
         <h3>Key Statistics</h3>
         <div class="master-scrollable-container"><table id="summary-table" class="data-table"><thead><tr><th data-sort="string">Metric</th><th data-sort="number">Count</th><th data-sort="string">Details</th></tr></thead><tbody>
         <tr><td>Total Samples Analyzed</td><td><strong>{total}</strong></td><td>Complete genomic analysis with all databases</td></tr>
@@ -1547,7 +1439,8 @@ class SampleCentricHTMLGenerator:
         <tr><td>Carbapenemase Genes</td><td><span class="badge {'badge-critical' if carb_count>0 else 'badge-low'}">{carb_count}</span></td><td>OXA, NDM, VIM, IMP, KPC types</td></tr>
         <tr><td>Virulence Genes</td><td><strong>{vir_total}</strong></td><td>Biofilm formation, virulence factors</td></tr>
         <tr><td>Environmental Markers</td><td><span class="badge {'badge-high' if env_count>0 else 'badge-low'}">{env_count}</span></td><td>Heavy metal, biocide, stress response</td></tr>
-        <tr><td>Samples with Mutations</td><td><strong>{mutation_count}</strong></td><td>Point mutations detected (AMRFinderPlus)</td></tr>
+        <tr><td>Samples with Mutations</td><td><strong>{mutation_count}</strong></td><td>Point mutations (AMRFinderPlus)</td></tr>
+        <tr><td>Samples with MGE Hits</td><td><strong>{mge_count}</strong></td><td>mobileOG-db profiles</td></tr>
         <tr><td>High-Risk CRAB</td><td><span class="badge {'badge-critical' if high_risk>0 else 'badge-low'}">{high_risk}</span></td><td>Carbapenemase + last-resort resistance</td></tr>
         </tbody></table></div>
         <h3>Critical Resistance Categories Tracked</h3>
@@ -1558,7 +1451,7 @@ class SampleCentricHTMLGenerator:
             <div class="critical-card" style="background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);border-left:4px solid #4CAF50"><h4><i class="fas fa-layer-group"></i> Biofilm Formation</h4><p>ompA, csuABCDE, bfmRS, pili genes</p></div>
             <div class="critical-card" style="background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);border-left:4px solid #795548"><h4><i class="fas fa-globe-africa"></i> Environmental Markers ({env_count})</h4><p>Heavy metals, biocides, stress response, plasmid transfer</p></div>
         </div>
-        """
+        '''
 
     def _samples_section(self, kwargs):
         samples = kwargs['samples_data']
@@ -1572,7 +1465,7 @@ class SampleCentricHTMLGenerator:
             vir_counts[sample] = count
         html = """
         <div class="alert-box alert-info"><i class="fas fa-info-circle"></i><div><h3>Population Structure Overview</h3><p>This table summarises the key typing results for each genome. Understanding the population structure helps identify dominant clones, track outbreaks, and link genotypes to phenotypes.</p><ul><li><strong>MLST (Sequence Type)</strong>: Gold standard for global epidemiology.</li><li><strong>Capsule Typing (K:OCL)</strong>: K (capsule) and OCL (lipooligosaccharide) loci are critical for virulence and immune evasion.</li><li><strong>ND</strong>: Not Determined.</li></ul></div></div>
-        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('samples-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-samples').value=''; searchTable('samples-table','search-samples'); highlightTableCells('samples-table','highlight-samples')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV('samples-table','acinetobacter_samples.csv')"><i class="fas fa-download"></i> Export CSV</button></div>
+        <div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection('samples-tab')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById('search-samples').value=''; searchTable('samples-table','search-samples'); document.getElementById('highlight-samples').value=''; highlightTableCells('samples-table','highlight-samples')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV('samples-table','acinetobacter_samples.csv')"><i class="fas fa-download"></i> Export CSV</button></div>
         <div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-samples" onkeyup="searchTable('samples-table','search-samples')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-samples" onkeyup="highlightTableCells('samples-table','highlight-samples')" placeholder="✨ Highlight text..."></div>
         <div class="master-scrollable-container">
             <table id="samples-table" class="data-table">
@@ -1630,7 +1523,7 @@ class SampleCentricHTMLGenerator:
             metrics.update(d.keys())
         metrics = sorted(metrics)
         html += '<div class="alert-box alert-info"><i class="fas fa-chart-line"></i><div><h3>FASTA Quality Control</h3><p>Assembly quality metrics for each genome: total sequences, total bases, GC%, N50, etc.</p></div></div>'
-        html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'qc-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-qc\').value=\'\'; searchTable(\'qc-table\',\'search-qc\'); highlightTableCells(\'qc-table\',\'highlight-qc\')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV(\'qc-table\',\'fasta_qc.csv\')"><i class="fas fa-download"></i> Export CSV</button></div>'
+        html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'qc-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-qc\').value=\'\'; searchTable(\'qc-table\',\'search-qc\'); document.getElementById(\'highlight-qc\').value=\'\'; highlightTableCells(\'qc-table\',\'highlight-qc\')"><i class="fas fa-sync"></i> Clear Search</button><button class="action-btn btn-success" onclick="exportTableToCSV(\'qc-table\',\'fasta_qc.csv\')"><i class="fas fa-download"></i> Export CSV</button></div>'
         html += '<div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-qc" onkeyup="searchTable(\'qc-table\',\'search-qc\')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-qc" onkeyup="highlightTableCells(\'qc-table\',\'highlight-qc\')" placeholder="✨ Highlight text..."></div>'
         html += '<div class="master-scrollable-container"><table id="qc-table" class="data-table"><thead><tr><th data-sort="string" style="min-width:200px">Sample</th>'
         for m in metrics:
@@ -1678,11 +1571,6 @@ class SampleCentricHTMLGenerator:
                             the allele definitions used in this report are current as of <strong>2024</strong>. 
                             Future updates may require manual downloads from the PubMLST website.
                         </span>
-                        <br>
-                        <span style="font-size: 0.9em; color: #6c757d;">
-                            <i class="fas fa-gratipay"></i> We are grateful to the PubMLST curators and Torsten Seemann 
-                            for providing these essential open‑source tools.
-                        </span>
                     </span>
                 </div>
             </div>
@@ -1697,14 +1585,9 @@ class SampleCentricHTMLGenerator:
         """
         for st, cnt in sorted(pasteur.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if st=='ND': continue
-            if isinstance(cnt, dict):
-                count = cnt.get('count',0)
-                pct = (count/total_pasteur)*100 if total_pasteur else 0
-                freq = f"{count} ({pct:.1f}%)"
-            else:
-                count = cnt
-                pct = (count/total_pasteur)*100 if total_pasteur else 0
-                freq = f"{count} ({pct:.1f}%)"
+            count = cnt if isinstance(cnt, int) else cnt.get('count',0)
+            pct = (count/total_pasteur)*100 if total_pasteur else 0
+            freq = f"{count} ({pct:.1f}%)"
             sample_list = [s for s,d in samples.items() if d.get('pasteur_mlst',{}).get('ST')==str(st)]
             tags = self._make_genome_tags(sample_list)
             html += f'<tr><td><strong>ST{st}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
@@ -1713,14 +1596,9 @@ class SampleCentricHTMLGenerator:
         html += '<div class="master-scrollable-container"><table id="mlst-oxford-table" class="data-table"><thead><tr><th data-sort="string">ST</th><th data-sort="number">Frequency</th><th data-sort="string">Samples</th></tr></thead><tbody>'
         for st, cnt in sorted(oxford.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if st=='ND': continue
-            if isinstance(cnt, dict):
-                count = cnt.get('count',0)
-                pct = (count/total_oxford)*100 if total_oxford else 0
-                freq = f"{count} ({pct:.1f}%)"
-            else:
-                count = cnt
-                pct = (count/total_oxford)*100 if total_oxford else 0
-                freq = f"{count} ({pct:.1f}%)"
+            count = cnt if isinstance(cnt, int) else cnt.get('count',0)
+            pct = (count/total_oxford)*100 if total_oxford else 0
+            freq = f"{count} ({pct:.1f}%)"
             sample_list = [s for s,d in samples.items() if d.get('oxford_mlst',{}).get('ST')==str(st)]
             tags = self._make_genome_tags(sample_list)
             html += f'<tr><td><strong>ST{st}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
@@ -1753,11 +1631,6 @@ class SampleCentricHTMLGenerator:
                         <i class="fas fa-arrow-right"></i> 
                         Identifies capsule (K) and lipooligosaccharide (OCL) loci in <em>Acinetobacter baumannii</em> 
                         from whole‑genome sequence data.
-                        <br>
-                        <span style="color: #6c757d;">
-                            <i class="fas fa-gratipay"></i> We are deeply grateful to the developers for making this tool freely available 
-                            for genomic surveillance of A. baumannii.
-                        </span>
                     </span>
                 </div>
             </div>
@@ -1772,14 +1645,9 @@ class SampleCentricHTMLGenerator:
         totalk = sum(k_dist.values()) if k_dist else 0
         for k, cnt in sorted(k_dist.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if k=='ND': continue
-            if isinstance(cnt, dict):
-                count = cnt.get('count',0)
-                pct = (count/totalk)*100 if totalk else 0
-                freq = f"{count} ({pct:.1f}%)"
-            else:
-                count = cnt
-                pct = (count/totalk)*100 if totalk else 0
-                freq = f"{count} ({pct:.1f}%)"
+            count = cnt if isinstance(cnt, int) else cnt.get('count',0)
+            pct = (count/totalk)*100 if totalk else 0
+            freq = f"{count} ({pct:.1f}%)"
             sample_list = [s for s,d in samples.items() if d.get('kaptive',{}).get('K_Locus')==k]
             tags = self._make_genome_tags(sample_list)
             html += f'<tr><td><strong>{k}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
@@ -1789,14 +1657,9 @@ class SampleCentricHTMLGenerator:
         totalo = sum(o_dist.values()) if o_dist else 0
         for o, cnt in sorted(o_dist.items(), key=lambda x: x[1] if isinstance(x[1], int) else x[1].get('count',0), reverse=True):
             if o=='ND': continue
-            if isinstance(cnt, dict):
-                count = cnt.get('count',0)
-                pct = (count/totalo)*100 if totalo else 0
-                freq = f"{count} ({pct:.1f}%)"
-            else:
-                count = cnt
-                pct = (count/totalo)*100 if totalo else 0
-                freq = f"{count} ({pct:.1f}%)"
+            count = cnt if isinstance(cnt, int) else cnt.get('count',0)
+            pct = (count/totalo)*100 if totalo else 0
+            freq = f"{count} ({pct:.1f}%)"
             sample_list = [s for s,d in samples.items() if d.get('kaptive',{}).get('O_Locus')==o]
             tags = self._make_genome_tags(sample_list)
             html += f'<tr><td><strong>{o}</strong></td><td>{freq}</td><td><div class="genome-list">{tags}</div></td></tr>'
@@ -1871,39 +1734,73 @@ class SampleCentricHTMLGenerator:
                         <a href="https://github.com/ncbi/amr" target="_blank" style="color: #00BCD4; font-weight: bold;">NCBI</a>
                         (Feldgarden M, et al. Sci Rep. 2021;11(1):12728.
                         <a href="https://doi.org/10.1038/s41598-021-91456-0" target="_blank" style="color: #00BCD4; font-weight: 600;">doi:10.1038/s41598-021-91456-0</a>)
-                        <i class="fas fa-arrow-right"></i> 
-                        Comprehensive detection of antimicrobial resistance genes and point mutations.
-                        <br>
-                        <span style="color: #6c757d;">
-                            <i class="fas fa-gratipay"></i> We thank the NCBI team for maintaining this essential resource for genomic surveillance.
-                        </span>
                     </span>
                 </div>
             </div>
         </div>
         """
-        html += """
-        <div class="alert-box alert-info">
-            <i class="fas fa-dna fa-2x"></i>
-            <div>
-                <h3>🧬 Point Mutations – Sample‑Centric View</h3>
-                <p>Each box represents one isolate. Inside, you will find a table of all detected point mutations with full details – horizontally scrollable.</p>
-                <p>Use the search bar below to filter boxes by sample name.</p>
-            </div>
-        </div>
+        box_data = {s: {'mutations': mutation_details.get(s, [])} for s in relevant_samples}
+        box_json = json.dumps(box_data, default=str, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+
+        html += f'''
         <div class="filter-controls">
-            <input type="text" class="search-box" id="search-mutation" onkeyup="filterBoxes('mutation')" placeholder="🔍 Search sample...">
-            <button class="action-btn btn-success" onclick="resetBoxFilters('mutation')"><i class="fas fa-sync"></i> Clear Filters</button>
+            <input type="text" class="search-box" id="search-mutation" onkeyup="filterBoxes('mutation')" placeholder="🔍 Search sample..." style="max-width:320px;">
+            <button class="action-btn btn-info" onclick="expandAllBoxes('mutation')"><i class="fas fa-expand-alt"></i> Expand All (visible)</button>
+            <button class="action-btn btn-light" onclick="collapseAllBoxes('mutation')"><i class="fas fa-compress-alt"></i> Collapse All</button>
+            <button class="action-btn btn-success" onclick="resetBoxFilters('mutation')"><i class="fas fa-sync"></i> Clear</button>
+            <span class="results-counter" style="font-size:.9em;color:#555;font-weight:600;padding:8px 12px;background:#f0f0f0;border-radius:6px;" id="counter-mutation">{len(relevant_samples)} shown</span>
         </div>
         <div id="box-container-mutation">
-        """
+        '''
         for sample in relevant_samples:
-            html += self._build_isolate_box(sample, kwargs,
-                                            db_list=['mutations'],
-                                            mutation_details=mutation_details)
-        html += """
+            n_mut = len(mutation_details.get(sample, []))
+            html += self._build_isolate_box_header(sample, kwargs, n_mut, 'mutation')
+        html += '</div>'
+        html += f'''
+        <script>
+        window.STAPHSCOPE_BOX_DATA = window.STAPHSCOPE_BOX_DATA || {{}};
+        window.STAPHSCOPE_BOX_DATA["mutation"] = {box_json};
+        </script>'''
+        return html
+
+    def _mge_boxes(self, kwargs):
+        samples_data = kwargs.get('samples_data', {})
+        mge_details = kwargs.get('mge_details', {})
+        relevant_samples = [s for s in samples_data if s in mge_details and mge_details[s]]
+        relevant_samples.sort()
+
+        if not relevant_samples:
+            return """
+            <div class="alert-box alert-warning">
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+                <div><h3>No MGE Data Available</h3><p>No mobileOG-db hits were found for any sample.</p></div>
+            </div>
+            """
+
+        credit_html = self._get_credit_bar('mge')
+        box_data = {s: {'mge': mge_details.get(s, [])} for s in relevant_samples}
+        box_json = json.dumps(box_data, default=str, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+
+        html = f'''
+        {credit_html}
+        <div class="filter-controls">
+            <input type="text" class="search-box" id="search-mge" onkeyup="filterBoxes('mge')" placeholder="🔍 Search sample..." style="max-width:320px;">
+            <button class="action-btn btn-info" onclick="expandAllBoxes('mge')"><i class="fas fa-expand-alt"></i> Expand All (visible)</button>
+            <button class="action-btn btn-light" onclick="collapseAllBoxes('mge')"><i class="fas fa-compress-alt"></i> Collapse All</button>
+            <button class="action-btn btn-success" onclick="resetBoxFilters('mge')"><i class="fas fa-sync"></i> Clear</button>
+            <span class="results-counter" style="font-size:.9em;color:#555;font-weight:600;padding:8px 12px;background:#f0f0f0;border-radius:6px;" id="counter-mge">{len(relevant_samples)} shown</span>
         </div>
-        """
+        <div id="box-container-mge">
+        '''
+        for sample in relevant_samples:
+            n_mge = len(mge_details.get(sample, []))
+            html += self._build_isolate_box_header(sample, kwargs, n_mge, 'mge')
+        html += '</div>'
+        html += f'''
+        <script>
+        window.STAPHSCOPE_BOX_DATA = window.STAPHSCOPE_BOX_DATA || {{}};
+        window.STAPHSCOPE_BOX_DATA["mge"] = {box_json};
+        </script>'''
         return html
 
     def _cooccurrence_section(self, kwargs):
@@ -1945,7 +1842,7 @@ class SampleCentricHTMLGenerator:
         <div class="alert-box alert-info"><i class="fas fa-project-diagram"></i><div><h3>Pattern Discovery – CRAB (Carbapenem‑resistant A. baumannii)</h3><p>Carbapenem‑resistant A. baumannii (CRAB) isolates with last‑resistance genes (colistin/tigecycline). These represent high‑risk, difficult‑to‑treat infections.</p></div></div>
         """
         if crab:
-            html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'patterns-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-patterns\').value=\'\'; searchTable(\'crab-table\',\'search-patterns\'); highlightTableCells(\'crab-table\',\'highlight-patterns\')"><i class="fas fa-sync"></i> Clear</button></div>'
+            html += '<div class="action-buttons"><button class="action-btn btn-primary" onclick="printSection(\'patterns-tab\')"><i class="fas fa-print"></i> Print Section</button><button class="action-btn btn-secondary" onclick="document.getElementById(\'search-patterns\').value=\'\'; searchTable(\'crab-table\',\'search-patterns\'); document.getElementById(\'highlight-patterns\').value=\'\'; highlightTableCells(\'crab-table\',\'highlight-patterns\')"><i class="fas fa-sync"></i> Clear</button></div>'
             html += '<div style="display:flex; gap:10px;"><input type="text" class="search-box" id="search-patterns" onkeyup="searchTable(\'crab-table\',\'search-patterns\')" placeholder="🔍 Filter rows..."><input type="text" class="search-box" id="highlight-patterns" onkeyup="highlightTableCells(\'crab-table\',\'highlight-patterns\')" placeholder="✨ Highlight text..."></div>'
             html += '<div class="master-scrollable-container"><table id="crab-table" class="data-table"><thead><tr><th data-sort="string">Sample</th><th data-sort="string">ST</th><th data-sort="string">Capsule (K:OCL)</th><th data-sort="string">Carbapenemases</th><th data-sort="string">Colistin Resistance</th><th data-sort="string">Tigecycline Resistance</th></tr></thead><tbody>'
             for c in crab:
@@ -1956,127 +1853,41 @@ class SampleCentricHTMLGenerator:
         return html
 
     def _aiguide_section(self):
-            return """
-            <div class="alert-box alert-info"><i class="fas fa-robot fa-2x"></i><div><h3>AI Assistant Guide – Unleash the Power of AI for Genomic Epidemiology</h3><p>This guide shows you how to leverage large language models (LLMs) like <strong>ChatGPT, Claude, or Gemini</strong> to interact with your <em>A. baumannii</em> dataset – turning static reports into dynamic conversations.</p></div></div>
-            <div style="margin: 20px 0;">
-                <div class="database-section"><h4><i class="fas fa-brain"></i> Why Use AI for Genomic Data Analysis?</h4><p>Modern AI models excel at:</p><ul><li><strong>Pattern recognition</strong> – spotting epidemiological trends, clone associations, and co‑occurrence networks.</li><li><strong>Natural language queries</strong> – ask in plain English, get instant answers without writing code.</li><li><strong>Hypothesis generation</strong> – uncover unexpected correlations that merit experimental follow‑up.</li><li><strong>Literature synthesis</strong> – connect your findings with published resistance mechanisms and clinical guidelines.</li></ul><p><span style="background:#fff3cd; padding:2px 8px; border-radius:4px;"><i class="fas fa-lightbulb"></i> <strong>Scientific note:</strong> AI is <em>pattern‑finding</em>, not <em>causal‑inferring</em>. Use it to suggest, then verify with wet‑lab or clinical correlation.</span></p></div>
-                <div class="database-section"><h4><i class="fas fa-upload"></i> How to Feed This Report to AI</h4><p>You have <strong>three powerful options</strong>:</p><ol><li><strong>Upload the JSON file</strong> – <code>genius_acinetobacter_ultimate_gene_centric_report.json</code> contains all structured data. Upload it to ChatGPT (Advanced Data Analysis), Claude, or Gemini. <em>Best for precise quantitative queries.</em></li><li><strong>Upload the HTML report</strong> – Modern AI tools can read HTML and extract tables. Upload the <code>.html</code> file directly – the AI will parse the tables and text. <em>Great for visual context.</em></li><li><strong>Copy‑paste specific tables</strong> – If you only need a quick insight, copy a table (e.g., AMR gene list) and paste it into the chat. <em>Instant, no file upload needed.</em></li></ol><p style="margin-top:10px; background:#e8f5e9; padding:10px; border-radius:5px;"><i class="fas fa-info-circle"></i> <strong>Pro tip:</strong> For best results, tell the AI: <em>"You are a bioinformatician analysing <em>A. baumannii</em> genomes. The attached data contains typing, AMR, virulence, BACMET, and mutation information. Answer my questions with references to the data."</em></p></div>
-                <div class="database-section"><h4><i class="fas fa-chart-line"></i> Scientifically Relevant Questions to Ask</h4><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>🧬 Epidemiology &amp; Clonality</strong><ul style="margin-top:5px; font-size:0.9em;"><li>What are the most common Pasteur STs in this dataset?</li><li>Which capsule types (K:OCL) are dominant?</li><li>Are there any ST‑capsule combinations with >2 isolates?</li><li>Which clones carry the most resistance genes?</li></ul></div><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>💊 Antimicrobial Resistance</strong><ul style="margin-top:5px; font-size:0.9em;"><li>How many samples carry OXA-23? What are their STs?</li><li>Are there any NDM‑positive samples? What is their capsule type?</li><li>Which AMR genes co‑occur most frequently?</li><li>What is the distribution of colistin resistance genes (mcr, pmr)?</li></ul></div><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>🦠 Virulence &amp; Biofilm</strong><ul style="margin-top:5px; font-size:0.9em;"><li>Which samples carry biofilm genes (ompA, csu)?</li><li>List all isolates with the T6SS (tss, hcp).</li><li>Is there a correlation between capsule type and virulence gene carriage?</li></ul></div><div style="background:#f8f9fa; padding:10px; border-radius:8px;"><strong>🧪 Mutations &amp; Biocides</strong><ul style="margin-top:5px; font-size:0.9em;"><li>What are the most frequent point mutations in gyrA or parC?</li><li>Are there any 23S rRNA mutations (tigecycline resistance)?</li><li>Which samples carry qac genes (disinfectant resistance)?</li></ul></div></div><p style="margin-top:10px;"><i class="fas fa-arrow-right"></i> <strong>Beyond tables:</strong> Ask the AI to <em>“write a summary of the resistance profile for ST2”</em> or <em>“compare virulence gene carriage between K1 and K2 capsule types”</em> – the report contains all data.</p></div>
-                <div class="database-section"><h4><i class="fas fa-balance-scale"></i> Scientific Rigour &amp; Ethical AI Use</h4><ul><li><strong>AI is your co‑pilot, not the pilot.</strong> Always interpret AI‑generated insights in the context of your local epidemiology, clinical guidelines, and laboratory validation.</li><li><strong>Verify, verify, verify.</strong> Cross‑check critical calls (e.g., carbapenemase presence, colistin resistance) with primary literature, genome browsers, or secondary tools.</li><li><strong>No patient‑identifiable data.</strong> Only upload aggregated, de‑identified genomic data. This report contains no clinical metadata.</li><li><strong>Transparency in publications.</strong> If you use AI for exploratory analysis, mention it in the methods (e.g., “AI‑assisted pattern discovery was performed using a large language model, followed by manual curation”).</li><li><strong>AI hallucination is real.</strong> If the AI confidently tells you that <em>blaOXA-23</em> is found in <em>E. coli</em> or that tigecycline resistance is caused by a mutation in <em>rpoB</em> – <strong>don’t believe it</strong>. Treat every AI statement as a hypothesis, not a fact.</li></ul></div>
-                <div class="database-section" style="background:#fff3cd; border-left:6px solid #ffc107;"><h4><i class="fas fa-smile-wink"></i> A (Mostly Serious) AI Survival Guide</h4><ul><li><strong>If the AI says “I don’t know”</strong> – trust it. It’s being honest.</li><li><strong>If the AI says “It is widely known”</strong> – ask for a reference. It may have made it up.</li><li><strong>If the AI offers a completely novel evolutionary theory</strong> – check if your coffee is spiked.</li><li><strong>Remember:</strong> AI won’t take your job – but a microbiologist who knows how to use AI might! So learn it, use it, and always keep a healthy dose of scepticism. 😉</li></ul><p style="margin-top:10px;"><i class="fas fa-microbe"></i> <strong>Final thought:</strong> The best AI‑human partnership is one where the AI does the heavy pattern‑lifting, and you do the heavy thinking. Happy (and careful) exploring!</p></div>
-            </div>
-            """
-
+        return """
+        <div class="alert-box alert-info"><i class="fas fa-robot fa-2x"></i><div><h3>AI Assistant Guide – Genomic Epidemiology</h3><p>Leverage large language models (LLMs) like ChatGPT, Claude, or Gemini to interact with your <em>A. baumannii</em> dataset.</p></div></div>
+        <div style="margin:20px 0;">
+            <div class="database-section"><h4><i class="fas fa-brain"></i> Why Use AI for Genomic Data Analysis?</h4><ul><li><strong>Pattern recognition</strong> – epidemiological trends, clone associations, co‑occurrence networks.</li><li><strong>Natural language queries</strong> – ask in plain English, get instant answers.</li><li><strong>Hypothesis generation</strong> – uncover unexpected correlations worth follow‑up.</li><li><strong>Literature synthesis</strong> – connect findings with published resistance mechanisms.</li></ul><p><span style="background:#fff3cd;padding:2px 8px;border-radius:4px;"><i class="fas fa-lightbulb"></i> <strong>Note:</strong> AI is pattern-finding, not causal-inferring. Verify with wet-lab or clinical correlation.</span></p></div>
+            <div class="database-section"><h4><i class="fas fa-upload"></i> How to Feed This Report to AI</h4><ol><li><strong>Upload the JSON file</strong> – <code>genius_acinetobacter_sample_centric_report.json</code> contains all structured data.</li><li><strong>Upload the HTML report</strong> – modern AI tools parse HTML tables.</li><li><strong>Copy-paste specific tables</strong> – for quick insights.</li></ol><p style="margin-top:10px;background:#e8f5e9;padding:10px;border-radius:5px;"><i class="fas fa-info-circle"></i> <strong>Pro tip:</strong> tell the AI: <em>"You are a bioinformatician analysing A. baumannii genomes. The attached data contains typing, AMR, virulence, BACMET, mutation, and MGE information. Answer my questions with references to the data."</em></p></div>
+            <div class="database-section"><h4><i class="fas fa-chart-line"></i> Scientifically Relevant Questions</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div style="background:#f8f9fa;padding:10px;border-radius:8px;"><strong>🧬 Epidemiology &amp; Clonality</strong><ul style="margin-top:5px;font-size:0.9em;"><li>Most common Pasteur STs in this dataset?</li><li>Dominant capsule types (K:OCL)?</li><li>ST‑capsule combinations with >2 isolates?</li><li>Which clones carry the most resistance genes?</li></ul></div><div style="background:#f8f9fa;padding:10px;border-radius:8px;"><strong>💊 Antimicrobial Resistance</strong><ul style="margin-top:5px;font-size:0.9em;"><li>How many samples carry OXA-23? STs?</li><li>NDM‑positive samples? Capsule type?</li><li>AMR genes co-occurring most frequently?</li><li>Colistin resistance (mcr, pmr) distribution?</li></ul></div><div style="background:#f8f9fa;padding:10px;border-radius:8px;"><strong>🦠 Virulence &amp; Biofilm</strong><ul style="margin-top:5px;font-size:0.9em;"><li>Samples carrying biofilm genes (ompA, csu)?</li><li>Isolates with T6SS (tss, hcp)?</li><li>Capsule type vs virulence gene carriage?</li></ul></div><div style="background:#f8f9fa;padding:10px;border-radius:8px;"><strong>🧪 Mutations &amp; Biocides</strong><ul style="margin-top:5px;font-size:0.9em;"><li>Most frequent gyrA or parC mutations?</li><li>23S rRNA mutations (tigecycline)?</li><li>Samples carrying qac genes (disinfectant resistance)?</li></ul></div></div></div>
+            <div class="database-section"><h4><i class="fas fa-balance-scale"></i> Scientific Rigour &amp; Ethical AI Use</h4><ul><li><strong>AI is your co‑pilot, not the pilot.</strong> Interpret in local epidemiological context.</li><li><strong>Verify, verify, verify.</strong> Cross‑check critical calls with primary literature.</li><li><strong>No patient‑identifiable data.</strong> Only upload aggregated, de‑identified data.</li><li><strong>Transparency in publications.</strong> Mention AI‑assisted pattern discovery in methods, followed by manual curation.</li><li><strong>AI hallucination is real.</strong> Treat every AI statement as a hypothesis, not a fact.</li></ul></div>
+        </div>
+        """
 
     def _citation_section(self):
         citations = [
-            {
-                "title": "AcinetoScope",
-                "text": "Beckley et al. A species‑specific computational pipeline for rapid, comprehensive Acinetobacter baumannii outbreak investigation and resistance gene tracking. GitHub 2026.",
-                "url": "https://github.com/bbeckley-hub/acinetoscope",
-                "category": "main"
-            },
-            {
-                "title": "MLST",
-                "text": "Seemann T. MLST: Scan contig files against PubMLST typing schemes. GitHub. 2018.",
-                "url": "https://github.com/tseemann/mlst",
-                "category": "tool"
-            },
-            {
-                "title": "PubMLST",
-                "text": "Jolley KA, Bray JE, Maiden MCJ. Open‑access bacterial population genomics: BIGSdb software, the PubMLST.org website and their applications. Wellcome Open Res. 2018;3:124.",
-                "url": "https://doi.org/10.12688/wellcomeopenres.14826.1",
-                "category": "db"
-            },
-            {
-                "title": "Kaptive 3",
-                "text": "Stanton TD, Hetland MAK, Löhr IH, Holt KE, Wyres KL. Fast and Accurate in silico Antigen Typing with Kaptive 3. Microbial Genomics. 2025;11(6):001428.",
-                "url": "https://doi.org/10.1099/mgen.0.001428",
-                "category": "tool"
-            },
-            {
-                "title": "APT (Acinetobacter Plasmid Typing)",
-                "text": "Lam MMC, Koong J, Holt KE, Hall RM, Hamidian M. Detection and Typing of Plasmids in Acinetobacter baumannii Using rep Genes Encoding Replication Initiation Proteins. Microbiol Spectr. 2023;11(1):e0247822.",
-                "url": "https://doi.org/10.1128/spectrum.02478-22",
-                "category": "tool"
-            },
-            {
-                "title": "AMRFinderPlus",
-                "text": "Feldgarden M, et al. AMRFinderPlus and the Reference Gene Catalog facilitate examination of the genomic links among antimicrobial resistance, stress response, and virulence. Sci Rep. 2021;11(1):12728.",
-                "url": "https://doi.org/10.1038/s41598-021-91456-0",
-                "category": "tool"
-            },
-            {
-                "title": "ABRicate",
-                "text": "Seemann T. ABRicate: mass screening of contigs for antibiotic resistance genes. GitHub. 2024.",
-                "url": "https://github.com/tseemann/abricate",
-                "category": "tool"
-            },
-            {
-                "title": "FastANI",
-                "text": "Jain C, Rodriguez-R LM, Phillippy AM, Konstantinidis KT, Aluru S. High throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. Nat Commun. 2018;9(1):5114.",
-                "url": "https://doi.org/10.1038/s41467-018-07641-9",
-                "category": "tool"
-            },
-            {
-                "title": "CARD",
-                "text": "Alcock BP, et al. CARD 2023: expanded curation, support for machine learning, and resistome prediction at the Comprehensive Antibiotic Resistance Database. Nucleic Acids Res. 2023;51(D1):D690-D699.",
-                "url": "https://doi.org/10.1093/nar/gkac920",
-                "category": "db"
-            },
-            {
-                "title": "ResFinder",
-                "text": "Bortolaia V, et al. ResFinder 4.0 for predictions of phenotypes from genotypes. J Antimicrob Chemother. 2020;75(12):3491-3500.",
-                "url": "https://doi.org/10.1093/jac/dkaa345",
-                "category": "db"
-            },
-            {
-                "title": "VFDB",
-                "text": "Chen L, Zheng D, Liu B, Yang J, Jin Q. VFDB 2016: hierarchical and refined dataset for big data analysis – 10 years on. Nucleic Acids Res. 2016;44(D1):D694-D697.",
-                "url": "https://doi.org/10.1093/nar/gkv1239",
-                "category": "db"
-            },
-            {
-                "title": "PlasmidFinder",
-                "text": "Carattoli A, et al. In silico detection and typing of plasmids using PlasmidFinder and plasmid multilocus sequence typing. Antimicrob Agents Chemother. 2014;58(7):3895-903.",
-                "url": "https://doi.org/10.1128/AAC.02412-14",
-                "category": "db"
-            },
-            {
-                "title": "EcOH",
-                "text": "Inouye M, et al. SRST2: Rapid genomic surveillance for public health and hospital microbiology labs. Microb Genom. 2016;2(7):e000064.",
-                "url": "https://doi.org/10.1099/mgen.0.000064",
-                "category": "db"
-            },
-            {
-                "title": "MEGARes 3.0",
-                "text": "Bonin N, et al. MEGARes 3.0: a curated and updated database for antimicrobial resistance, biocide, and metal resistance gene detection. Nucleic Acids Res. 2023;51(D1):D677-D684.",
-                "url": "https://doi.org/10.1093/nar/gkac1047",
-                "category": "db"
-            },
-            {
-                "title": "ARG-ANNOT",
-                "text": "Gupta SK, et al. ARG-ANNOT, a new bioinformatic tool to discover antibiotic resistance genes in bacterial genomes. Antimicrob Agents Chemother. 2014;58(1):212-20.",
-                "url": "https://doi.org/10.1128/AAC.01310-13",
-                "category": "db"
-            },
-            {
-                "title": "BacMet",
-                "text": "Pal C, et al. BacMet: antibacterial biocide and metal resistance genes database. Nucleic Acids Res. 2014;42(Database issue):D737-43.",
-                "url": "https://doi.org/10.1093/nar/gkt1252",
-                "category": "db"
-            },
-            {
-                "title": "Biopython",
-                "text": "Cock PJ, et al. Biopython: freely available Python tools for computational molecular biology and bioinformatics. Bioinformatics. 2009;25(11):1422-3.",
-                "url": "https://doi.org/10.1093/bioinformatics/btp163",
-                "category": "other"
-            }
+            {"title": "AcinetoScope", "text": "Beckley B, Amarh V, Lopes BS, et al. AcinetoScope: a computational pipeline for rapid, comprehensive Acinetobacter baumannii outbreak investigation and resistance gene tracking. Sci Rep. 2026.", "url": "https://doi.org/10.1038/s41598-026-70189-y", "category": "main"},
+            {"title": "MLST", "text": "Seemann T. MLST: Scan contig files against PubMLST typing schemes. GitHub. 2018.", "url": "https://github.com/tseemann/mlst", "category": "tool"},
+            {"title": "PubMLST", "text": "Jolley KA, Bray JE, Maiden MCJ. Open-access bacterial population genomics: BIGSdb software, the PubMLST.org website and their applications. Wellcome Open Res. 2018;3:124.", "url": "https://doi.org/10.12688/wellcomeopenres.14826.1", "category": "db"},
+            {"title": "Kaptive 3", "text": "Stanton TD, Hetland MAK, Löhr IH, Holt KE, Wyres KL. Fast and Accurate in silico Antigen Typing with Kaptive 3. Microbial Genomics. 2025;11(6):001428.", "url": "https://doi.org/10.1099/mgen.0.001428", "category": "tool"},
+            {"title": "APT (Acinetobacter Plasmid Typing)", "text": "Lam MMC, Koong J, Holt KE, Hall RM, Hamidian M. Detection and Typing of Plasmids in Acinetobacter baumannii Using rep Genes Encoding Replication Initiation Proteins. Microbiol Spectr. 2023;11(1):e0247822.", "url": "https://doi.org/10.1128/spectrum.02478-22", "category": "tool"},
+            {"title": "AMRFinderPlus", "text": "Feldgarden M, et al. AMRFinderPlus and the Reference Gene Catalog facilitate examination of the genomic links among antimicrobial resistance, stress response, and virulence. Sci Rep. 2021;11(1):12728.", "url": "https://doi.org/10.1038/s41598-021-91456-0", "category": "tool"},
+            {"title": "ABRicate", "text": "Seemann T. ABRicate: mass screening of contigs for antibiotic resistance genes. GitHub. 2024.", "url": "https://github.com/tseemann/abricate", "category": "tool"},
+            {"title": "FastANI", "text": "Jain C, Rodriguez-R LM, Phillippy AM, Konstantinidis KT, Aluru S. High throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. Nat Commun. 2018;9(1):5114.", "url": "https://doi.org/10.1038/s41467-018-07641-9", "category": "tool"},
+            {"title": "CARD", "text": "Alcock BP, et al. CARD 2023: expanded curation, support for machine learning, and resistome prediction at the Comprehensive Antibiotic Resistance Database. Nucleic Acids Res. 2023;51(D1):D690-D699.", "url": "https://doi.org/10.1093/nar/gkac920", "category": "db"},
+            {"title": "ResFinder", "text": "Bortolaia V, et al. ResFinder 4.0 for predictions of phenotypes from genotypes. J Antimicrob Chemother. 2020;75(12):3491-3500.", "url": "https://doi.org/10.1093/jac/dkaa345", "category": "db"},
+            {"title": "VFDB", "text": "Chen L, Zheng D, Liu B, Yang J, Jin Q. VFDB 2016: hierarchical and refined dataset for big data analysis – 10 years on. Nucleic Acids Res. 2016;44(D1):D694-D697.", "url": "https://doi.org/10.1093/nar/gkv1239", "category": "db"},
+            {"title": "PlasmidFinder", "text": "Carattoli A, et al. In silico detection and typing of plasmids using PlasmidFinder and plasmid multilocus sequence typing. Antimicrob Agents Chemother. 2014;58(7):3895-903.", "url": "https://doi.org/10.1128/AAC.02412-14", "category": "db"},
+            {"title": "EcOH", "text": "Inouye M, et al. SRST2: Rapid genomic surveillance for public health and hospital microbiology labs. Microb Genom. 2016;2(7):e000064.", "url": "https://doi.org/10.1099/mgen.0.000064", "category": "db"},
+            {"title": "MEGARes 3.0", "text": "Bonin N, et al. MEGARes 3.0: a curated and updated database for antimicrobial resistance, biocide, and metal resistance gene detection. Nucleic Acids Res. 2023;51(D1):D677-D684.", "url": "https://doi.org/10.1093/nar/gkac1047", "category": "db"},
+            {"title": "ARG-ANNOT", "text": "Gupta SK, et al. ARG-ANNOT, a new bioinformatic tool to discover antibiotic resistance genes in bacterial genomes. Antimicrob Agents Chemother. 2014;58(1):212-20.", "url": "https://doi.org/10.1128/AAC.01310-13", "category": "db"},
+            {"title": "BacMet", "text": "Pal C, et al. BacMet: antibacterial biocide and metal resistance genes database. Nucleic Acids Res. 2014;42(Database issue):D737-43.", "url": "https://doi.org/10.1093/nar/gkt1252", "category": "db"},
+            {"title": "mobileOG-db", "text": "Brown CL, Mullet J, Hindi F, Stoll JE, Gupta S, Choi M, Keenum I, Vikesland P, Pruden A, Zhang L. mobileOG-db: a Manually Curated Database of Protein Families Mediating the Life Cycle of Bacterial Mobile Genetic Elements. Appl Environ Microbiol. 2022;88(18):e00991-22.", "url": "https://doi.org/10.1128/aem.00991-22", "category": "tool"},
+            {"title": "Biopython", "text": "Cock PJ, et al. Biopython: freely available Python tools for computational molecular biology and bioinformatics. Bioinformatics. 2009;25(11):1422-3.", "url": "https://doi.org/10.1093/bioinformatics/btp163", "category": "other"},
         ]
 
         html = """
         <div class="alert-box alert-info"><i class="fas fa-quote-right fa-2x"></i><div><h3>Citations & Acknowledgements</h3><p>Please cite the following tools and databases if you use this report in your research.</p></div></div>
-        <div style="margin: 20px 0;">
+        <div style="margin:20px 0;">
         """
         for cite in citations:
             cat_class = cite['category']
@@ -2095,7 +1906,7 @@ class SampleCentricHTMLGenerator:
         html += """
         </div>
         <div class="alert-box alert-success" style="margin-top:20px;"><i class="fas fa-hand-peace"></i><div><strong>Suggested acknowledgement:</strong><br>
-        "Genomic analysis was performed using AcinetoScope [Beckley et al., 2026], which integrates MLST [Seemann, 2018] using the PubMLST database [Jolley et al., 2018], Kaptive 3 [Stanton et al., 2025], ABRicate [Seemann, 2024], AMRFinderPlus [Feldgarden et al., 2021], APT (Acinetobacter Plasmid Typing) [Lam et al., 2023], PlasmidFinder [Carattoli et al., 2014], and FastANI [Jain et al., 2018]. Antimicrobial resistance genes were identified using CARD [Alcock et al., 2023], ResFinder [Bortolaia et al., 2020], MEGARes 3.0 [Bonin et al., 2023], and ARG-ANNOT [Gupta et al., 2014]. For biocide and heavy metal resistance genes, BacMet [Pal et al., 2014] was used. Virulence screening was performed with ABRicate using VFDB [Chen et al., 2016]. Mutation detection was performed using AMRFinderPlus. FASTA QC was performed using Biopython [Cock et al., 2009]."
+        "Genomic analysis was performed using AcinetoScope (Beckley B, Amarh V, Lopes BS, et al. Sci Rep. 2026; doi:10.1038/s41598-026-70189-y), which integrates MLST (Seemann, 2018) using the PubMLST database (Jolley et al., 2018), Kaptive 3 (Stanton et al., 2025), ABRicate (Seemann, 2024), AMRFinderPlus (Feldgarden et al., 2021), APT (Acinetobacter Plasmid Typing) (Lam et al., 2023), PlasmidFinder (Carattoli et al., 2014), mobileOG-db (Brown et al., 2022), and FastANI (Jain et al., 2018). Antimicrobial resistance genes were identified using CARD (Alcock et al., 2023), ResFinder (Bortolaia et al., 2020), MEGARes 3.0 (Bonin et al., 2023), and ARG-ANNOT (Gupta et al., 2014). For biocide and heavy metal resistance genes, BacMet (Pal et al., 2014) was used. Virulence screening was performed with ABRicate using VFDB (Chen et al., 2016). Mutation detection was performed using AMRFinderPlus. FASTA QC was performed using Biopython (Cock et al., 2009)."
         </div></div>
         <script>
         document.querySelectorAll('.copy-btn').forEach(btn => {
@@ -2113,25 +1924,72 @@ class SampleCentricHTMLGenerator:
         return html
 
     def _funding_section(self):
-            return """
-            <div class="alert-box alert-info"><i class="fas fa-coffee fa-2x"></i><div><h3>Funding & Support – Keeping the Lights On (with code and caffeine)</h3><p>AcinetoScope is an <strong>independent, unfunded project</strong> born out of passion for genomic surveillance and AMR research at the University of Ghana Medical School.</p><p>No grants, no sponsors, no institutional backing – just a laptop, a lot of coffee, and a burning desire to help researchers fight antimicrobial resistance.</p></div></div>
-            <div class="alert-box alert-warning"><i class="fas fa-heart fa-2x"></i><div><h3>💡 How You Can Help (Without Opening Your Wallet)</h3><ul><li><strong>⭐ Star us on GitHub</strong> – It takes two seconds and makes us feel like rockstars.</li><li><strong>🐛 Report bugs</strong> – If something breaks, let us know. We’ll fix it with joy.</li><li><strong>💡 Suggest features</strong> – Have an idea? We’re all ears.</li><li><strong>🧬 Share your data</strong> – If you’ve used the tool and want to collaborate, we’d love to hear your story.</li><li><strong>📢 Spread the word</strong> – Tell your colleagues, tweet about it, or mention it in your next Zoom call.</li><li><strong>👋 Say hello!</strong> – Seriously, just drop an email to <strong>brownbeckley94@gmail.com</strong>. It makes our day.</li></ul><p><i class="fas fa-microbe"></i> <strong>Fun fact:</strong> This project runs on 100% volunteer tears, 0% grant money. But we’re not bitter – we’re just caffeinated.</p></div></div>
-            <div class="alert-box alert-success"><i class="fas fa-hand-holding-heart"></i><div><h3>🤝 Contribute to the ESKAPE AMR Platform</h3><p>We also maintain pipelines for other ESKAPE pathogens (Kleboscope, Pseudoscope, etc.). If you’re a developer, bioinformatician, or just someone who loves clean code and bacteria, we welcome: pull requests, issues, documentation improvements, ideas for new databases. Visit our GitHub: <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a> – star, fork, and let’s fight AMR together!</p><p><strong>Brown Beckley</strong> – <i class="fas fa-envelope"></i> brownbeckley94@gmail.com</p><p><i class="fas fa-laugh-beam"></i> <strong>P.S.</strong> If you ever meet Brown in person, buy him a coffee – he’ll probably talk your ear off about ST types, but it’s worth it.</p></div></div>
-            """
+        return """
+        <div class="alert-box alert-info"><i class="fas fa-coffee fa-2x"></i><div><h3>Funding & Support – Keeping the Lights On (with code and caffeine)</h3><p>AcinetoScope is an <strong>independent, unfunded project</strong> born out of passion for genomic surveillance and AMR research at the University of Ghana Medical School.</p><p>No grants, no sponsors, no institutional backing – just a laptop, a lot of coffee, and a burning desire to help researchers fight antimicrobial resistance.</p></div></div>
+        <div class="alert-box alert-warning"><i class="fas fa-heart fa-2x"></i><div><h3>💡 How You Can Help</h3><ul><li><strong>⭐ Star us on GitHub</strong> – It takes two seconds.</li><li><strong>🐛 Report bugs</strong> – If something breaks, let us know.</li><li><strong>💡 Suggest features</strong> – Have an idea? We're all ears.</li><li><strong>🧬 Share your data</strong> – Collaboration welcomes.</li><li><strong>📢 Spread the word</strong> – Tell your colleagues.</li><li><strong>👋 Say hello!</strong> – <strong>brownbeckley94@gmail.com</strong>.</li></ul></div></div>
+        <div class="alert-box alert-success"><i class="fas fa-hand-holding-heart"></i><div><h3>🤝 Contribute to the ESKAPE AMR Platform</h3><p>We also maintain pipelines for other ESKAPE pathogens. Visit our GitHub: <a href="https://github.com/bbeckley-hub" target="_blank">https://github.com/bbeckley-hub</a>.</p><p><strong>Brown Beckley</strong> – <i class="fas fa-envelope"></i> brownbeckley94@gmail.com</p></div></div>
+        """
 
     def _export_section(self):
         return """
         <div class="alert-box alert-info"><i class="fas fa-download"></i><div>Export data tables as CSV or download complete JSON.</div></div>
         <div class="action-buttons">
             <button class="action-btn btn-primary" onclick="exportTableToCSV('samples-table','acinetobacter_samples.csv')">Sample Overview CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('amr-table','amr_genes.csv')">AMR Genes CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('vir-table','virulence_genes.csv')">Virulence Genes CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('bac-table','bacmet_genes.csv')">Bacmet CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('apt-rep-table','apt_plasmid_rep_freq.csv')">APT Plasmid Rep Frequency CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('plasmidfinder-table','plasmidfinder_markers.csv')">PlasmidFinder CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('mutation-table','mutations.csv')">Mutations CSV</button>
-            <button class="action-btn btn-primary" onclick="exportTableToCSV('cooccurrence-table','cooccurrence.csv')">Co‑occurrence CSV</button>
+            <button class="action-btn btn-primary" onclick="exportTableToCSV('qc-table','fasta_qc.csv')">FASTA QC CSV</button>
+            <button class="action-btn btn-primary" onclick="exportTableToCSV('cooccurrence-table','cooccurrence.csv')">Co-occurrence CSV</button>
             <button class="action-btn btn-success" onclick="location.href='genius_acinetobacter_sample_centric_report.json'">Download JSON</button>
+        </div>
+        <p style="color:#666;font-size:.92em;"><i class="fas fa-info-circle"></i> Gene, MGE, and mutation tables are lazy-loaded. Click Show Details on any isolate box to load, then use the JSON file for bulk export.</p>
+        """
+
+
+    def _calltoaction_section(self):
+        return """
+        <div class="alert-box alert-info">
+            <i class="fas fa-globe fa-2x"></i>
+            <div>
+                <h3>The Global Burden of AMR and Our Call to Action</h3>
+                <p>Antimicrobial resistance (AMR) is one of the top global public health threats, with an estimated <strong>1.27 million direct deaths annually</strong>. <em>Acinetobacter baumannii</em> is a WHO Critical Priority pathogen — carbapenem-resistant strains (CRAB) are increasingly untreatable, and MDR/XDR lineages are spreading in hospitals worldwide. Tracking AMR and virulence determinants is essential to inform treatment guidelines and infection control.</p>
+                <p>We developed <strong>AcinetoScope</strong> to empower researchers and clinicians — especially in low-resource settings — to analyse their own sequencing data without extensive bioinformatics expertise.</p>
+            </div>
+        </div>
+        <div style="background:#e8f5e9;padding:20px;border-radius:12px;margin:20px 0;">
+            <h3><i class="fas fa-bacterium"></i> ESCAPE AMR – Our Ongoing Project (ESKAPE Pathogens)</h3>
+            <p><strong>AcinetoScope</strong> is a core module of a larger initiative called <strong>ESCAPE AMR</strong> (formerly ESKAPE). We target the notorious <strong>ESKAPE pathogens</strong>:</p>
+            <ul>
+                <li><strong>E</strong>nterococcus faecium</li>
+                <li><strong>S</strong>taphylococcus aureus (StaphScope)</li>
+                <li><strong>K</strong>lebsiella pneumoniae (Kleboscope)</li>
+                <li><strong>A</strong>cinetobacter baumannii (AcinetoScope – this tool)</li>
+                <li><strong>P</strong>seudomonas aeruginosa (Pseudoscope)</li>
+                <li><strong>E</strong>nterobacter species</li>
+            </ul>
+            <p>These bacteria "escape" the effects of antibiotics — hence the name. But we believe the name is also a global call to action:</p>
+            <div style="background:#fff3e0;padding:15px;border-radius:8px;margin:15px 0;">
+                <p><strong>🔹 E</strong>veryone must join forces — researchers, clinicians, policymakers, and citizens.<br>
+                <strong>🔹 S</strong>mart surveillance is our first line of defence. No more guessing — we need genomic data.<br>
+                <strong>🔹 K</strong>nowledge must be shared openly. No paywalls, no closed silos.<br>
+                <strong>🔹 A</strong>frica bears a heavy AMR burden, but African solutions are already emerging.<br>
+                <strong>🔹 P</strong>revention is cheaper than cure. Let's stop resistant infections before they spread.<br>
+                <strong>🔹 E</strong>very day we delay, more lives are at stake. The time to act is now, not tomorrow.</p>
+            </div>
+            <p><i class="fas fa-laugh-squint"></i> <strong>"We didn't choose the name ESKAPE because it sounds cool (though it does). We chose it because it reminds us every single day: we must ESCAPE the AMR crisis — together, urgently, and with the best science we have."</strong><br>— Brown Beckley, lead developer (who secretly hopes this pun makes you smile, not roll your eyes 😉)</p>
+        </div>
+        <div style="text-align:center;margin:40px 0;">
+            <i class="fas fa-star" style="font-size:3em;color:#ffc107;"></i>
+            <h3>🤝 We Invite You to Contribute!</h3>
+            <p><strong>If you find this tool useful, please:</strong></p>
+            <div class="action-buttons" style="justify-content:center;">
+                <a href="https://github.com/bbeckley-hub/acinetoscope" target="_blank" class="action-btn btn-primary" style="text-decoration:none;"><i class="fab fa-github"></i> ⭐ Star us on GitHub</a>
+                <a href="mailto:brownbeckley94@gmail.com" class="action-btn btn-success" style="text-decoration:none;"><i class="fas fa-envelope"></i> Contact the team</a>
+                <a href="https://github.com/bbeckley-hub/acinetoscope/issues" target="_blank" class="action-btn btn-warning" style="text-decoration:none;"><i class="fas fa-bug"></i> Report issues</a>
+            </div>
+            <p style="margin-top:20px;"><i class="fas fa-chalkboard-user"></i> <strong>We welcome collaborations</strong> to adapt this tool for other pathogens and to improve AMR surveillance in Africa and beyond.</p>
+            <p><i class="fas fa-hand-holding-heart"></i> If you are a funder or organisation interested in supporting the <strong>ESCAPE AMR</strong> project, please reach out. Together we can build a free, open-source ecosystem for genomic surveillance of all ESKAPE pathogens.</p>
+        </div>
+        <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+            <i class="fas fa-quote-left"></i> "AMR is a silent pandemic, but we have the tools to fight it — if we share them, if we teach each other, and if we act with urgency. Let's escape the era of untreatable infections."<br>
+            <strong>— The ESCAPE AMR Team, University of Ghana Medical School</strong>
         </div>
         """
 
@@ -2145,8 +2003,8 @@ class SampleCentricReporter:
         self.analyzer = SampleCentricAnalyzer()
         self.html_generator = SampleCentricHTMLGenerator(self.analyzer)
         self.metadata = {
-            "tool_name": "GENIUS Acinetobacter baumannii Sample‑Centric Reporter",
-            "version": "1.1.0",
+            "tool_name": "GENIUS Acinetobacter baumannii Sample-Centric Reporter",
+            "version": "1.2.0",
             "author": "Brown Beckley <brownbeckley94@gmail.com>",
             "affiliation": "University of Ghana Medical School",
             "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -2155,9 +2013,9 @@ class SampleCentricReporter:
 
     def run(self):
         print("=" * 80)
-        print("🧬 GENIUS ACINETOBACTER SAMPLE‑CENTRIC REPORTER v1.1.0")
-        print("   Interactive per‑isolate boxes for AMR, Virulence, BACMET, Plasmids, Mutations")
-        print("   Gene‑centric for MLST, Kaptive, QC, Combinations, Co‑occurrence, Patterns")
+        print("🧬 GENIUS ACINETOBACTER SAMPLE-CENTRIC REPORTER v1.2.0")
+        print("   Lazy-rendered isolate boxes for AMR, Virulence, BACMET, Plasmids, Mutations, MGE")
+        print("   Gene-centric for MLST, Kaptive, QC, Combinations, Co-occurrence, Patterns")
         print("=" * 80)
         print(f"📁 Input directory: {self.input_dir}")
 
@@ -2166,10 +2024,19 @@ class SampleCentricReporter:
         abricate_details, _ = self.parser.load_abricate_tsv(self.input_dir)
         apt_data = self.parser.load_apt_tsv(self.input_dir)
         mutation_details = self.parser.load_mutations_tsv(self.input_dir)
+        mge_details = self.parser.load_mge_tsv(self.input_dir)
+        print(f"   AMR: {len(amr_details)} samples")
+        print(f"   ABRicate: {len(abricate_details)} samples")
+        print(f"   APT: {len(apt_data)} samples")
+        print(f"   Mutations: {len(mutation_details)} samples")
+        print(f"   MGE: {len(mge_details)} samples")
 
         print("\n📄 Parsing HTML reports...")
         pasteur = self.parser.parse_mlst_report(self.input_dir / 'pasteur_mlst_summary.html', 'pasteur')
-        oxford = self.parser.parse_mlst_report(self.input_dir / 'oxford_mlst_summary.html', 'oxford')
+        oxford = {}
+        oxford_path = self.input_dir / 'oxford_mlst_summary.html'
+        if oxford_path.exists():
+            oxford = self.parser.parse_mlst_report(oxford_path, 'oxford')
         kaptive = self.parser.parse_kaptive_report(self.input_dir / 'Kaptive_summary.html')
         qc_data = self.parser.parse_qc_report(self.input_dir / 'FASTA_QC_summary.html')
 
@@ -2178,6 +2045,7 @@ class SampleCentricReporter:
         all_samples.update(abricate_details.keys())
         all_samples.update(apt_data.keys())
         all_samples.update(mutation_details.keys())
+        all_samples.update(mge_details.keys())
         all_samples = sorted(list(all_samples))
         total_samples = len(all_samples)
         print(f"\n📊 Found {total_samples} unique samples")
@@ -2191,7 +2059,6 @@ class SampleCentricReporter:
             }
 
         gene_centric = self.analyzer.build_gene_centric_frequencies(amr_details, abricate_details, total_samples)
-
         patterns = self.analyzer.build_cross_genome_patterns(samples_data, gene_centric)
 
         sample_genes = defaultdict(set)
@@ -2238,7 +2105,8 @@ class SampleCentricReporter:
             'amr_details': amr_details,
             'abricate_details': abricate_details,
             'apt_data': apt_data,
-            'mutation_details': mutation_details
+            'mutation_details': mutation_details,
+            'mge_details': mge_details
         }
 
         print("\n📊 Generating reports...")
@@ -2280,6 +2148,7 @@ class SampleCentricReporter:
         abricate_details = data.get('abricate_details', {})
         apt_data = data.get('apt_data', {})
         mutation_details = data.get('mutation_details', {})
+        mge_details = data.get('mge_details', {})
         patterns = data['patterns']
 
         vir_counts = {}
@@ -2296,7 +2165,8 @@ class SampleCentricReporter:
             'Oxford_ST': d.get('oxford_mlst', {}).get('ST', 'ND'),
             'K_Locus': d.get('kaptive', {}).get('K_Locus', 'ND'),
             'OCL_Locus': d.get('kaptive', {}).get('O_Locus', 'ND'),
-            'Virulence_Count': vir_counts.get(s, 0)
+            'Virulence_Count': vir_counts.get(s, 0),
+            'MGE_Hits': len(mge_details.get(s, []))
         } for s, d in samples_data.items()])
         samples_df.to_csv(self.output_dir / "sample_overview.csv", index=False)
 
@@ -2317,6 +2187,13 @@ class SampleCentricReporter:
                 for m in muts:
                     mut_rows.append({'Sample': sample, **m})
             pd.DataFrame(mut_rows).to_csv(self.output_dir / "mutations.csv", index=False)
+
+        if mge_details:
+            mge_rows = []
+            for sample, hits in mge_details.items():
+                for h in hits:
+                    mge_rows.append({'Sample': sample, **h})
+            pd.DataFrame(mge_rows).to_csv(self.output_dir / "mge_hits.csv", index=False)
 
         if apt_data:
             apt_rows = [{'Genome': s, 'HitCount': info['hit_count'], 'RepTypes': ','.join(info['rep_types'])} for s, info in apt_data.items()]
@@ -2339,7 +2216,7 @@ class SampleCentricReporter:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='GENIUS Acinetobacter baumannii Sample‑Centric Reporter v1.1.0')
+    parser = argparse.ArgumentParser(description='GENIUS Acinetobacter baumannii Sample-Centric Reporter v1.2.0')
     parser.add_argument('-i', '--input-dir', required=True, help='Directory containing AcinetoScope TSV and HTML files')
     parser.add_argument('-o', '--output-dir', help='Custom output directory (optional)')
     args = parser.parse_args()
