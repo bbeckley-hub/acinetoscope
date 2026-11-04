@@ -5,7 +5,7 @@ Comprehensive Kaptive analysis for A. baumannii with beautiful HTML reporting
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
 Date: 2026-07-18 (updated 2026-08-23) final (updated 2026-11-01)
-Version: 1.4.0
+Version: 1.4.1
 
 Per-sample outputs (1 file each, inside ONE level of subfolder):
     <output>/<sample>/<sample>_kaptive_report.html
@@ -53,7 +53,7 @@ class AcinetoKaptive:
 
         self.metadata = {
             "tool_name": "AcinetoScope Kaptive K/O Analysis",
-            "version": "1.4.0",
+            "version": "1.4.1",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",

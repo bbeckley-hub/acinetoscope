@@ -102,7 +102,7 @@ ENV MAMBA_ROOT_PREFIX=/opt/conda
 # --- Inline entrypoint --------------------------------------------------------
 # Sets up the full conda env activation (PATH, LD_LIBRARY_PATH, CONDA_PREFIX)
 # that bioconda binaries like amrfinder, diamond, blastn, prodigal, kaptive,
-# and mobileOG-db's DIAMOND calls need at runtime. Also prepends
+## and mobileOG-db's DIAMOND calls need at runtime. Also prepends
 # `acinetoscope` if the first argument starts with a dash, so
 # `docker run image -i x.fna -o out` works directly.
 RUN printf '%s\n' \

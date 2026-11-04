@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-AcinetoScope Main Orchestrator - v1.4.0
+AcinetoScope Main Orchestrator - v1.4.1
 All module writes happen in /tmp, final results are copied to user output.
 HPC / Docker-friendly with full flag support.
 
-Changelog (1.4.0):
+Changelog (1.4.1):
   • NEW: MGE module (mobileOG-db) integrated into the pipeline
   • NEW: --pull-mge-db downloads mobileOG-db to a writable location
     (conda users only; Docker/Singularity already bundle the data)
@@ -48,7 +48,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Set
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 
 # ----------------------------------------------------------------------
@@ -497,7 +497,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         repo_url = os.environ.get(
             "ACINETOSCOPE_MGE_PULL_URL",
             "https://github.com/bbeckley-hub/acinetoscope/releases/download/"
-            "v1.4.0/acinetoscope-mge-data-v1.4.0.zip",
+            "v1.4.1/acinetoscope-mge-data-v1.4.1.zip",
         )
         temp_zip = Path(tempfile.mktemp(suffix=".zip"))
         extract_dir = None
