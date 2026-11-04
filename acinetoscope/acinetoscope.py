@@ -6,6 +6,8 @@ HPC / Docker-friendly with full flag support.
 
 Changelog (1.4.0):
   • NEW: MGE module (mobileOG-db) integrated into the pipeline
+  • NEW: --pull-mge-db downloads mobileOG-db to a writable location
+    (conda users only; Docker/Singularity already bundle the data)
   • NEW: Species gate (FASTA_QC_species_passed.txt) filters downstream modules
   • NEW: --skip-mge flag
   • NEW: Citations printed at end of every run + in --help epilog
@@ -26,7 +28,7 @@ Changelog (1.3.3):
 
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2026-08-22 / 2026-10-24 / 2026-10-29
+Date: 2026-08-22 / 2026-10-24 / 2026-10-29 / 2026-11-04
 """
 
 import os
@@ -426,6 +428,148 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         return bin_dir, db_dir
 
     # ------------------------------------------------------------------
+    # MGE database resolution + management
+    # ------------------------------------------------------------------
+    def get_mge_data_dir(self, for_update: bool = False) -> Optional[Path]:
+        """Return the mobileOG-db data directory.
+
+        Resolution order:
+          1. $ACINETOSCOPE_MGE_DATA_DIR env override
+          2. User-local ~/.local/share/acinetoscope/mge_module/mobileOG-db/
+             (populated by `acinetoscope --pull-mge-db`)
+          3. Packaged <module>/mobileOG-db/ (Docker / Singularity)
+        """
+        env_dir = os.environ.get("ACINETOSCOPE_MGE_DATA_DIR")
+        if env_dir:
+            env_path = Path(env_dir)
+            if for_update:
+                env_path.mkdir(parents=True, exist_ok=True)
+                return env_path
+            if self._mge_db_has_data(env_path):
+                return env_path
+
+        user_dir = self.get_shared_data_root() / "mge_module" / "mobileOG-db"
+        if for_update:
+            user_dir.mkdir(parents=True, exist_ok=True)
+            return user_dir
+        if self._mge_db_has_data(user_dir):
+            if self.logger:
+                self.logger.info(f"Using user-local mobileOG-db: {user_dir}")
+            return user_dir
+
+        module_db = self.get_module_path("mge_module") / "mobileOG-db"
+        if self._mge_db_has_data(module_db):
+            return module_db
+
+        return None
+
+    @staticmethod
+    def _mge_db_has_data(db_dir: Optional[Path]) -> bool:
+        """Return True if the directory contains the beatrix DIAMOND index."""
+        if db_dir is None or not db_dir.exists():
+            return False
+        candidates = [
+            db_dir / "beatrix-1-6_v1_all" / "mobileOG-db-beatrix-1.6.dmnd",
+            db_dir / "mobileOG-db-beatrix-1.6.dmnd",
+            db_dir / "beatrix-1-6_v1_all.dmnd",
+        ]
+        return any(c.exists() for c in candidates)
+
+    def pull_mge_database(self) -> bool:
+        """Download the mobileOG-db payload from the GitHub release.
+
+        Docker and Singularity users do not need this — the data is baked
+        into the image and get_mge_data_dir() finds it there automatically.
+        Conda users run `acinetoscope --pull-mge-db` once after install.
+        """
+        module_path = self.get_module_path("mge_module")
+
+        if module_path.exists() and os.access(module_path, os.W_OK):
+            target_root = module_path
+            self.print_info(f"Using writable module directory: {target_root}")
+        else:
+            target_root = self.get_shared_data_root() / "mge_module"
+            target_root.mkdir(parents=True, exist_ok=True)
+            self.print_info(
+                f"Module dir is read-only; using user-local path: {target_root}"
+            )
+
+        repo_url = os.environ.get(
+            "ACINETOSCOPE_MGE_PULL_URL",
+            "https://github.com/bbeckley-hub/acinetoscope/releases/download/"
+            "v1.4.0/acinetoscope-mge-data-v1.4.0.zip",
+        )
+        temp_zip = Path(tempfile.mktemp(suffix=".zip"))
+        extract_dir = None
+
+        try:
+            self.print_info(f"Downloading mobileOG-db from {repo_url}")
+            self.print_info(
+                "Payload is approximately 300 MB, this may take a few minutes..."
+            )
+            urllib.request.urlretrieve(repo_url, temp_zip)
+            self.print_success("Download complete")
+
+            extract_dir = Path(tempfile.mkdtemp(prefix="acinetoscope_mge_extract_"))
+            with zipfile.ZipFile(temp_zip, "r") as zip_ref:
+                zip_ref.extractall(extract_dir)
+            self.print_info(f"Extracted to {extract_dir}")
+
+            beatrix_dir = None
+            for root, dirs, _ in os.walk(extract_dir):
+                if "beatrix-1-6_v1_all" in dirs:
+                    beatrix_dir = Path(root) / "beatrix-1-6_v1_all"
+                    break
+
+            if beatrix_dir is None:
+                self.print_error(
+                    "Could not find 'beatrix-1-6_v1_all' directory "
+                    "in downloaded zip"
+                )
+                return False
+
+            dmnd = beatrix_dir / "mobileOG-db-beatrix-1.6.dmnd"
+            if not dmnd.exists():
+                self.print_error(
+                    f"DIAMOND index missing from archive: {dmnd.name}"
+                )
+                return False
+
+            target_beatrix = target_root / "mobileOG-db" / "beatrix-1-6_v1_all"
+            if target_beatrix.exists():
+                shutil.rmtree(target_beatrix)
+            target_beatrix.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(beatrix_dir, target_beatrix)
+
+            dmnd_target = target_beatrix / "mobileOG-db-beatrix-1.6.dmnd"
+            if not dmnd_target.exists():
+                self.print_error(
+                    f"Install verification failed: {dmnd_target} not present"
+                )
+                return False
+
+            size_mb = dmnd_target.stat().st_size / (1024 * 1024)
+            self.print_success(
+                f"mobileOG-db installed to {target_root / 'mobileOG-db'} "
+                f"(DIAMOND index: {size_mb:.0f} MB)"
+            )
+
+            os.environ["ACINETOSCOPE_MGE_DATA_DIR"] = str(
+                target_root / "mobileOG-db"
+            )
+            os.environ["ACINETOSCOPE_MGE_MODULE_PATH"] = str(target_root)
+            return True
+
+        except Exception as e:
+            self.print_error(f"Failed to download/extract mobileOG-db: {e}")
+            return False
+        finally:
+            if temp_zip.exists():
+                temp_zip.unlink()
+            if extract_dir and extract_dir.exists():
+                shutil.rmtree(extract_dir, ignore_errors=True)
+
+    # ------------------------------------------------------------------
     # File helpers
     # ------------------------------------------------------------------
     def get_file_pattern(self, fasta_files: List[Path]) -> str:
@@ -516,7 +660,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         return passed
 
     # ------------------------------------------------------------------
-    # Copy helper 
+    # Copy helper
     # ------------------------------------------------------------------
     def _copy_module_results(self, src: Path, dst: Path,
                              skip_dirs: Optional[Set[str]] = None) -> None:
@@ -760,28 +904,73 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                          threads: int) -> bool:
         """Run the MGE profiler (mobileOG-db).
 
-        Mirrors the EcoliTyper MGE pattern: the whole module (including
-        mobileOG-db/) is copied into the temp dir, files are copied in,
-        results are copied back respecting report_level, and summary-file
-        existence is verified before returning success.
+        Resolves the mobileOG-db payload via get_mge_data_dir():
+          - Docker/Singularity: found inside the packaged mge_module/
+          - Conda + `--pull-mge-db`: found at ~/.local/share/acinetoscope/
+        Either way, the beatrix directory is symlinked (or copied as a
+        fallback) into the temp working directory so MGEFinder.py sees the
+        layout it expects:
+            mobileOG-db/beatrix-1-6_v1_all/mobileOG-db-beatrix-1.6.dmnd
         """
         module_orig = self.get_module_path("mge_module")
         if not module_orig.exists():
             self.print_error(f"mge_module not found: {module_orig}")
             return False
 
+        mge_data = self.get_mge_data_dir()
+        if mge_data is None:
+            self.print_error(
+                "mobileOG-db not found. Run `acinetoscope --pull-mge-db` once, "
+                "or use the Docker/Singularity image (which has it bundled)."
+            )
+            return False
+        self.logger.info(f"Resolved mobileOG-db: {mge_data}")
+
         temp_dir = Path(tempfile.mkdtemp(prefix="acinetoscope_mge_"))
         self._register_temp_dir(temp_dir)
         self.logger.info(f"Temporary directory for mge: {temp_dir}")
 
         try:
+            # Copy the module tree, excluding any existing mobileOG-db —
+            # the resolved copy below is authoritative.
             shutil.copytree(
                 module_orig, temp_dir, dirs_exist_ok=True,
                 ignore=shutil.ignore_patterns(
                     "mge_results", "annotations", "*.fna", "*.fasta",
-                    "__pycache__", "*.pyc",
+                    "mobileOG-db", "__pycache__", "*.pyc",
                 ),
             )
+
+            # Link or copy the resolved mobileOG-db into the temp tree
+            temp_mge = temp_dir / "mobileOG-db"
+            temp_mge.mkdir(parents=True, exist_ok=True)
+
+            beatrix_src = mge_data / "beatrix-1-6_v1_all"
+            if not beatrix_src.exists() and mge_data.name == "beatrix-1-6_v1_all":
+                beatrix_src = mge_data
+            if not beatrix_src.exists():
+                self.print_error(
+                    f"beatrix-1-6_v1_all not found under {mge_data}"
+                )
+                return False
+
+            beatrix_dst = temp_mge / "beatrix-1-6_v1_all"
+            if beatrix_dst.exists() or beatrix_dst.is_symlink():
+                if beatrix_dst.is_symlink() or beatrix_dst.is_file():
+                    beatrix_dst.unlink()
+                else:
+                    shutil.rmtree(beatrix_dst)
+
+            try:
+                os.symlink(beatrix_src.resolve(), beatrix_dst)
+                self.logger.info(f"Symlinked {beatrix_src} -> {beatrix_dst}")
+            except OSError as exc:
+                self.logger.warning(
+                    f"Symlink failed ({exc}); falling back to copy"
+                )
+                shutil.copytree(beatrix_src, beatrix_dst)
+                self.logger.info(f"Copied {beatrix_src} -> {beatrix_dst}")
+
             for f in fasta_files:
                 shutil.copy2(f, temp_dir / f.name)
 
@@ -798,7 +987,12 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                 "-d", "mge_results",
                 "-db_dir", "mobileOG-db/beatrix-1-6_v1_all",
             ]
-            self.print_command(" ".join(cmd))
+            display_pattern = self.get_file_pattern(fasta_files).strip('"')
+            display_cmd = (
+                f"{sys.executable} {script} -i {display_pattern} "
+                f"-d mge_results -db_dir mobileOG-db/beatrix-1-6_v1_all"
+            )
+            self.print_command(display_cmd)
 
             result = subprocess.run(cmd, cwd=temp_dir, capture_output=True,
                                     text=True)
@@ -1364,6 +1558,14 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
 
             # Analysis plan
             self.print_header("Analysis Plan", "Modules to be executed")
+
+            # Warn early if MGE is enabled but the DB is missing
+            if not skip_modules.get('mge', False) and self.get_mge_data_dir() is None:
+                self.print_warning(
+                    "MGE profiling is enabled but mobileOG-db is not installed. "
+                    "Run `acinetoscope --pull-mge-db` first, or add --skip-mge."
+                )
+
             analyses = [
                 ("QC", not skip_modules.get('qc', False)),
                 ("MLST Pasteur", not skip_modules.get('mlst', False) and mlst_scheme in ["pasteur", "both"]),
@@ -1546,12 +1748,25 @@ def main():
   acinetoscope --pull-mlst-db                # clone from GitHub (no API key)
   acinetoscope --update-mlst-db              # refresh from PubMLST (API key required)
 
+  # Pull the MGE profiling database (mobileOG-db, ~300 MB)
+  acinetoscope --pull-mge-db
+
 {ColoredHelpFormatter.BOLD}{ColoredHelpFormatter.GREEN}MLST Database Management:{ColoredHelpFormatter.RESET}
   --pull-mlst-db     : Download a prebuilt A. baumannii MLST database from GitHub.
                        Prunes to Oxford + Pasteur schemes only. No API key needed.
   --update-mlst-db   : Update the MLST database directly from PubMLST.
                        Requires one-time API key setup (see below).
                        Download may take 10-20 minutes depending on internet speed.
+
+{ColoredHelpFormatter.BOLD}{ColoredHelpFormatter.GREEN}MGE Database Management:{ColoredHelpFormatter.RESET}
+  --pull-mge-db      : Download the mobileOG-db payload (~300 MB) from GitHub.
+                       Required once after conda install if you want MGE profiling.
+                       Docker and Singularity users do NOT need this —
+                       the data is already baked into the image.
+
+                       Location: ~/.local/share/acinetoscope/mge_module/mobileOG-db/
+                       Env override: ACINETOSCOPE_MGE_DATA_DIR
+                       Override URL: ACINETOSCOPE_MGE_PULL_URL
 
 {ColoredHelpFormatter.BOLD}{ColoredHelpFormatter.GREEN}PubMLST API Key Setup (for --update-mlst-db):{ColoredHelpFormatter.RESET}
   1. Register/login at https://pubmlst.org/site-accounts
@@ -1571,11 +1786,17 @@ def main():
   ACINETOSCOPE_MLST_DB             MLST database directory
   ACINETOSCOPE_MLST_MODULE_PATH    MLST module root (bin/, db/, perl5/, scripts/)
   ACINETOSCOPE_MLST_PULL_URL       Override default GitHub pull URL
+
+  ACINETOSCOPE_MGE_DATA_DIR        mobileOG-db data directory
+  ACINETOSCOPE_MGE_MODULE_PATH     MGE module root
+  ACINETOSCOPE_MGE_PULL_URL        Override default GitHub pull URL
+
   ACINETOSCOPE_AMRFINDER_BIN_DIR   Directory containing amrfinder + amrfinder_update
   ACINETOSCOPE_AMRFINDER_DB        AMRFinderPlus database versioned directory
 
   Example (HPC with shared DBs on Lustre):
     export ACINETOSCOPE_MLST_DB=/lustre/scratch/dbs/mlst/pubmlst
+    export ACINETOSCOPE_MGE_DATA_DIR=/lustre/scratch/dbs/mge/mobileOG-db
     export ACINETOSCOPE_AMRFINDER_DB=/lustre/scratch/dbs/amrfinder/2026-08-07.1
     acinetoscope -i "*.fna" -o results --report-level final
 
@@ -1650,6 +1871,11 @@ def main():
     parser.add_argument('--update-mlst-db', action='store_true',
                         help='Update A. baumannii MLST database from PubMLST (API key required)')
 
+    # MGE DB management
+    parser.add_argument('--pull-mge-db', action='store_true',
+                        help='Pull the mobileOG-db payload (MGE profiling data) '
+                             'from GitHub (~300 MB, no API key)')
+
     # AMR flags
     parser.add_argument('--amr-min-identity', type=float, help='Minimum identity for AMR hits (0..1)')
     parser.add_argument('--amr-min-coverage', type=float, help='Minimum coverage for AMR hits (0..1)')
@@ -1697,9 +1923,18 @@ def main():
             shutil.rmtree(temp_log_dir, ignore_errors=True)
         sys.exit(0 if success else 1)
 
+    if args.pull_mge_db:
+        orch = AcinetoScopeOrchestrator()
+        temp_log_dir = Path(tempfile.mkdtemp(prefix="acinetoscope_mge_db_"))
+        orch.setup_logging(temp_log_dir)
+        success = orch.pull_mge_database()
+        if not orch.keep_temp:
+            shutil.rmtree(temp_log_dir, ignore_errors=True)
+        sys.exit(0 if success else 1)
+
     if not args.input or not args.output:
         parser.error("Both -i/--input and -o/--output are required "
-                     "(unless using --update-amr-db / --pull-mlst-db / --update-mlst-db).")
+                     "(unless using --update-amr-db / --pull-mlst-db / --update-mlst-db / --pull-mge-db).")
 
     # Guard: report_level=final requires at least one reporter
     if args.report_level == 'final' and args.skip_gene_centric and args.skip_sample_centric:
