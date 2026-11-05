@@ -333,7 +333,7 @@ class AcinetoMGETyper:
 
         self.tool_metadata = {
             "tool_name": "AcinetoScope MGEFinder",
-            "version": "1.4.0",
+            "version": "1.4.2",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
@@ -343,11 +343,12 @@ class AcinetoMGETyper:
             "thresholds": f"identity >= {self.min_id}%, query coverage >= {self.min_cov}%, e-value <= {self.max_evalue:.0e}",
         }
 
+        # ------------------------------------------------------------------
         self.ascii_art = r"""
  █████╗  ██████╗██╗███╗   ██╗███████╗████████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
 ██╔══██╗██╔════╝██║████╗  ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
-███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗
-██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝
+███████║██║     ██║██╔██╗ ██║█████╗     ██║   ██║   ██║███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══██║██║     ██║██║╚██╗██║██╔══╝     ██║   ██║   ██║╚════██║██║     ██║   ██║██╔═══╝ ██╔══╝  
 ██║  ██║╚██████╗██║██║ ╚████║███████╗   ██║   ╚██████╔╝███████║╚██████╗╚██████╔╝██║     ███████╗
 ╚═╝  ╚═╝ ╚═════╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚══════╝
 """.strip("\n")
@@ -567,15 +568,18 @@ class AcinetoMGETyper:
             background: rgba(0, 0, 0, 0.9); padding: 20px; border-radius: 15px;
             margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             border: 2px solid rgba(0, 255, 0, 0.3); overflow-x: auto;
+            text-align: center;
         }
         pre.ascii-art {
             font-family: 'Consolas', 'Courier New', 'DejaVu Sans Mono',
-                         'Liberation Mono', 'Menlo', 'Monaco', monospace;
+                        'Liberation Mono', 'Menlo', 'Monaco', monospace;
             font-size: 12px; line-height: 1.05; white-space: pre;
             color: #00ff00; text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
             font-variant-ligatures: none; font-kerning: none;
-            letter-spacing: 0; word-spacing: 0; margin: 0; padding: 0;
-            display: inline-block; min-width: max-content; tab-size: 4;
+            letter-spacing: 0; word-spacing: 0; margin: 0 auto;
+            padding: 0; display: block;
+            width: max-content; max-width: 100%;
+            tab-size: 4;
         }
         @media (max-width: 768px) { pre.ascii-art { font-size: 6px; } }
         """
@@ -627,7 +631,7 @@ class AcinetoMGETyper:
         """
 
     # ------------------------------------------------------------------
-    # Per-genome pipeline 
+    # Per-genome pipeline
     # ------------------------------------------------------------------
     def run(self, assembly_path: Path, diamond_threads: Optional[int] = None) -> SampleResult:
         sample_name = assembly_path.stem
@@ -1025,7 +1029,7 @@ class AcinetoMGETyper:
             "source_bacteriophage", "source_multiple",
             "detected_elements",
         ]
-        with open(output_path, "w") as fh:
+        with open(output_path, "w", encoding="utf-8") as fh:
             fh.write("\t".join(columns) + "\n")
             for r in results:
                 counts = r.category_counts
@@ -1103,8 +1107,8 @@ class AcinetoMGETyper:
                 "warnings": r.warnings,
                 "contig_source_class_composition": r.contig_purity,
             })
-        with open(output_path, "w") as fh:
-            json.dump(payload, fh, indent=2)
+        with open(output_path, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, indent=2, ensure_ascii=False)
 
     def _create_summary_html(self, results: List[SampleResult], output_path: Path, elapsed: float) -> None:
         total = len(results)

@@ -45,7 +45,7 @@ class AcinetoFASTAQC:
 
         self.metadata = {
             "tool_name": "AcinetoScope FASTA QC Analysis",
-            "version": "1.4.1",
+            "version": "1.4.2",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",

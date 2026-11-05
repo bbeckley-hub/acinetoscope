@@ -4,7 +4,7 @@ AcinetoScope Plasmid Typing Module - AcinetobacterPlasmidTyping (APT)
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
 Date: 2026-07-17 (updated 2026-10-29) (updated 2026-11-01)
-Version: 1.4.1
+Version: 1.4.2
 
 Uses APT database v3.0 (Feb 2025) for Acinetobacter plasmid rep typing.
 
@@ -51,7 +51,7 @@ class AcinetoPlasmidTyper:
 
         self.metadata = {
             "tool_name": "AcinetoScope Plasmid Typing",
-            "version": "1.4.1",
+            "version": "1.4.2",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",

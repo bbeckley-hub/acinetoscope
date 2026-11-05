@@ -18,3 +18,4 @@ dist/
 # Large files
 *.LIB
 test/GCA_*.zip
+acinetoscope/modules/mlst_module/db/

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##### EcoliTyper Quick Cleanup Script
+###### EcoliTyper Quick Cleanup Script
 echo "🧹 EcoliTyper Quick Cleanup"
 
 # Remove build directories

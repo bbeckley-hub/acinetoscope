@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 """
-AcinetoScope Main Orchestrator - v1.4.1
+AcinetoScope Main Orchestrator - v1.4.2
 All module writes happen in /tmp, final results are copied to user output.
 HPC / Docker-friendly with full flag support.
+
+Changelog (1.4.2):
+  • FIX: MLST "Permission denied: 'bin/mlst'" after temp-dir copy.
+    shutil.copytree preserves mode bits, and the conda 1.4.1 package
+    ships bin/mlst as 0644. Added _restore_exec_bits() helper that adds
+    the exec bit to anything under bin/ or scripts/ (or with a
+    .pl/.sh/.py/.rb extension) after the copytree in run_mlst_analysis
+    and after the pull in pull_mlst_database.
+  • FIX: get_module_path now honours both ACINETOSCOPE_<NAME>_MODULE_PATH
+    and ACINETOSCOPE_<NAME>_PATH. pull_mlst_database sets the latter,
+    which run_mlst_analysis was silently ignoring.
 
 Changelog (1.4.1):
   • NEW: MGE module (mobileOG-db) integrated into the pipeline
   • NEW: --pull-mge-db downloads mobileOG-db to a writable location
-    (conda users only; Docker/Singularity already bundle the data)
   • NEW: Species gate (FASTA_QC_species_passed.txt) filters downstream modules
   • NEW: --skip-mge flag
   • NEW: Citations printed at end of every run + in --help epilog
@@ -28,7 +38,7 @@ Changelog (1.3.3):
 
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
-Date: 2026-08-22 / 2026-10-24 / 2026-10-29 / 2026-11-04
+Date: 2026-08-22 / 2026-10-24 / 2026-10-29 / 2026-11-04 / 2026-11-05
 """
 
 import os
@@ -48,7 +58,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Set
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 
 # ----------------------------------------------------------------------
@@ -334,10 +344,18 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
     # Path resolution (HPC / Docker friendly)
     # ------------------------------------------------------------------
     def get_module_path(self, module_name: str) -> Path:
-        """Return module dir with env override + packaged + dev fallback."""
-        env_override = os.environ.get(f'ACINETOSCOPE_{module_name.upper()}_MODULE_PATH')
-        if env_override:
-            return Path(env_override)
+        """Return module dir with env override + packaged + dev fallback.
+
+        Checks both ACINETOSCOPE_<NAME>_MODULE_PATH and ACINETOSCOPE_<NAME>_PATH
+        so that pull_mlst_database()'s ACINETOSCOPE_MLST_MODULE_PATH override
+        is honoured by callers of get_module_path("mlst_module").
+        """
+        for suffix in ("MODULE_PATH", "PATH"):
+            env_override = os.environ.get(
+                f'ACINETOSCOPE_{module_name.upper()}_{suffix}'
+            )
+            if env_override:
+                return Path(env_override)
         if hasattr(sys, 'prefix'):
             share_path = Path(sys.prefix) / "share" / "acinetoscope" / "modules" / module_name
             if share_path.exists():
@@ -401,6 +419,41 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             if (db_dir / "pubmlst" / scheme).exists():
                 return True
         return False
+
+    @staticmethod
+    def _restore_exec_bits(root: Path, logger=None) -> int:
+        """Restore +x on files under root that should be runnable.
+
+        Zip extraction, some conda package builds, and a few NFS
+        configurations strip the Unix executable bit. Without this,
+        calling bin/mlst from inside mlst_module.py fails with
+        PermissionError (Errno 13).
+
+        Adds exec bits without touching read/write bits, so an already-755
+        file is unchanged. Returns the count of files touched.
+        """
+        if not root.exists():
+            return 0
+        executable_exts = {".pl", ".sh", ".py", ".rb"}
+        count = 0
+        for f in root.rglob("*"):
+            if not f.is_file():
+                continue
+            try:
+                parent_is_bin = f.parent.name in ("bin", "scripts")
+                is_script = f.suffix.lower() in executable_exts
+                if not (parent_is_bin or is_script):
+                    continue
+                current = f.stat().st_mode
+                new_mode = current | 0o111
+                if new_mode != current:
+                    f.chmod(new_mode)
+                    count += 1
+            except Exception:
+                pass
+        if logger and count > 0:
+            logger.info(f"Restored execute bit on {count} file(s) under {root}")
+        return count
 
     def get_amrfinder_paths(self) -> tuple:
         """Resolve AMRFinderPlus bin + db directories (env override or bundled)."""
@@ -497,7 +550,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         repo_url = os.environ.get(
             "ACINETOSCOPE_MGE_PULL_URL",
             "https://github.com/bbeckley-hub/acinetoscope/releases/download/"
-            "v1.4.1/acinetoscope-mge-data-v1.4.1.zip",
+            "v1.4.2/acinetoscope-mge-data-v1.4.2.zip",
         )
         temp_zip = Path(tempfile.mktemp(suffix=".zip"))
         extract_dir = None
@@ -708,6 +761,9 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             shutil.copytree(module_orig, temp_dir / module_name, dirs_exist_ok=True,
                             ignore=shutil.ignore_patterns(*ignore_patterns))
 
+            # Restore exec bits on bin/ and scripts/ after copy
+            self._restore_exec_bits(temp_dir / module_name, logger=self.logger)
+
             # QC module: copy ref_db to temp root so its script finds it
             ref_db_src = module_orig / "ref_db"
             if ref_db_src.exists():
@@ -785,6 +841,9 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
             module_orig = self.get_module_path("mlst_module")
             shutil.copytree(module_orig, temp_dir, dirs_exist_ok=True,
                             ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+            # Restore +x on bin/mlst and other scripts; copytree preserves
+            # mode bits, and the conda 1.4.2 package ships bin/mlst as 0644.
+            self._restore_exec_bits(temp_dir, logger=self.logger)
             for f in fasta_files:
                 shutil.copy2(f, temp_dir / f.name)
 
@@ -940,6 +999,9 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                     "mobileOG-db", "__pycache__", "*.pyc",
                 ),
             )
+
+            # Restore exec bits on scripts after copy
+            self._restore_exec_bits(temp_dir, logger=self.logger)
 
             # Link or copy the resolved mobileOG-db into the temp tree
             temp_mge = temp_dir / "mobileOG-db"
@@ -1138,6 +1200,11 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
                 else:
                     self.print_warning(f"'{dirname}' not found in repository, skipping.")
 
+            # Restore +x on pulled bin/mlst and scripts/ since copytree
+            # preserves mode bits and the archive may carry 0644.
+            self._restore_exec_bits(target_path / "bin", logger=self.logger)
+            self._restore_exec_bits(target_path / "scripts", logger=self.logger)
+
             if target_path != system_path:
                 for script in ['mlst_module.py', 'mlst_database.sh']:
                     src_script = system_path / script
@@ -1260,6 +1327,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         try:
             shutil.copytree(module_orig, temp_dir, dirs_exist_ok=True,
                             ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+            self._restore_exec_bits(temp_dir, logger=self.logger)
 
             # Copy required HTMLs from module output dirs to reporter work dir
             html_files = {
@@ -1346,6 +1414,7 @@ Affiliation: University of Ghana Medical School - Department of Medical Biochemi
         try:
             shutil.copytree(module_orig, temp_dir, dirs_exist_ok=True,
                             ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+            self._restore_exec_bits(temp_dir, logger=self.logger)
 
             sample_files = {
                 "acineto_amrfinder_summary.tsv": DIR_AMRFINDER,

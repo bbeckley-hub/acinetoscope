@@ -5,7 +5,7 @@ Comprehensive AMR analysis with HTML, TSV, and JSON reporting - MAXIMUM SPEED VE
 Author: Brown Beckley <brownbeckley94@gmail.com>
 Affiliation: University of Ghana Medical School - Department of Medical Biochemistry
 Date: 2026-08-22 (updated 2026-11-01)
-Version: 1.4.1
+Version: 1.4.2
 
 Per-genome outputs (2 files each):
   - {genome}_amrfinder_report.html   (AMR genes + point mutations combined)
@@ -60,7 +60,7 @@ class AcinetoAMRfinderPlus:
 
         self.metadata = {
             "tool_name": "AcinetoScope AMRfinderPlus",
-            "version": "1.4.1",
+            "version": "1.4.2",
             "authors": ["Brown Beckley"],
             "email": "brownbeckley94@gmail.com",
             "github": "https://github.com/bbeckley-hub",
